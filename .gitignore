@@ -35,3 +35,5 @@
 /MsiSetup/Sources/ProgramFiles/
 /ImmenseWall/obj/Debug
 /ImmenseWall/bin/Debug
+/ImmenseWall/obj/Release
+/ImmenseWall/bin/Release
