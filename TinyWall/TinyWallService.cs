@@ -197,10 +197,7 @@ namespace pylorak.TinyWall
                 {
                     timer.NewSubTask("Rule inheritance processing");
 
-                    var sbuilder = new StringBuilder(1024);
-                    var procTree = new Dictionary<uint, ProcessSnapshotEntry>();
-                    foreach (var p in ProcessManager.CreateToolhelp32SnapshotExtended())
-                        procTree.Add(p.ProcessId, p);
+                    var procTree = ProcessManager.CreateToolhelp32SnapshotExtended().ToDictionary(p => p.ProcessId);
 
                     // This list will hold parents that we already checked for a process.
                     // Used to avoid inf. loop when parent-PID info is unreliable.
@@ -1988,12 +1985,9 @@ namespace pylorak.TinyWall
             _serverPipe.Dispose();
             _processStartWatcher.Dispose();
 
-            if (_minuteTimer != null)
-            {
-                using WaitHandle wh = new AutoResetEvent(false);
-                _minuteTimer.Dispose(wh);
-                wh.WaitOne();
-            }
+            using WaitHandle wh = new AutoResetEvent(false);
+            _minuteTimer.Dispose(wh);
+            wh.WaitOne();
 
             _ruleReloadEventMerger.Dispose();
             _localSubnetFilterConditions.Dispose();
@@ -2058,9 +2052,8 @@ namespace pylorak.TinyWall
             try
             {
                 using (_server = new TinyWallServer())
-                {
                     _server.Run(this);
-                }
+
             }
             finally
             {
@@ -2078,7 +2071,7 @@ namespace pylorak.TinyWall
         // Entry point for Windows service.
         protected override void OnStart(string[] args)
         {
-            // Initialization on a new thread prevents stalling the SCM
+            // Initialisation on a new thread prevents stalling the SCM
             _firewallWorkerThread = new Thread(FirewallWorkerMethod)
             {
                 Name = "ServiceMain"
