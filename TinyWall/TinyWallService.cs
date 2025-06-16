@@ -197,7 +197,10 @@ namespace pylorak.TinyWall
                 {
                     timer.NewSubTask("Rule inheritance processing");
 
-                    var procTree = ProcessManager.CreateToolhelp32SnapshotExtended().ToDictionary(p => p.ProcessId);
+                    var sbuilder = new StringBuilder(1024);
+                    var procTree = new Dictionary<uint, ProcessSnapshotEntry>();
+                    foreach (var p in ProcessManager.CreateToolhelp32SnapshotExtended())
+                        procTree.Add(p.ProcessId, p);
 
                     // This list will hold parents that we already checked for a process.
                     // Used to avoid inf. loop when parent-PID info is unreliable.
@@ -903,8 +906,8 @@ namespace pylorak.TinyWall
 #if DEBUG
                 throw new InvalidOperationException("Firewall exception specification must have an ID.");
 #else
-                ex.RegenerateId();
-                GlobalInstances.ServerChangeset = Guid.NewGuid();
+				ex.RegenerateId();
+				GlobalInstances.ServerChangeset = Guid.NewGuid();
 #endif
             }
 
@@ -1096,182 +1099,182 @@ namespace pylorak.TinyWall
         }
 
 #if !DEBUG
-        private DateTime? _lastUpdateCheck;
-        private const string LastUpdateCheckFilename = "updatecheck";
-        private DateTime LastUpdateCheck
-        {
-            get
-            {
-                if (!_lastUpdateCheck.HasValue)
-                {
-                    try
-                    {
-                        string filePath = Path.Combine(Utils.AppDataPath, LastUpdateCheckFilename);
-                        if (File.Exists(filePath))
-                        {
-                            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                            using var sr = new StreamReader(fs, Encoding.UTF8);
-                            _lastUpdateCheck = DateTime.Parse(sr.ReadLine());
-                        }
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                }
+		private DateTime? _lastUpdateCheck;
+		private const string LastUpdateCheck_FILENAME = "updatecheck";
+		private DateTime LastUpdateCheck
+		{
+			get
+			{
+				if (!_lastUpdateCheck.HasValue)
+				{
+					try
+					{
+						string filePath = Path.Combine(Utils.AppDataPath, LastUpdateCheck_FILENAME);
+						if (File.Exists(filePath))
+						{
+							using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+							using var sr = new StreamReader(fs, Encoding.UTF8);
+							_lastUpdateCheck = DateTime.Parse(sr.ReadLine());
+						}
+					}
+					catch
+					{
+						// ignored
+					}
+				}
 
-                _lastUpdateCheck ??= DateTime.MinValue;
-                if (_lastUpdateCheck.Value > DateTime.Now)
-                    _lastUpdateCheck = DateTime.MinValue;
+				_lastUpdateCheck ??= DateTime.MinValue;
+				if (_lastUpdateCheck.Value > DateTime.Now)
+					_lastUpdateCheck = DateTime.MinValue;
 
-                return _lastUpdateCheck.Value;
-            }
+				return _lastUpdateCheck.Value;
+			}
 
-            set
-            {
-                _lastUpdateCheck = value;
+			set
+			{
+				_lastUpdateCheck = value;
 
-                try
-                {
-                    string filePath = Path.Combine(Utils.AppDataPath, LastUpdateCheckFilename);
-                    using var afu = new AtomicFileUpdater(filePath);
-                    using (var fs = new FileStream(afu.TemporaryFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    {
-                        using var sw = new StreamWriter(fs, Encoding.UTF8);
-                        sw.WriteLine(value.ToString("O"));
-                    }
-                    afu.Commit();
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
+				try
+				{
+					string filePath = Path.Combine(Utils.AppDataPath, LastUpdateCheck_FILENAME);
+					using var afu = new AtomicFileUpdater(filePath);
+					using (var fs = new FileStream(afu.TemporaryFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+					{
+						using var sw = new StreamWriter(fs, Encoding.UTF8);
+						sw.WriteLine(value.ToString("O"));
+					}
+					afu.Commit();
+				}
+				catch
+				{
+					// ignored
+				}
+			}
+		}
 
-        private void UpdaterMethod()
-        {
-            UpdateDescriptor? update = null;
-            try
-            {
-                if (DateTime.Now - LastUpdateCheck >= TimeSpan.FromDays(2))
-                {
-                    LastUpdateCheck = DateTime.Now;
-                    update = UpdateChecker.GetDescriptor();
-                }
-            }
-            catch
-            {
-                // This is an automatic update check in the background.
-                // If we fail (for whatever reason, no internet, server down etc.),
-                // we fail silently.
-                return;
-            }
+		private void UpdaterMethod()
+		{
+			UpdateDescriptor? update = null;
+			try
+			{
+				if (DateTime.Now - LastUpdateCheck >= TimeSpan.FromDays(2))
+				{
+					LastUpdateCheck = DateTime.Now;
+					update = UpdateChecker.GetDescriptor();
+				}
+			}
+			catch
+			{
+				// This is an automatic update check in the background.
+				// If we fail (for whatever reason, no internet, server down etc.),
+				// we fail silently.
+				return;
+			}
 
-            if (update is null)
-                return;
+			if (update is null)
+				return;
 
-            _visibleState.Update = update;
-            GlobalInstances.ServerChangeset = Guid.NewGuid();
+			_visibleState.Update = update;
+			GlobalInstances.ServerChangeset = Guid.NewGuid();
 
-            try
-            {
-                UpdateModule? module = UpdateChecker.GetDatabaseFileModule(_visibleState.Update);
-                if (module is not null)
-                {
-                    if (!string.Equals(module.DownloadHash, Hasher.HashFile(DatabaseClasses.AppDatabase.DBPath), StringComparison.OrdinalIgnoreCase))
-                    {
-                        GetCompressedUpdate(module, DatabaseUpdateInstall);
-                    }
-                }
+			try
+			{
+				UpdateModule? module = UpdateChecker.GetDatabaseFileModule(_visibleState.Update);
+				if (module is not null)
+				{
+					if (!string.Equals(module.DownloadHash, Hasher.HashFile(DatabaseClasses.AppDatabase.DBPath), StringComparison.OrdinalIgnoreCase))
+					{
+						GetCompressedUpdate(module, DatabaseUpdateInstall);
+					}
+				}
 
-                module = UpdateChecker.GetHostsFileModule(_visibleState.Update);
-                if (module is not null)
-                {
-                    if (!string.Equals(module.DownloadHash, HostsFileManager.GetHostsHash(), StringComparison.OrdinalIgnoreCase))
-                    {
-                        GetCompressedUpdate(module, HostsUpdateInstall);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Utils.LogException(e, Utils.LOG_ID_SERVICE);
-            }
-        }
+				module = UpdateChecker.GetHostsFileModule(_visibleState.Update);
+				if (module is not null)
+				{
+					if (!string.Equals(module.DownloadHash, HostsFileManager.GetHostsHash(), StringComparison.OrdinalIgnoreCase))
+					{
+						GetCompressedUpdate(module, HostsUpdateInstall);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Utils.LogException(e, Utils.LOG_ID_SERVICE);
+			}
+		}
 
-        private static void GetCompressedUpdate(UpdateModule module, WaitCallback installMethod)
-        {
-            var tmpCompressedPath = Path.GetTempFileName();
-            var tmpFile = Path.GetTempFileName();
-            try
-            {
-                using (var downloader = new WebClient())
-                {
-                    if (module.UpdateURL != null) downloader.DownloadFile(module.UpdateURL, tmpCompressedPath);
-                }
-                Utils.DecompressDeflate(tmpCompressedPath, tmpFile);
+		private static void GetCompressedUpdate(UpdateModule module, WaitCallback installMethod)
+		{
+			var tmpCompressedPath = Path.GetTempFileName();
+			var tmpFile = Path.GetTempFileName();
+			try
+			{
+				using (var downloader = new WebClient())
+				{
+					if (module.UpdateURL != null) downloader.DownloadFile(module.UpdateURL, tmpCompressedPath);
+				}
+				Utils.DecompressDeflate(tmpCompressedPath, tmpFile);
 
-                if (Hasher.HashFile(tmpFile).Equals(module.DownloadHash, StringComparison.OrdinalIgnoreCase))
-                    installMethod(tmpFile);
-            }
-            catch
-            {
-                // ignored
-            }
-            finally
-            {
-                try
-                {
-                    File.Delete(tmpCompressedPath);
-                }
-                catch
-                {
-                    // ignored
-                }
+				if (Hasher.HashFile(tmpFile).Equals(module.DownloadHash, StringComparison.OrdinalIgnoreCase))
+					installMethod(tmpFile);
+			}
+			catch
+			{
+				// ignored
+			}
+			finally
+			{
+				try
+				{
+					File.Delete(tmpCompressedPath);
+				}
+				catch
+				{
+					// ignored
+				}
 
-                try
-                {
-                    File.Delete(tmpFile);
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
+				try
+				{
+					File.Delete(tmpFile);
+				}
+				catch
+				{
+					// ignored
+				}
+			}
+		}
 
-        private void HostsUpdateInstall(object file)
-        {
-            var tmpHostsPath = (string)file;
-            _hostsFileManager.UpdateHostsFile(tmpHostsPath);
+		private void HostsUpdateInstall(object file)
+		{
+			var tmpHostsPath = (string)file;
+			_hostsFileManager.UpdateHostsFile(tmpHostsPath);
 
-            if (ActiveConfig.Service.Blocklists.EnableBlocklists
-                && ActiveConfig.Service.Blocklists.EnableHostsBlocklist)
-            {
-                _hostsFileManager.EnableHostsFile();
-            }
-        }
-        private void DatabaseUpdateInstall(object file)
-        {
-            var tmpFilePath = (string)file;
+			if (ActiveConfig.Service.Blocklists.EnableBlocklists
+				&& ActiveConfig.Service.Blocklists.EnableHostsBlocklist)
+			{
+				_hostsFileManager.EnableHostsFile();
+			}
+		}
+		private void DatabaseUpdateInstall(object file)
+		{
+			var tmpFilePath = (string)file;
 
-            _fileLocker.Unlock(DatabaseClasses.AppDatabase.DBPath);
-            using (var afu = new AtomicFileUpdater(DatabaseClasses.AppDatabase.DBPath))
-            {
-                File.Copy(tmpFilePath, afu.TemporaryFilePath, true);
-                afu.Commit();
-            }
-            _fileLocker.Lock(DatabaseClasses.AppDatabase.DBPath, FileAccess.Read, FileShare.Read);
-            NotifyController(MessageType.DATABASE_UPDATED);
-            _q.Add(new TwRequest(TwMessageSimple.CreateRequest(MessageType.REINIT)));
-        }
+			_fileLocker.Unlock(DatabaseClasses.AppDatabase.DBPath);
+			using (var afu = new AtomicFileUpdater(DatabaseClasses.AppDatabase.DBPath))
+			{
+				File.Copy(tmpFilePath, afu.TemporaryFilePath, true);
+				afu.Commit();
+			}
+			_fileLocker.Lock(DatabaseClasses.AppDatabase.DBPath, FileAccess.Read, FileShare.Read);
+			NotifyController(MessageType.DATABASE_UPDATED);
+			_q.Add(new TwRequest(TwMessageSimple.NewRequest(MessageType.REINIT)));
+		}
 
-        private void NotifyController(MessageType msg)
-        {
-            _visibleState.ClientNotifs.Add(msg);
-            GlobalInstances.ServerChangeset = Guid.NewGuid();
-        }
+		private void NotifyController(MessageType msg)
+		{
+			_visibleState.ClientNotifs.Add(msg);
+			GlobalInstances.ServerChangeset = Guid.NewGuid();
+		}
 #endif
 
         internal void TimerCallback(Object state)
@@ -1291,16 +1294,15 @@ namespace pylorak.TinyWall
 
         private bool CommitLearnedRules()
         {
-            bool configChanged = false;
+            var configChanged = false;
             lock (_learningNewExceptions)
             {
-                if (_learningNewExceptions.Count > 0)
-                {
-                    GlobalInstances.ServerChangeset = Guid.NewGuid();
-                    ActiveConfig.Service.ActiveProfile.AddExceptions(_learningNewExceptions);
-                    _learningNewExceptions.Clear();
-                    configChanged = true;
-                }
+                if (_learningNewExceptions.Count <= 0) return configChanged;
+
+                GlobalInstances.ServerChangeset = Guid.NewGuid();
+                ActiveConfig.Service.ActiveProfile.AddExceptions(_learningNewExceptions);
+                _learningNewExceptions.Clear();
+                configChanged = true;
             }
 
             return configChanged;
@@ -1522,8 +1524,8 @@ namespace pylorak.TinyWall
                 case MessageType.MINUTE_TIMER:
                     {
                         var args = (TwMessageSimple)req;
-                        bool saveNeeded = false;
-                        bool ruleReloadNeeded = false;
+                        var saveNeeded = false;
+                        var ruleReloadNeeded = false;
 
                         // Check for inactivity and lock if necessary
                         if (DateTime.Now - _lastControllerCommandTime > TimeSpan.FromMinutes(10))
@@ -1554,11 +1556,11 @@ namespace pylorak.TinyWall
                         }
 
 #if !DEBUG
-                        // Check for updates once every 2 days
-                        if (ActiveConfig.Service.AutoUpdateCheck)
-                        {
-                            UpdaterMethod();
-                        }
+						// Check for updates once every 2 days
+						if (ActiveConfig.Service.AutoUpdateCheck)
+						{
+							UpdaterMethod();
+						}
 #endif
 
                         return args.CreateResponse();
@@ -1749,8 +1751,8 @@ namespace pylorak.TinyWall
             mountPointsWatcher.Enabled = true;
             service.FinishStateChange();
 #if !DEBUG
-            // Basic software health checks
-            TinyWallDoctor.EnsureHealth(Utils.LOG_ID_SERVICE);
+			// Basic software health checks
+			TinyWallDoctor.EnsureHealth(Utils.LOG_ID_SERVICE);
 #endif
 
             _minuteTimer.Change(60000, 60000);
@@ -2006,8 +2008,8 @@ namespace pylorak.TinyWall
             _q.Dispose();
 
 #if !DEBUG
-            // Basic software health checks
-            TinyWallDoctor.EnsureHealth(Utils.LOG_ID_SERVICE);
+			// Basic software health checks
+			TinyWallDoctor.EnsureHealth(Utils.LOG_ID_SERVICE);
 #else
             using (var wfp = new Engine("TinyWall Cleanup Session", "", FWPM_SESSION_FLAGS.None, 5000))
             using (var trx = wfp.BeginTransaction())
@@ -2023,7 +2025,7 @@ namespace pylorak.TinyWall
 
     internal sealed class TinyWallService : ServiceBase
     {
-        internal readonly static string[] ServiceDependencies = new string[]
+        internal static readonly string[] ServiceDependencies = new string[]
         {
             "Schedule",
             "Winmgmt",
@@ -2031,12 +2033,14 @@ namespace pylorak.TinyWall
         };
 
         internal const string SERVICE_NAME = "TinyWall";
+
         internal const string SERVICE_DISPLAY_NAME = "TinyWall Service";
 
         private TinyWallServer? _server;
+
         private Thread? _firewallWorkerThread;
 #if !DEBUG
-        private bool _isComputerShuttingDown;
+		private bool IsComputerShuttingDown;
 #endif
         internal TinyWallService()
         {
@@ -2061,12 +2065,12 @@ namespace pylorak.TinyWall
             finally
             {
 #if !DEBUG
-                Thread.MemoryBarrier();
-                if (!_isComputerShuttingDown)    // cannot set service state if a shutdown is already in progress
-                {
-                    SetServiceStateReached(ServiceState.Stopped);
-                }
-                Process.GetCurrentProcess().Kill();
+				Thread.MemoryBarrier();
+				if (!IsComputerShuttingDown)    // cannot set service state if a shutdown is already in progress
+				{
+					SetServiceStateReached(ServiceState.Stopped);
+				}
+				Process.GetCurrentProcess().Kill();
 #endif
             }
         }
@@ -2100,7 +2104,7 @@ namespace pylorak.TinyWall
         protected override void OnShutdown()
         {
 #if !DEBUG
-            _isComputerShuttingDown = true;
+			IsComputerShuttingDown = true;
 #endif
             StartStateChange(ServiceState.StopPending);
         }
