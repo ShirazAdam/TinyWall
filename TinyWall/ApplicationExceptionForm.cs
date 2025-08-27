@@ -11,8 +11,8 @@ namespace pylorak.TinyWall
 {
     internal partial class ApplicationExceptionForm : Form
     {
-	    private static readonly char[] PORT_LIST_SEPARATORS = new char[] { ',' };
-			
+        private static readonly char[] PortListSeparators = { ',' };
+
         internal List<FirewallExceptionV3> ExceptionSettings { get; } = new();
 
         internal ApplicationExceptionForm(FirewallExceptionV3 firewallExceptionV3)
@@ -33,8 +33,8 @@ namespace pylorak.TinyWall
             try
             {
                 var type = transparentLabel1.GetType();
-                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                MethodInfo? method = type.GetMethod("SetStyle", flags);
+                const BindingFlags FLAGS = BindingFlags.NonPublic | BindingFlags.Instance;
+                MethodInfo? method = type.GetMethod("SetStyle", FLAGS);
 
                 if (method != null)
                 {
@@ -54,7 +54,7 @@ namespace pylorak.TinyWall
             if (firewallExceptionV3 is not null)
             {
                 ExceptionSettings.Add(firewallExceptionV3);
-                UpdateUI();
+                UpdateUi();
             }
 
             panel1.Location = new System.Drawing.Point(0, 0);
@@ -123,7 +123,7 @@ namespace pylorak.TinyWall
         {
         }
 
-        private void UpdateUI()
+        private void UpdateUi()
         {
             var index = ExceptionSettings.Count - 1;
 
@@ -153,7 +153,7 @@ namespace pylorak.TinyWall
             {
                 var packageList = new UwpPackageList();
                 var package = packageList.FindPackage(uwpSubj.Sid);
-				
+
                 if (package.HasValue && (package.Value.Tampered != UwpPackageList.TamperedState.Unknown))
                 {
                     hasSignature = true;
@@ -290,7 +290,7 @@ namespace pylorak.TinyWall
                 return string.Empty;
 
             // Check validity
-            string[] elems = res.Split(PORT_LIST_SEPARATORS, StringSplitOptions.RemoveEmptyEntries);
+            string[] elems = res.Split(PortListSeparators, StringSplitOptions.RemoveEmptyEntries);
 
             res = string.Empty;
 
@@ -325,14 +325,14 @@ namespace pylorak.TinyWall
 
         private async void btnOK_Click(object sender, EventArgs e)
         {
-            Parallel.For(0, ExceptionSettings.Count - 1, (i, state) =>
+            Parallel.For(0, ExceptionSettings.Count - 1, (i, _) =>
             {
                 ExceptionSettings[i].ChildProcessesInherit = chkInheritToChildren.Checked;
             });
 
             if (radBlock.Checked)
             {
-                Parallel.For(0, ExceptionSettings.Count - 1, (i, state) =>
+                Parallel.For(0, ExceptionSettings.Count - 1, (i, _) =>
                 {
                     ExceptionSettings[i].Policy = HardBlockPolicy.Instance;
                 });
@@ -349,7 +349,7 @@ namespace pylorak.TinyWall
                     pol.AllowedLocalTcpListenerPorts = await Task.Run(() => CleanupPortsList(txtListenPortTCP.Text));
                     pol.AllowedLocalUdpListenerPorts = await Task.Run(() => CleanupPortsList(txtListenPortUDP.Text));
 
-                    Parallel.For(0, ExceptionSettings.Count - 1, (i, state) =>
+                    Parallel.For(0, ExceptionSettings.Count - 1, (i, _) =>
                     {
                         ExceptionSettings[i].Policy = pol;
                     });
@@ -373,7 +373,7 @@ namespace pylorak.TinyWall
                     LocalNetworkOnly = chkRestrictToLocalNetwork.Checked
                 };
 
-                Parallel.For(0, ExceptionSettings.Count - 1, (i, state) =>
+                Parallel.For(0, ExceptionSettings.Count - 1, (i, _) =>
                 {
                     ExceptionSettings[i].Policy = pol;
                 });
@@ -381,7 +381,7 @@ namespace pylorak.TinyWall
             }
 
             var dateTimeNow = DateTime.Now;
-            Parallel.For(0, ExceptionSettings.Count - 1, (i, state) =>
+            Parallel.For(0, ExceptionSettings.Count - 1, (i, _) =>
             {
                 ExceptionSettings[i].CreationDate = dateTimeNow;
             });
@@ -450,7 +450,7 @@ namespace pylorak.TinyWall
 
             ExceptionSettings.AddRange(exceptions);
 
-            UpdateUI();
+            UpdateUi();
         }
 
         private void cmbTimer_SelectedIndexChanged(object sender, EventArgs e)
