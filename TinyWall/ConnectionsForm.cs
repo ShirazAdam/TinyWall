@@ -39,12 +39,9 @@ namespace pylorak.TinyWall
             IconList.Images.Add("network-drive", Icons.network_drive_small);
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
+        private void BtnClose_Click(object sender, EventArgs e) => Close();
 
-        private string GetPathFromPidCached(Dictionary<uint, string> cache, uint pid)
+        private static string GetPathFromPidCached(Dictionary<uint, string> cache, uint pid)
         {
             if (cache.TryGetValue(pid, out var cached))
                 return cached;
@@ -303,7 +300,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void list_ColumnClick(object sender, ColumnClickEventArgs e)
+        private void List_ColumnClick(object sender, ColumnClickEventArgs e)
         {
             var oldSorter = (ListViewItemComparer)list.ListViewItemSorter;
             var newSorter = new ListViewItemComparer(e.Column);
@@ -314,25 +311,13 @@ namespace pylorak.TinyWall
             list.ListViewItemSorter = newSorter;
         }
 
-        private async void btnRefresh_Click(object sender, EventArgs e)
-        {
-            await UpdateListAsync();
-        }
+        private void BtnRefresh_Click(object sender, EventArgs e) => UpdateListAsync();
 
-        private async void chkShowListen_CheckedChanged(object sender, EventArgs e)
-        {
-            await UpdateListAsync();
-        }
+        private void ChkShowListen_CheckedChanged(object sender, EventArgs e) => UpdateListAsync();
 
-        private async void chkShowBlocked_CheckedChanged(object sender, EventArgs e)
-        {
-            await UpdateListAsync();
-        }
+        private void ChkShowBlocked_CheckedChanged(object sender, EventArgs e) => UpdateListAsync();
 
-        private async void chkShowActive_CheckedChanged(object sender, EventArgs e)
-        {
-            await UpdateListAsync();
-        }
+        private void ChkShowActive_CheckedChanged(object sender, EventArgs e) => UpdateListAsync();
 
         private void ConnectionsForm_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -384,7 +369,7 @@ namespace pylorak.TinyWall
             await UpdateListAsync();
         }
 
-        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+        private void ContextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
             if (list.SelectedIndices.Count < 1)
                 e.Cancel = true;
@@ -396,7 +381,7 @@ namespace pylorak.TinyWall
             mnuCloseProcess.Enabled = hasPid;
         }
 
-        private void mnuCloseProcess_Click(object sender, EventArgs e)
+        private void MnuCloseProcess_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem li in list.SelectedItems)
             {
@@ -432,7 +417,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void mnuUnblock_Click(object sender, EventArgs e)
+        private void MnuUnblock_Click(object sender, EventArgs e)
         {
             if (!_controller.EnsureUnlockedServer())
                 return;
@@ -442,12 +427,12 @@ namespace pylorak.TinyWall
             _controller.WhitelistProcesses(selection);
         }
 
-        private void mnuCopyRemoteAddress_Click(object sender, EventArgs e)
+        private void MnuCopyRemoteAddress_Click(object sender, EventArgs e)
         {
             var li = list.SelectedItems[0];
             var clipboardData = li.SubItems[6].Text;
 
-            IDataObject dataObject = new DataObject();
+            var dataObject = new DataObject();
             dataObject.SetData(DataFormats.UnicodeText, false, clipboardData);
 
             try
@@ -460,7 +445,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void mnuVirusTotal_Click(object sender, EventArgs e)
+        private void MnuVirusTotal_Click(object sender, EventArgs e)
         {
             try
             {
@@ -478,7 +463,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void mnuProcessLibrary_Click(object sender, EventArgs e)
+        private void MnuProcessLibrary_Click(object sender, EventArgs e)
         {
             try
             {
@@ -496,7 +481,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void mnuFileNameOnTheWeb_Click(object sender, EventArgs e)
+        private void MnuFileNameOnTheWeb_Click(object sender, EventArgs e)
         {
             try
             {
@@ -514,7 +499,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void mnuRemoteAddressOnTheWeb_Click(object sender, EventArgs e)
+        private void MnuRemoteAddressOnTheWeb_Click(object sender, EventArgs e)
         {
             try
             {
@@ -536,11 +521,11 @@ namespace pylorak.TinyWall
         {
             if (e.KeyData != Keys.F5) return;
 
-            btnRefresh_Click(btnRefresh, EventArgs.Empty);
+            BtnRefresh_Click(btnRefresh, EventArgs.Empty);
             e.Handled = true;
         }
 
-        private void btnSearch_Click(object sender, EventArgs e)
+        private void BtnSearch_Click(object sender, EventArgs e)
         {
             _searchText = txtSearch.Text.ToLower();
             UpdateListAsync();
@@ -552,7 +537,7 @@ namespace pylorak.TinyWall
             UpdateListAsync();
         }
 
-        private void txtSearch_KeyDown(object sender, KeyEventArgs e)
+        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData is Keys.Return or Keys.Enter) btnSearch.PerformClick();
         }
