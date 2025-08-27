@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace pylorak.Windows.WFP
 {
@@ -30,31 +28,31 @@ namespace pylorak.Windows.WFP
 
         public string Name
         {
-            get { return _nativeStruct.displayData.name; }
-            set { _nativeStruct.displayData.name = value; }
+            get => _nativeStruct.displayData.name;
+            set => _nativeStruct.displayData.name = value;
         }
 
         public string Description
         {
-            get { return _nativeStruct.displayData.description; }
-            set { _nativeStruct.displayData.description = value; }
+            get => _nativeStruct.displayData.description;
+            set => _nativeStruct.displayData.description = value;
         }
 
         public Guid SublayerKey
         {
-            get { return _nativeStruct.subLayerKey; }
-            set { _nativeStruct.subLayerKey = value; }
+            get => _nativeStruct.subLayerKey;
+            set => _nativeStruct.subLayerKey = value;
         }
 
         public Interop.FWPM_SUBLAYER_FLAGS Flags
         {
-            get { return _nativeStruct.flags; }
-            set { _nativeStruct.flags = value; }
+            get => _nativeStruct.flags;
+            set => _nativeStruct.flags = value;
         }
 
         public Guid? ProviderKey
         {
-            get { return _providerKey; }
+            get => _providerKey;
             set
             {
                 _providerKeyHandle?.Dispose();

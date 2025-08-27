@@ -14,6 +14,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace pylorak.TinyWall
 {
@@ -359,7 +360,7 @@ namespace pylorak.TinyWall
             var provider = new FWPM_PROVIDER0();
             provider.displayData.name = "Karoly Pados";
             provider.displayData.description = "TinyWall Provider";
-            provider.serviceName = TinyWallService.SERVICE_NAME;
+            provider.serviceName = TinyWallService.NameOfService;
             provider.flags = FWPM_PROVIDER_FLAGS.FWPM_PROVIDER_FLAG_PERSISTENT;
             provider.providerKey = TinywallProviderKey;
             var providerKey = _wfpEngine.RegisterProvider(ref provider);
@@ -370,7 +371,14 @@ namespace pylorak.TinyWall
             foreach (var layer in layerKeys)
             {
                 var slKey = GetSublayerKey(layer);
-                var wfpSublayer = new Sublayer($"TinyWall Sublayer for {layer}");
+                var wfpSublayer = new Sublayer($"TinyWall Sublayer for {layer}")
+                {
+                    Description = string.Empty,
+                    SublayerKey = Guid.NewGuid(),
+                    Flags = FWPM_SUBLAYER_FLAGS.FWPM_SUBLAYER_FLAG_PERSISTENT,
+                    ProviderKey = null,
+                    Weight = 0
+                };
                 wfpSublayer.Weight = ushort.MaxValue >> 4;
                 wfpSublayer.SublayerKey = slKey;
                 wfpSublayer.ProviderKey = TinywallProviderKey;
@@ -900,12 +908,12 @@ namespace pylorak.TinyWall
             if (ex.Id == Guid.Empty)
             {
                 // Do not let the service crash if a rule cannot be constructed
-#if DEBUG
-                throw new InvalidOperationException("Firewall exception specification must have an ID.");
-#else
+                //#if DEBUG
+                //throw new InvalidOperationException("Firewall exception specification must have an ID.");
+                //#else
                 ex.RegenerateId();
                 GlobalInstances.ServerChangeset = Guid.NewGuid();
-#endif
+                //#endif
             }
 
             switch (ex.Policy.PolicyType)
@@ -1055,7 +1063,7 @@ namespace pylorak.TinyWall
         // This method completely reinitializes the firewall.
         private void InitFirewall()
         {
-            using var timer = new HierarchicalStopwatch("InitFirewall()");
+            using var timer = new HierarchicalStopwatch(nameof(InitFirewall));
             LoadDatabase();
             ActiveConfig.Service = LoadServerConfig();
             _visibleState.Mode = ActiveConfig.Service.StartupMode;
@@ -1072,7 +1080,7 @@ namespace pylorak.TinyWall
         // This method reapplies all firewall settings.
         private void ReapplySettings()
         {
-            using var timer = new HierarchicalStopwatch("ReapplySettings()");
+            using var timer = new HierarchicalStopwatch(nameof(ReapplySettings));
             _hostsFileManager.EnableProtection = ActiveConfig.Service.LockHostsFile;
             if (ActiveConfig.Service.Blocklists.EnableBlocklists
                 && ActiveConfig.Service.Blocklists.EnableHostsBlocklist)
@@ -1083,7 +1091,7 @@ namespace pylorak.TinyWall
 
         private static void LoadDatabase()
         {
-            using var timer = new HierarchicalStopwatch("LoadDatabase()");
+            using var timer = new HierarchicalStopwatch(nameof(LoadDatabase));
 
             try
             {
@@ -1095,9 +1103,9 @@ namespace pylorak.TinyWall
             }
         }
 
-#if !DEBUG
+        //#if !DEBUG
         private DateTime? _lastUpdateCheck;
-        private const string LastUpdateCheck_FILENAME = "updatecheck";
+        private const string LAST_UPDATE_CHECK_FILENAME = "updatecheck";
         private DateTime LastUpdateCheck
         {
             get
@@ -1106,7 +1114,7 @@ namespace pylorak.TinyWall
                 {
                     try
                     {
-                        string filePath = Path.Combine(Utils.AppDataPath, LastUpdateCheck_FILENAME);
+                        string filePath = Path.Combine(Utils.AppDataPath, LAST_UPDATE_CHECK_FILENAME);
                         if (File.Exists(filePath))
                         {
                             using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -1133,7 +1141,7 @@ namespace pylorak.TinyWall
 
                 try
                 {
-                    string filePath = Path.Combine(Utils.AppDataPath, LastUpdateCheck_FILENAME);
+                    string filePath = Path.Combine(Utils.AppDataPath, LAST_UPDATE_CHECK_FILENAME);
                     using var afu = new AtomicFileUpdater(filePath);
                     using (var fs = new FileStream(afu.TemporaryFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
@@ -1272,21 +1280,24 @@ namespace pylorak.TinyWall
             _visibleState.ClientNotifs.Add(msg);
             GlobalInstances.ServerChangeset = Guid.NewGuid();
         }
-#endif
+        //#endif
 
-        internal void TimerCallback(Object state)
+        internal void TimerCallback(object state)
         {
             _q.Add(new TwRequest(TwMessageSimple.CreateRequest(MessageType.MINUTE_TIMER)));
         }
 
-        private List<FirewallLogEntry> GetFwLog()
+        private Task<List<FirewallLogEntry>> GetFwLog()
         {
-            var entries = new List<FirewallLogEntry>();
-            lock (_firewallLogEntries)
+            return Task.Run(() =>
             {
-                entries.AddRange(_firewallLogEntries);
-            }
-            return entries;
+                var entries = new List<FirewallLogEntry>();
+                lock (_firewallLogEntries)
+                {
+                    entries.AddRange(_firewallLogEntries);
+                }
+                return entries;
+            });
         }
 
         private bool CommitLearnedRules()
@@ -1352,14 +1363,15 @@ namespace pylorak.TinyWall
             return configChanged;
         }
 
-        private TwMessage ProcessCmd(TwMessage req)
+        private async Task<TwMessage> ProcessCmd(TwMessage req)
         {
             switch (req.Type)
             {
                 case MessageType.READ_FW_LOG:
                     {
                         var args = (TwMessageReadFwLog)req;
-                        return args.CreateResponse(GetFwLog().ToArray());
+                        var fwlist = await GetFwLog();
+                        return args.CreateResponse(fwlist.ToArray());
                     }
                 case MessageType.IS_LOCKED:
                     {
@@ -1552,13 +1564,13 @@ namespace pylorak.TinyWall
                             InstallFirewallRules();
                         }
 
-#if !DEBUG
+                        //#if !DEBUG
                         // Check for updates once every 2 days
                         if (ActiveConfig.Service.AutoUpdateCheck)
                         {
                             UpdaterMethod();
                         }
-#endif
+                        //#endif
 
                         return args.CreateResponse();
                     }
@@ -1572,11 +1584,10 @@ namespace pylorak.TinyWall
                 case MessageType.DISPLAY_POWER_EVENT:
                     {
                         var args = (TwMessageDisplayPowerEvent)req;
-                        if (args.PowerOn != _displayCurrentlyOn)
-                        {
-                            _displayCurrentlyOn = args.PowerOn;
-                            InstallFirewallRules();
-                        }
+                        if (args.PowerOn == _displayCurrentlyOn) return args.CreateResponse(args.PowerOn);
+
+                        _displayCurrentlyOn = args.PowerOn;
+                        InstallFirewallRules();
                         return args.CreateResponse(args.PowerOn);
                     }
                 case MessageType.INVALID_COMMAND:
@@ -1719,7 +1730,7 @@ namespace pylorak.TinyWall
 
         // Entry point for thread that actually issues commands to Windows Firewall.
         // Only one thread (this one) is allowed to issue them.
-        public void Run(ServiceBase service)
+        public async Task Run(ServiceBase service)
         {
             using var timer = new HierarchicalStopwatch("Service Run()");
             using var winDefFirewall = new WindowsFirewall();
@@ -1747,10 +1758,10 @@ namespace pylorak.TinyWall
             };
             mountPointsWatcher.Enabled = true;
             service.FinishStateChange();
-#if !DEBUG
+            //#if !DEBUG
             // Basic software health checks
             TinyWallDoctor.EnsureHealth(Utils.LOG_ID_SERVICE);
-#endif
+            //#endif
 
             _minuteTimer.Change(60000, 60000);
             _runService = true;
@@ -1762,7 +1773,7 @@ namespace pylorak.TinyWall
                 timer.NewSubTask($"Message {req.Request.Type}");
                 try
                 {
-                    req.Response = ProcessCmd(req.Request);
+                    req.Response = await ProcessCmd(req.Request);
                 }
                 catch (Exception e)
                 {
@@ -2001,17 +2012,17 @@ namespace pylorak.TinyWall
             _firewallThreadThrottler.Dispose();
             _q.Dispose();
 
-#if !DEBUG
+            //#if !DEBUG
             // Basic software health checks
             TinyWallDoctor.EnsureHealth(Utils.LOG_ID_SERVICE);
-#else
+            //#else
             using (var wfp = new Engine("TinyWall Cleanup Session", "", FWPM_SESSION_FLAGS.None, 5000))
             using (var trx = wfp.BeginTransaction())
             {
                 DeleteWfpObjects(wfp, true);
                 trx.Commit();
             }
-#endif
+            //#endif
             PathMapper.Instance.Dispose();
         }
     }
@@ -2019,52 +2030,51 @@ namespace pylorak.TinyWall
 
     internal sealed class TinyWallService : ServiceBase
     {
-        internal static readonly string[] ServiceDependencies = new string[]
-        {
+        internal static readonly string[] SERVICE_DEPENDENCIES = {
             "Schedule",
             "Winmgmt",
             "BFE"
         };
 
-        internal const string SERVICE_NAME = "TinyWall";
+        internal const string NameOfService = "TinyWall";
 
-        internal const string SERVICE_DISPLAY_NAME = "TinyWall Service";
+        internal const string ServiceDisplayName = "TinyWall Service";
 
         private TinyWallServer? _server;
 
         private Thread? _firewallWorkerThread;
-#if !DEBUG
-        private bool IsComputerShuttingDown;
-#endif
+        //#if !DEBUG
+        //private readonly bool _isComputerShuttingDown = false;
+        //#endif
         internal TinyWallService()
         {
             AcceptedControls = ServiceAcceptedControl.SERVICE_ACCEPT_SHUTDOWN;
             AcceptedControls |= ServiceAcceptedControl.SERVICE_ACCEPT_POWEREVENT;
-#if DEBUG
+            //#if DEBUG
             AcceptedControls |= ServiceAcceptedControl.SERVICE_ACCEPT_STOP;
-#endif
+            //#endif
         }
 
-        public override string ServiceName => SERVICE_NAME;
+        public override string ServiceName => NameOfService;
 
         private void FirewallWorkerMethod()
         {
             try
             {
                 using (_server = new TinyWallServer())
-                    _server.Run(this);
+                    _ = _server.Run(this);
 
             }
             finally
             {
-#if !DEBUG
+                //#if !DEBUG
                 Thread.MemoryBarrier();
-                if (!IsComputerShuttingDown)    // cannot set service state if a shutdown is already in progress
-                {
-                    SetServiceStateReached(ServiceState.Stopped);
-                }
+                //if (!_isComputerShuttingDown)    // cannot set service state if a shutdown is already in progress
+                //{
+                SetServiceStateReached(ServiceState.Stopped);
+                //}
                 Process.GetCurrentProcess().Kill();
-#endif
+                //#endif
             }
         }
 

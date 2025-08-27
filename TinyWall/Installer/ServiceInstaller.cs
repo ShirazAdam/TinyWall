@@ -1,8 +1,8 @@
-﻿using System;
+﻿using pylorak.Windows.Services;
+using System;
 using System.Collections;
 using System.Configuration.Install;
 using System.ServiceProcess;
-using pylorak.Windows.Services;
 
 namespace pylorak.TinyWall
 {
@@ -21,18 +21,18 @@ namespace pylorak.TinyWall
                 serviceProcessInstaller.Username = null;
                 serviceProcessInstaller.Password = null;
 
-                serviceInstaller.DisplayName = TinyWallService.SERVICE_DISPLAY_NAME;
+                serviceInstaller.DisplayName = TinyWallService.ServiceDisplayName;
                 serviceInstaller.StartType = ServiceStartMode.Automatic;
                 // This must be identical to the WindowsService.ServiceBase name
                 // set in the constructor of WindowsService.cs
-                serviceInstaller.ServiceName = TinyWallService.SERVICE_NAME;
+                serviceInstaller.ServiceName = TinyWallService.NameOfService;
                 // Depends on other services
-                serviceInstaller.ServicesDependedOn = TinyWallService.ServiceDependencies;
+                serviceInstaller.ServicesDependedOn = TinyWallService.SERVICE_DEPENDENCIES;
 
                 this.Installers.Add(serviceProcessInstaller);
                 this.Installers.Add(serviceInstaller);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Utils.LogException(e, Utils.LOG_ID_INSTALLER);
             }
@@ -45,7 +45,7 @@ namespace pylorak.TinyWall
             try
             {
                 using var scm = new ServiceControlManager();
-                scm.SetLoadOrderGroup(TinyWallService.SERVICE_NAME, @"NetworkProvider");
+                scm.SetLoadOrderGroup(TinyWallService.NameOfService, @"NetworkProvider");
             }
             catch { }
         }

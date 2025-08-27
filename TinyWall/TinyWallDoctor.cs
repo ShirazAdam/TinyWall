@@ -1,13 +1,13 @@
-﻿using System;
+﻿using pylorak.Windows;
+using pylorak.Windows.Services;
+using pylorak.Windows.WFP;
+using pylorak.Windows.WFP.Interop;
+using System;
 using System.Collections.Generic;
 using System.Configuration.Install;
 using System.Diagnostics;
 using System.ServiceProcess;
 using TaskScheduler;
-using pylorak.Windows;
-using pylorak.Windows.Services;
-using pylorak.Windows.WFP;
-using pylorak.Windows.WFP.Interop;
 
 namespace pylorak.TinyWall
 {
@@ -20,7 +20,7 @@ namespace pylorak.TinyWall
 #if !DEBUG
             try
             {
-                using var sc = new ServiceController(TinyWallService.SERVICE_NAME);
+                using var sc = new ServiceController(TinyWallService._serviceName);
                 return (sc.Status == ServiceControllerStatus.Running) || (sc.Status == ServiceControllerStatus.StartPending);
             }
             catch(Exception e)
@@ -38,7 +38,7 @@ namespace pylorak.TinyWall
 #if !DEBUG
             try
             {
-                using var sc = new ServiceController(TinyWallService.SERVICE_NAME);
+                using var sc = new ServiceController(TinyWallService._serviceName);
                 return (sc.Status == ServiceControllerStatus.Stopped);
             }
             catch
@@ -62,7 +62,7 @@ namespace pylorak.TinyWall
                 {
                     ManagedInstallerClass.InstallHelper(new string[] { "/i", Utils.ExecutablePath });
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Utils.LogException(e, logContext);
                 }
@@ -73,7 +73,7 @@ namespace pylorak.TinyWall
                 // Start service
                 try
                 {
-                    using var sc = new ServiceController(TinyWallService.SERVICE_NAME);
+                    using var sc = new ServiceController(TinyWallService.NameOfService);
                     if (sc.Status == ServiceControllerStatus.Stopped)
                     {
                         sc.Start();
@@ -118,7 +118,7 @@ namespace pylorak.TinyWall
                 frm.Location = new System.Drawing.Point(rect.Bottom + 10, rect.Right + 10);
                 frm.Show();
                 frm.Focus();
-                frm.BringToFront(); 
+                frm.BringToFront();
                 frm.TopMost = true;
 
                 if (System.Windows.Forms.MessageBox.Show(frm,
@@ -249,8 +249,8 @@ namespace pylorak.TinyWall
             try
             {
                 using var scm = new ServiceControlManager();
-                scm.SetStartupMode(TinyWallService.SERVICE_NAME, ServiceStartMode.Automatic);
-                scm.SetRestartOnFailure(TinyWallService.SERVICE_NAME, true);
+                scm.SetStartupMode(TinyWallService.NameOfService, ServiceStartMode.Automatic);
+                scm.SetRestartOnFailure(TinyWallService.NameOfService, true);
             }
             catch (System.ComponentModel.Win32Exception e)
             {
@@ -304,7 +304,7 @@ namespace pylorak.TinyWall
         {
             // First, do a recursive scan of all service dependencies
             var deps = new HashSet<string>();
-            foreach (var srv in TinyWallService.ServiceDependencies)
+            foreach (var srv in TinyWallService.SERVICE_DEPENDENCIES)
             {
                 using var sc = new ServiceController(srv);
                 ScanServiceDependencies(sc, deps);

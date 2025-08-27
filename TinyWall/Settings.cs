@@ -1,7 +1,5 @@
-﻿#if !DEBUG
+﻿using pylorak.Utilities;
 using System;
-#endif
-using pylorak.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -12,7 +10,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace pylorak.TinyWall
 {
     [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/PKSoft")]
-    public sealed class ControllerSettings : ISerializable<ControllerSettings>
+    public class ControllerSettings : ISerializable<ControllerSettings>
     {
         // UI Localization
         [DataMember(EmitDefaultValue = false)]
@@ -81,28 +79,23 @@ namespace pylorak.TinyWall
         public bool EnableGlobalHotkeys = true;
 
         [OnDeserialized]
-        private void OnDeserialized(StreamingContext sc)
+        protected virtual void OnDeserialized(StreamingContext sc)
         {
-            ConnFormColumnWidths ??= new Dictionary<string, int>();
-            ProcessesFormColumnWidths ??= new Dictionary<string, int>();
-            ServicesFormColumnWidths ??= new Dictionary<string, int>();
-            UwpPackagesFormColumnWidths ??= new Dictionary<string, int>();
-            SettingsFormAppListColumnWidths ??= new Dictionary<string, int>();
         }
 
         internal static string UserDataPath
         {
             get
             {
-#if DEBUG
-                return Path.GetDirectoryName(Utils.ExecutablePath) ?? string.Empty;
-#else
+                //#if DEBUG
+                //return Path.GetDirectoryName(Utils.ExecutablePath) ?? string.Empty;
+                //#else
                 string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                dir = System.IO.Path.Combine(dir, "TinyWall");
+                dir = Path.Combine(dir, "TinyWall");
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
                 return dir;
-#endif
+                //#endif
             }
         }
 
@@ -181,7 +174,7 @@ namespace pylorak.TinyWall
 
             try
             {
-                var storedHash = System.IO.File.ReadAllText(PasswordFilePath, System.Text.Encoding.UTF8);
+                var storedHash = File.ReadAllText(PasswordFilePath, Encoding.UTF8);
                 _locked = !Pbkdf2.CompareHash(storedHash, password);
             }
             catch
