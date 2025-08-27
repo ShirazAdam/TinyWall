@@ -96,27 +96,14 @@ namespace pylorak.TinyWall
             if (chkShowListen.Checked)
             {
                 var dummyEp = new IPEndPoint(0, 0);
+
                 var udpTable = NetStat.GetExtendedUdp4Table(false);
 
-                foreach (var udpRow in udpTable)
-                {
-                    var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
-
-                    var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
-                    ConstructListItem(_itemColl, pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now,
-                        RuleDirection.Invalid);
-                }
+                CreateProcess(udpTable, procCache, packageList, servicePids, dummyEp, now);
 
                 udpTable = NetStat.GetExtendedUdp6Table(false);
 
-                foreach (var udpRow in udpTable)
-                {
-                    var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
-
-                    var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
-                    ConstructListItem(_itemColl, pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now,
-                        RuleDirection.Invalid);
-                }
+                CreateProcess(udpTable, procCache, packageList, servicePids, dummyEp, now);
             }
 
             // Finished reading tables, continues with log processing
@@ -229,6 +216,19 @@ namespace pylorak.TinyWall
             Enabled = true;
 
             return Task.CompletedTask;
+        }
+
+        private void CreateProcess(UdpTable udpTable, Dictionary<uint, string> procCache, UwpPackageList packageList,
+            ServicePidMap servicePids, IPEndPoint dummyEp, DateTime now)
+        {
+            foreach (var udpRow in udpTable)
+            {
+                var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
+
+                var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
+                ConstructListItem(_itemColl, pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now,
+                    RuleDirection.Invalid);
+            }
         }
 
         private void ConstructListItem(List<ListViewItem> itemColl, ProcessInfo e, string protocol, IPEndPoint localEp,
