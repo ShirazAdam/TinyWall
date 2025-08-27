@@ -396,7 +396,7 @@ namespace pylorak.TinyWall
             mnuCloseProcess.Enabled = hasPid;
         }
 
-        private async Task mnuCloseProcess_Click(object sender, EventArgs e)
+        private void mnuCloseProcess_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem li in list.SelectedItems)
             {
@@ -412,7 +412,7 @@ namespace pylorak.TinyWall
 
                         if (!proc.WaitForExit(5000))
                             throw new ApplicationException();
-                        await UpdateListAsync();
+                        UpdateListAsync();
                     }
                     catch (InvalidOperationException)
                     {
@@ -540,16 +540,16 @@ namespace pylorak.TinyWall
             e.Handled = true;
         }
 
-        private async Task btnSearch_Click(object sender, EventArgs e)
+        private void btnSearch_Click(object sender, EventArgs e)
         {
             _searchText = txtSearch.Text.ToLower();
-            await UpdateListAsync();
+            UpdateListAsync();
         }
 
-        private async Task BtnClear_Click(object sender, EventArgs e)
+        private void BtnClear_Click(object sender, EventArgs e)
         {
             _searchText = string.Empty;
-            await UpdateListAsync();
+            UpdateListAsync();
         }
 
         private void txtSearch_KeyDown(object sender, KeyEventArgs e)
