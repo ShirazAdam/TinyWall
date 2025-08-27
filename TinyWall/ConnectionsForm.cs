@@ -311,13 +311,53 @@ namespace pylorak.TinyWall
             list.ListViewItemSorter = newSorter;
         }
 
-        private void BtnRefresh_Click(object sender, EventArgs e) => UpdateListAsync();
+        private async void BtnRefresh_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                await UpdateListAsync();
+            }
+            catch
+            {
+                //throw; // TODO handle exception
+            }
+        }
 
-        private void ChkShowListen_CheckedChanged(object sender, EventArgs e) => UpdateListAsync();
+        private async void ChkShowListen_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                await UpdateListAsync();
+            }
+            catch
+            {
+                //throw; // TODO handle exception
+            }
+        }
 
-        private void ChkShowBlocked_CheckedChanged(object sender, EventArgs e) => UpdateListAsync();
+        private async void ChkShowBlocked_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                await UpdateListAsync();
+            }
+            catch
+            {
+                //throw; // TODO handle exception
+            }
+        }
 
-        private void ChkShowActive_CheckedChanged(object sender, EventArgs e) => UpdateListAsync();
+        private async void ChkShowActive_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                await UpdateListAsync();
+            }
+            catch
+            {
+                //throw; // TODO handle exception
+            }
+        }
 
         private void ConnectionsForm_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -347,26 +387,33 @@ namespace pylorak.TinyWall
 
         private async void ConnectionsForm_Load(object sender, EventArgs e)
         {
-            Utils.SetDoubleBuffering(list, true);
-            list.ListViewItemSorter = new ListViewItemComparer(9, null, false);
-            if (ActiveConfig.Controller.ConnFormWindowSize.Width != 0)
-                Size = ActiveConfig.Controller.ConnFormWindowSize;
-            if (ActiveConfig.Controller.ConnFormWindowLoc.X != 0)
+            try
             {
-                Location = ActiveConfig.Controller.ConnFormWindowLoc;
-                Utils.FixupFormPosition(this);
+                Utils.SetDoubleBuffering(list, true);
+                list.ListViewItemSorter = new ListViewItemComparer(9, null, false);
+                if (ActiveConfig.Controller.ConnFormWindowSize.Width != 0)
+                    Size = ActiveConfig.Controller.ConnFormWindowSize;
+                if (ActiveConfig.Controller.ConnFormWindowLoc.X != 0)
+                {
+                    Location = ActiveConfig.Controller.ConnFormWindowLoc;
+                    Utils.FixupFormPosition(this);
+                }
+
+                WindowState = ActiveConfig.Controller.ConnFormWindowState;
+                chkShowActive.Checked = ActiveConfig.Controller.ConnFormShowConnections;
+                chkShowListen.Checked = ActiveConfig.Controller.ConnFormShowOpenPorts;
+                chkShowBlocked.Checked = ActiveConfig.Controller.ConnFormShowBlocked;
+
+                foreach (ColumnHeader col in list.Columns)
+                    if (ActiveConfig.Controller.ConnFormColumnWidths.TryGetValue((string)col.Tag, out var width))
+                        col.Width = width;
+
+                await UpdateListAsync();
             }
-
-            WindowState = ActiveConfig.Controller.ConnFormWindowState;
-            chkShowActive.Checked = ActiveConfig.Controller.ConnFormShowConnections;
-            chkShowListen.Checked = ActiveConfig.Controller.ConnFormShowOpenPorts;
-            chkShowBlocked.Checked = ActiveConfig.Controller.ConnFormShowBlocked;
-
-            foreach (ColumnHeader col in list.Columns)
-                if (ActiveConfig.Controller.ConnFormColumnWidths.TryGetValue((string)col.Tag, out var width))
-                    col.Width = width;
-
-            await UpdateListAsync();
+            catch
+            {
+                //throw; // TODO handle exception
+            }
         }
 
         private void ContextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -381,39 +428,46 @@ namespace pylorak.TinyWall
             mnuCloseProcess.Enabled = hasPid;
         }
 
-        private void MnuCloseProcess_Click(object sender, EventArgs e)
+        private async void MnuCloseProcess_Click(object sender, EventArgs e)
         {
-            foreach (ListViewItem li in list.SelectedItems)
+            try
             {
-                var pi = (ProcessInfo)li.Tag;
-
-                try
+                foreach (ListViewItem li in list.SelectedItems)
                 {
-                    using var proc = Process.GetProcessById(unchecked((int)pi.Pid));
+                    var pi = (ProcessInfo)li.Tag;
+
                     try
                     {
-                        if (!proc.CloseMainWindow())
-                            proc.Kill();
+                        using var proc = Process.GetProcessById(unchecked((int)pi.Pid));
+                        try
+                        {
+                            if (!proc.CloseMainWindow())
+                                proc.Kill();
 
-                        if (!proc.WaitForExit(5000))
-                            throw new ApplicationException();
-                        UpdateListAsync();
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // The process has already exited. Fine, that's just what we want :)
+                            if (!proc.WaitForExit(5000))
+                                throw new ApplicationException();
+                            await UpdateListAsync();
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // The process has already exited. Fine, that's just what we want :)
+                        }
+                        catch
+                        {
+                            MessageBox.Show(this,
+                                string.Format(CultureInfo.CurrentCulture, Messages.CouldNotCloseProcess, proc.ProcessName,
+                                    pi.Pid), Messages.TinyWall, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        }
                     }
                     catch
                     {
-                        MessageBox.Show(this,
-                            string.Format(CultureInfo.CurrentCulture, Messages.CouldNotCloseProcess, proc.ProcessName,
-                                pi.Pid), Messages.TinyWall, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        // The app has probably already quit. Leave it at that.
                     }
                 }
-                catch
-                {
-                    // The app has probably already quit. Leave it at that.
-                }
+            }
+            catch
+            {
+                //throw; // TODO handle exception
             }
         }
 
@@ -525,16 +579,30 @@ namespace pylorak.TinyWall
             e.Handled = true;
         }
 
-        private void BtnSearch_Click(object sender, EventArgs e)
+        private async void BtnSearch_Click(object sender, EventArgs e)
         {
-            _searchText = txtSearch.Text.ToLower();
-            UpdateListAsync();
+            try
+            {
+                _searchText = txtSearch.Text.ToLower();
+                await UpdateListAsync();
+            }
+            catch
+            {
+                //throw; // TODO handle exception
+            }
         }
 
-        private void BtnClear_Click(object sender, EventArgs e)
+        private async void BtnClear_Click(object sender, EventArgs e)
         {
-            _searchText = string.Empty;
-            UpdateListAsync();
+            try
+            {
+                _searchText = string.Empty;
+                await UpdateListAsync();
+            }
+            catch
+            {
+                //throw; // TODO handle exception
+            }
         }
 
         private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
