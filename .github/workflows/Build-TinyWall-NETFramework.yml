@@ -1,4 +1,6 @@
 name: Build TinyWall (.NET Framework 4.8.1)
+permissions:
+  contents: read
 
 on: [push]
 
