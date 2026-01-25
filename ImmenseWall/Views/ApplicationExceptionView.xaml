@@ -1,0 +1,161 @@
+﻿<Window x:Class="pylorak.TinyWall.Views.ApplicationExceptionView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:pylorak.TinyWall.ViewModels" 
+        xmlns:viewModels="clr-namespace:ImmenseWall.ViewModels"
+        Title="{x:Static resx:Messages.ApplicationExceptionTitle}"
+        Height="600" Width="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+
+    <Window.DataContext>
+        <viewModels:ApplicationExceptionViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="BannerTextStyle">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <DataTemplate x:Key="SubjectTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Vertical" Margin="5">
+                    <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SubjectType}" FontStyle="Italic" Foreground="Gray"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="X" Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        CommandParameter="{Binding}" Width="25" Height="25" Margin="5"/>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Banner -->
+        <Border Grid.Row="0" Background="{Binding BannerColor, Converter={StaticResource BannerColorConverter}}"
+                Height="60" Margin="0,0,0,10">
+            <TextBlock Text="{Binding BannerText}" Style="{StaticResource BannerTextStyle}"/>
+        </Border>
+
+        <!-- Main Content -->
+        <TabControl Grid.Row="1" Margin="10">
+            <TabItem Header="{x:Static resx:Messages.Application}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Add buttons -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                        <Button Content="{x:Static resx:Messages.Browse}" Command="{Binding BrowseCommand}"/>
+                        <Button Content="{x:Static resx:Messages.RunningProcess}" Command="{Binding ProcessCommand}"/>
+                        <Button Content="{x:Static resx:Messages.Service}" Command="{Binding ServiceCommand}"/>
+                        <Button Content="{x:Static resx:Messages.UWPApp}" Command="{Binding UwpAppCommand}"/>
+                    </StackPanel>
+
+                    <!-- Subjects list -->
+                    <ListBox Grid.Row="1" Margin="5"
+                             ItemsSource="{Binding Subjects}"
+                             SelectedItem="{Binding SelectedSubject}"
+                             ItemTemplate="{StaticResource SubjectTemplate}"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+                    <!-- Timer -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="{x:Static resx:Messages.ExceptionDuration}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding TimerOptions}" SelectedValue="{Binding SelectedTimer}"
+                                  DisplayMemberPath="Key" SelectedValuePath="Value" Width="200" Margin="10,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="{x:Static resx:Messages.Permissions}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Restriction Type -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <RadioButton Content="{x:Static resx:Messages.BlockAll}" 
+                                     IsChecked="{Binding SelectedRestriction, Converter={StaticResource RestrictionConverter}, ConverterParameter=Block}"/>
+                        <RadioButton Content="{x:Static resx:Messages.Unrestricted}" 
+                                     IsChecked="{Binding SelectedRestriction, Converter={StaticResource RestrictionConverter}, ConverterParameter=Unrestricted}"/>
+                        <RadioButton Content="{x:Static resx:Messages.TcpUdpUnrestricted}" 
+                                     IsChecked="{Binding SelectedRestriction, Converter={StaticResource RestrictionConverter}, ConverterParameter=TcpUdpUnrestricted}"/>
+                        <RadioButton Content="{x:Static resx:Messages.TcpUdpOut}" 
+                                     IsChecked="{Binding SelectedRestriction, Converter={StaticResource RestrictionConverter}, ConverterParameter=TcpUdpOut}"/>
+                        <RadioButton Content="{x:Static resx:Messages.OnlySpecifiedPorts}" 
+                                     IsChecked="{Binding SelectedRestriction, Converter={StaticResource RestrictionConverter}, ConverterParameter=OnlySpecifiedPorts}"/>
+                    </StackPanel>
+
+                    <!-- Port settings (enabled based on restriction) -->
+                    <Grid Grid.Row="1" IsEnabled="{Binding SelectedRestriction, Converter={StaticResource PortsEnabledConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Outbound ports -->
+                        <GroupBox Grid.Column="0" Header="{x:Static resx:Messages.Outbound}" Margin="5">
+                            <StackPanel>
+                                <TextBlock Text="TCP:"/>
+                                <TextBox Text="{Binding OutboundPortTcp}" IsEnabled="{Binding SelectedRestriction, Converter={StaticResource OutboundEnabledConverter}}"/>
+                                <TextBlock Text="UDP:" Margin="0,5,0,0"/>
+                                <TextBox Text="{Binding OutboundPortUdp}" IsEnabled="{Binding SelectedRestriction, Converter={StaticResource OutboundEnabledConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Inbound ports -->
+                        <GroupBox Grid.Column="1" Header="{x:Static resx:Messages.Inbound}" Margin="5">
+                            <StackPanel>
+                                <TextBlock Text="TCP:"/>
+                                <TextBox Text="{Binding ListenPortTcp}"/>
+                                <TextBlock Text="UDP:" Margin="0,5,0,0"/>
+                                <TextBox Text="{Binding ListenPortUdp}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </Grid>
+
+                    <!-- Additional options -->
+                    <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                        <CheckBox Content="{x:Static resx:Messages.RestrictToLocalNetwork}" 
+                                  IsChecked="{Binding RestrictToLocalNetwork}"/>
+                        <CheckBox Content="{x:Static resx:Messages.InheritToChildren}" 
+                                  IsChecked="{Binding InheritToChildren}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button Content="{x:Static resx:Messages.OK}" Command="{Binding OkCommand}" IsDefault="True"/>
+            <Button Content="{x:Static resx:Messages.Cancel}" Command="{Binding CancelCommand}" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
