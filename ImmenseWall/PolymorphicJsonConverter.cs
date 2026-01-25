@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public abstract class PolymorphicJsonConverter<T> : JsonConverter<T>
     {

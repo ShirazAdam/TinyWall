@@ -1,17 +1,17 @@
-﻿using Microsoft.Samples;
-using pylorak.Utilities;
-using pylorak.Windows;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.Samples;
+using pylorak.TinyWall;
+using pylorak.Utilities;
+using pylorak.Windows;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     internal sealed class TinyWallController : ApplicationContext
     {

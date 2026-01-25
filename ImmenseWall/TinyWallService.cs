@@ -14,8 +14,9 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
+using ImmenseWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public sealed class TinyWallServer : IDisposable
     {

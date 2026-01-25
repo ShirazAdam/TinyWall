@@ -1,7 +1,7 @@
-﻿using pylorak.Windows;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using pylorak.TinyWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     internal class ProcessInfo
     {

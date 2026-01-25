@@ -9,8 +9,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using ImmenseWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public interface ISerializable<T>
     {

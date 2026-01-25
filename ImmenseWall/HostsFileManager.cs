@@ -1,8 +1,9 @@
-﻿using pylorak.Utilities;
-using System;
+﻿using System;
 using System.IO;
+using pylorak.TinyWall;
+using pylorak.Utilities;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     internal class HostsFileManager : Disposable
     {

@@ -1,8 +1,4 @@
-﻿using ImmenseWall.ViewModels;
-using System;
-using System.Windows.Input;
-
-namespace pylorak.TinyWall.ViewModels
+﻿namespace ImmenseWall.ViewModels
 {
     public class ServiceInfoViewModel : ViewModelBase
     {

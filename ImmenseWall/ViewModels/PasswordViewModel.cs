@@ -4,13 +4,12 @@ namespace ImmenseWall.ViewModels
 {
     public class PasswordViewModel : ViewModelBase
     {
-        private string _password;
         public string PasswordHash { get; private set; }
 
         public string Password
         {
-            get => _password;
-            set => SetField(ref _password, value);
+            get;
+            set => SetProperty(ref field, value);
         }
 
         public ICommand OkCommand { get; }

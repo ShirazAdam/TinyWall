@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using ImmenseWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     [DataContract(Namespace = "TinyWall")]
     public class UpdateModule

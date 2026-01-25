@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace pylorak.TinyWall.ViewModels
+namespace ImmenseWall.ViewModels
 {
     public class RelayCommand : ICommand
     {

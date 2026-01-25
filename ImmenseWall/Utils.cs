@@ -1,9 +1,6 @@
-﻿using Microsoft.Samples;
-using pylorak.Windows;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -15,8 +12,10 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.Samples;
+using pylorak.Windows;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     internal static class ExtensionMethods
     {

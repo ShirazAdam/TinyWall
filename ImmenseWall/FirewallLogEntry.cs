@@ -1,6 +1,7 @@
 ﻿using System;
+using pylorak.TinyWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public enum EventLogEvent
     {

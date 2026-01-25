@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading;
+using ImmenseWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public class TwRequest
     {

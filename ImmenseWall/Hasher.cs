@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using pylorak.TinyWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public static class Hasher
     {

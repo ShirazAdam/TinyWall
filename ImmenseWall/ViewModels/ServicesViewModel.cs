@@ -1,13 +1,11 @@
-﻿using ImmenseWall.ViewModels;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Win32;
 
-namespace pylorak.TinyWall.ViewModels
+namespace ImmenseWall.ViewModels
 {
     public class ServicesViewModel : ViewModelBase
     {

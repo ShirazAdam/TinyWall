@@ -1,6 +1,4 @@
-﻿using Microsoft.Samples;
-using pylorak.Windows;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -8,8 +6,11 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.Samples;
+using pylorak.TinyWall;
+using pylorak.Windows;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
 
     internal class Updater

@@ -1,10 +1,11 @@
-﻿using pylorak.Utilities;
-using System;
+﻿using System;
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Threading;
+using pylorak.TinyWall;
+using pylorak.Utilities;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     internal delegate TwMessage PipeDataReceived(TwMessage req);
 

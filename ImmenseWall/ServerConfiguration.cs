@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using ImmenseWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public enum FirewallMode
     {

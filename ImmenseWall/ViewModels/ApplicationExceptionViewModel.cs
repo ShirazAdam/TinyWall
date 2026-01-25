@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ImmenseWall.Properties;
-using pylorak.TinyWall.ViewModels;
 
 namespace ImmenseWall.ViewModels
 {

@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace pylorak.TinyWall.Converters
+namespace ImmenseWall.Converters
 {
     public class BoolToSelectionModeConverter : IValueConverter
     {

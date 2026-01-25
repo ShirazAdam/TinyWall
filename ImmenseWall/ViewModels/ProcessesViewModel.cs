@@ -1,15 +1,14 @@
-﻿using ImmenseWall.Properties;
-using ImmenseWall.ViewModels;
-using pylorak.Windows;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
+using ImmenseWall;
+using ImmenseWall.Properties;
+using pylorak.Windows;
 
-namespace pylorak.TinyWall.ViewModels
+namespace ImmenseWall.ViewModels
 {
     public class ProcessesViewModel : ViewModelBase
     {

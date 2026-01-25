@@ -1,15 +1,14 @@
-﻿using pylorak.Utilities;
-#if !DEBUG
-using System;
-#endif
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.Json.Serialization.Metadata;
+using pylorak.TinyWall;
+using pylorak.Utilities;
+#if !DEBUG
+using System;
+#endif
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/PKSoft")]
     public sealed class ControllerSettings : ISerializable<ControllerSettings>

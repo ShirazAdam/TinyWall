@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using ListViewItem = System.Windows.Controls.ListViewItem;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     // Implements the manual sorting of items by columns.
     internal class ListViewItemComparer : IComparer<ListViewItem>, IComparer

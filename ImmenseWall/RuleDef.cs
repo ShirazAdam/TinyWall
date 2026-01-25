@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
+using ImmenseWall;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     [DataContract(Namespace = "TinyWall")]
     public class RuleDef

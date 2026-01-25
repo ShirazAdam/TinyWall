@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public static class ExtensionMethods
     {

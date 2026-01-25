@@ -1,5 +1,5 @@
 ﻿
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     internal enum StartUpMode
     {

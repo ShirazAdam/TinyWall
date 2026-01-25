@@ -1,13 +1,12 @@
-﻿using pylorak.Windows;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
-using Windows.Management.Deployment;
+using pylorak.Windows;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public class UwpPackageList : IReadOnlyList<UwpPackageList.Package>
     {

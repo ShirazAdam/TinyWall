@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using ImmenseWall;
+using ImmenseWall.ViewModels;
 
 namespace pylorak.TinyWall.Views
 {
@@ -7,13 +9,13 @@ namespace pylorak.TinyWall.Views
         public ProcessesView(bool multiSelect)
         {
             InitializeComponent();
-            DataContext = new ViewModels.ProcessesViewModel(multiSelect);
+            DataContext = new ProcessesViewModel(multiSelect);
         }
 
         public static System.Collections.Generic.List<ProcessInfo> ShowDialog(bool multiSelect, Window owner = null)
         {
             var dialog = new ProcessesView(multiSelect);
-            var viewModel = (ViewModels.ProcessesViewModel)dialog.DataContext;
+            var viewModel = (ProcessesViewModel)dialog.DataContext;
 
             if (owner != null)
             {

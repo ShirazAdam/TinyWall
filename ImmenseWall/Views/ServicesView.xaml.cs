@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using ImmenseWall.ViewModels;
 
 namespace pylorak.TinyWall.Views
 {
@@ -7,7 +8,7 @@ namespace pylorak.TinyWall.Views
         public ServicesView()
         {
             InitializeComponent();
-            DataContext = new ViewModels.ServicesViewModel();
+            DataContext = new ServicesViewModel();
         }
     }
 }

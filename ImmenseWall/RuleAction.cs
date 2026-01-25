@@ -1,5 +1,5 @@
 ﻿
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public enum RuleAction
     {

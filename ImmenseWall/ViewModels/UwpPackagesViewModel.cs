@@ -1,122 +1,107 @@
-﻿using pylorak.Windows;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ImmenseWall.ViewModels
-{
-    public class UwpPackageItem : ViewModelBase
-    {
-        public UwpPackageList.Package Package { get; }
-        public string Name => Package.Name;
-        public string Publisher => Package.PublisherId + ", " + Package.Publisher;
+namespace ImmenseWall.ViewModels;
 
-        public UwpPackageItem(UwpPackageList.Package package)
+public class UwpPackageItem : ViewModelBase
+{
+    public UwpPackageItem(UwpPackageList.Package package)
+    {
+        Package = package;
+    }
+
+    public UwpPackageList.Package Package { get; }
+    public string Name => Package.Name;
+    public string Publisher => Package.PublisherId + ", " + Package.Publisher;
+}
+
+public class UwpPackagesViewModel : ViewModelBase
+{
+    private readonly bool _multiSelect;
+    private bool _isLoading;
+    private string _searchText = string.Empty;
+    private UwpPackageItem _selectedPackage;
+
+    public UwpPackagesViewModel(bool multiSelect)
+    {
+        _multiSelect = multiSelect;
+
+        OkCommand = new RelayCommand(ExecuteOk, () => SelectedPackage != null);
+        CancelCommand = new RelayCommand(ExecuteCancel);
+        ClearSearchCommand = new RelayCommand(ExecuteClearSearch);
+
+        Task.Run(LoadPackages);
+    }
+
+    public ObservableCollection<UwpPackageItem> Packages { get; } = new();
+    public List<UwpPackageList.Package> SelectedPackages { get; } = new();
+
+    public UwpPackageItem SelectedPackage
+    {
+        get => _selectedPackage;
+        set => SetField(ref _selectedPackage, value);
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
         {
-            Package = package;
+            if (SetField(ref _searchText, value)) Task.Run(LoadPackages);
         }
     }
 
-    public class UwpPackagesViewModel : ViewModelBase
+    public bool IsLoading
     {
-        private string _searchText = string.Empty;
-        private bool _isLoading;
-        private UwpPackageItem _selectedPackage;
-        private readonly bool _multiSelect;
+        get => _isLoading;
+        private set => SetField(ref _isLoading, value);
+    }
 
-        public ObservableCollection<UwpPackageItem> Packages { get; } = new();
-        public List<UwpPackageList.Package> SelectedPackages { get; } = new();
+    public ICommand OkCommand { get; }
+    public ICommand CancelCommand { get; }
+    public ICommand ClearSearchCommand { get; }
 
-        public UwpPackageItem SelectedPackage
+    private async Task LoadPackages()
+    {
+        IsLoading = true;
+
+        await Task.Run(() =>
         {
-            get => _selectedPackage;
-            set => SetField(ref _selectedPackage, value);
-        }
+            var packageList = new UwpPackageList();
+            List<UwpPackageList.Package> packages;
 
-        public string SearchText
-        {
-            get => _searchText;
-            set
+            if (!string.IsNullOrWhiteSpace(SearchText))
+                packages = packageList.Where(p =>
+                    p.Name.ToLower().Contains(SearchText.ToLower()) ||
+                    p.Publisher.ToLower().Contains(SearchText.ToLower())
+                ).ToList();
+            else
+                packages = packageList.ToList();
+
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                if (SetField(ref _searchText, value))
-                {
-                    Task.Run(LoadPackages);
-                }
-            }
-        }
-
-        public bool IsLoading
-        {
-            get => _isLoading;
-            private set => SetField(ref _isLoading, value);
-        }
-
-        public ICommand OkCommand { get; }
-        public ICommand CancelCommand { get; }
-        public ICommand ClearSearchCommand { get; }
-
-        public UwpPackagesViewModel(bool multiSelect)
-        {
-            _multiSelect = multiSelect;
-
-            OkCommand = new RelayCommand(ExecuteOk, () => SelectedPackage != null);
-            CancelCommand = new RelayCommand(ExecuteCancel);
-            ClearSearchCommand = new RelayCommand(ExecuteClearSearch);
-
-            Task.Run(LoadPackages);
-        }
-
-        private async Task LoadPackages()
-        {
-            IsLoading = true;
-
-            await Task.Run(() =>
-            {
-                var packageList = new UwpPackageList();
-                List<UwpPackageList.Package> packages;
-
-                if (!string.IsNullOrWhiteSpace(SearchText))
-                {
-                    packages = packageList.Where(p =>
-                        p.Name.ToLower().Contains(SearchText.ToLower()) ||
-                        p.Publisher.ToLower().Contains(SearchText.ToLower())
-                    ).ToList();
-                }
-                else
-                {
-                    packages = packageList.ToList();
-                }
-
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    Packages.Clear();
-                    foreach (var package in packages)
-                    {
-                        Packages.Add(new UwpPackageItem(package));
-                    }
-                    IsLoading = false;
-                });
+                Packages.Clear();
+                foreach (var package in packages) Packages.Add(new UwpPackageItem(package));
+                IsLoading = false;
             });
-        }
+        });
+    }
 
-        private void ExecuteOk()
-        {
-            if (SelectedPackage != null)
-            {
-                SelectedPackages.Add(SelectedPackage.Package);
-            }
-        }
+    private void ExecuteOk()
+    {
+        if (SelectedPackage != null) SelectedPackages.Add(SelectedPackage.Package);
+    }
 
-        private void ExecuteCancel()
-        {
-            // Cancel
-        }
+    private void ExecuteCancel()
+    {
+        // Cancel
+    }
 
-        private void ExecuteClearSearch()
-        {
-            SearchText = string.Empty;
-        }
+    private void ExecuteClearSearch()
+    {
+        SearchText = string.Empty;
     }
 }

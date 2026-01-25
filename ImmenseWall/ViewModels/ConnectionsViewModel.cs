@@ -1,7 +1,4 @@
-﻿using pylorak.TinyWall.Resources;
-using pylorak.Windows;
-using pylorak.Windows.NetStat;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ServiceProcess;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public class ServicePidMap
     {

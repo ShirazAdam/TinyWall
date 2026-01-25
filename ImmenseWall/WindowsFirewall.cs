@@ -1,11 +1,10 @@
-﻿using NetFwTypeLib;
-using pylorak.Utilities;
-using System;
+﻿using System;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
+using pylorak.Utilities;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     class WindowsFirewall : Disposable
     {

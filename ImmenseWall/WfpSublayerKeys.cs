@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public static class WfpSublayerKeys
     {
