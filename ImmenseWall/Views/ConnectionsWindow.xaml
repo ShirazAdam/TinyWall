@@ -1,0 +1,56 @@
+<Window x:Class="pylorak.TinyWall.ConnectionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:pylorak.TinyWall"
+        mc:Ignorable="d"
+        Title="Active Connections" Height="600" Width="1000" ResizeMode="CanResizeWithGrip">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Border Grid.Row="0" Background="#F0F0F0" Padding="10">
+            <StackPanel>
+                <DockPanel>
+                    <Button x:Name="btnRefresh" Content="Refresh" Width="75" Height="25" 
+                            DockPanel.Dock="Right" Margin="5,0" Click="BtnRefresh_Click"/>
+                    <CheckBox x:Name="chkShowAll" Content="Show All Connections (Not just Firewall Related)" 
+                              VerticalAlignment="Center" Margin="5,0" Checked="ChkShowAll_Checked" 
+                              Unchecked="ChkShowAll_Unchecked"/>
+                </DockPanel>
+            </StackPanel>
+        </Border>
+        
+        <DataGrid x:Name="dataGridConnections" Grid.Row="1" 
+                  AutoGenerateColumns="False" 
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserReorderColumns="True"
+                  CanUserResizeRows="False"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="All"
+                  RowHeaderWidth="0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="60"/>
+                <DataGridTextColumn Header="Local Address" Binding="{Binding LocalAddress}" Width="120"/>
+                <DataGridTextColumn Header="Local Port" Binding="{Binding LocalPort}" Width="80"/>
+                <DataGridTextColumn Header="Remote Address" Binding="{Binding RemoteAddress}" Width="120"/>
+                <DataGridTextColumn Header="Remote Port" Binding="{Binding RemotePort}" Width="80"/>
+                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="80"/>
+                <DataGridTextColumn Header="PID" Binding="{Binding PID}" Width="60"/>
+                <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}" Width="120"/>
+                <DataGridTextColumn Header="Image Path" Binding="{Binding ImagePath}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        
+        <Border Grid.Row="2" Background="#F0F0F0" Padding="10" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="btnClose" Content="Close" Width="75" Height="25" Margin="5" Click="BtnClose_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

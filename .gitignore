@@ -1,39 +1,29 @@
+```
+# Build artifacts
+bin/
+obj/
 *.exe
 *.dll
-*.msi
-*.zip
-*.suo
+*.pdb
+*.userprefs
+
+# Dependencies
+packages/
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.temp
+
+# User-specific files
 *.user
+*.userosscache
+*.suo
+*.userprefs
 
-/.vs/
-/.tx/
-
-/LocalizationPack/**/*.resx
-/LocalizationPack/**/*.pdf
-/LocalizationPack/ZetaResourceEditor/
-
-/TinyWall.suo
-/TinyWall.v11.suo
-
-/TinyWall/obj/
-/TinyWall/bin/
-
-/pylorak.Utilities/obj/
-/pylorak.Utilities/bin/
-
-/pylorak.Windows/obj/
-/pylorak.Windows/bin/
-
-/pylorak.Windows.Services/obj/
-/pylorak.Windows.Services/bin/
-
-/pylorak.Windows.WFP/bin/
-/pylorak.Windows.WFP/obj/
-
-/MsiSetup/obj/
-/MsiSetup/bin/
-/MsiSetup/Sources/ProgramFiles/
-/ImmenseWall/obj/Debug
-/ImmenseWall/bin/Debug
-/ImmenseWall/obj/Release
-/ImmenseWall/bin/Release
+# OS generated files
+.DS_Store
+Thumbs.db
+```

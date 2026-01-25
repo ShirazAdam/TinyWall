@@ -1,0 +1,46 @@
+<Window x:Class="pylorak.TinyWall.ApplicationExceptionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:pylorak.TinyWall"
+        mc:Ignorable="d"
+        Title="Application Exception" Height="500" Width="600" ResizeMode="CanResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Border Grid.Row="0" Background="#F0F0F0" Padding="10">
+            <StackPanel>
+                <Label Content="Application:" FontWeight="Bold"/>
+                <TextBox x:Name="txtAppName" IsReadOnly="True" Margin="0,0,0,10"/>
+                
+                <Label Content="Exception Type:" FontWeight="Bold"/>
+                <TextBox x:Name="txtExceptionType" IsReadOnly="True" Margin="0,0,0,10"/>
+                
+                <Label Content="Exception Message:" FontWeight="Bold"/>
+                <TextBox x:Name="txtExceptionMsg" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="80" Margin="0,0,0,10"/>
+            </StackPanel>
+        </Border>
+        
+        <Border Grid.Row="1" Background="#F0F0F0" Padding="10" Margin="0,10,0,0">
+            <ScrollViewer>
+                <StackPanel>
+                    <Label Content="Full Exception Details:" FontWeight="Bold"/>
+                    <TextBox x:Name="txtExceptionDetails" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" 
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+        
+        <Border Grid.Row="2" Background="#F0F0F0" Padding="10" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="btnCopy" Content="Copy Details" Width="100" Height="25" Margin="5" Click="BtnCopy_Click"/>
+                <Button x:Name="btnOK" Content="OK" Width="75" Height="25" Margin="5" Click="BtnOK_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

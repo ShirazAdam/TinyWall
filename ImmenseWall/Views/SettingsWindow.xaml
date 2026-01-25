@@ -1,0 +1,110 @@
+<Window x:Class="pylorak.TinyWall.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:pylorak.TinyWall"
+        mc:Ignorable="d"
+        Title="Settings" Height="500" Width="600" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TabControl Grid.Row="0" Margin="10">
+            <TabItem Header="General">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Startup" Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="chkStartWithWindows" Content="Start with Windows" Margin="5"/>
+                                <CheckBox x:Name="chkMinimizeToTray" Content="Minimize to system tray" Margin="5"/>
+                                <CheckBox x:Name="chkShowNotifications" Content="Show notifications" Margin="5"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Language" Margin="0,10,0,10">
+                            <StackPanel>
+                                <ComboBox x:Name="cmbLanguage" Margin="5" Width="200" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Logging" Margin="0,10,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="chkEnableLogging" Content="Enable logging" Margin="5"/>
+                                <CheckBox x:Name="chkLogToFile" Content="Log to file" Margin="5"/>
+                                <CheckBox x:Name="chkLogToConsole" Content="Log to console" Margin="5"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <TabItem Header="Firewall">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Rules" Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="chkAutoApplyRules" Content="Automatically apply rules" Margin="5"/>
+                                <CheckBox x:Name="chkConfirmOutbound" Content="Confirm outbound connections" Margin="5"/>
+                                <CheckBox x:Name="chkBlockUnresolved" Content="Block unresolved domains" Margin="5"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Blocking" Margin="0,10,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="chkBlockP2P" Content="Block peer-to-peer connections" Margin="5"/>
+                                <CheckBox x:Name="chkBlockScanning" Content="Block network scanning" Margin="5"/>
+                                <CheckBox x:Name="chkBlockICMP" Content="Block ICMP ping" Margin="5"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <TabItem Header="Security">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Password" Margin="0,0,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="chkRequirePassword" Content="Require password to unlock" Margin="5"/>
+                                <Grid Margin="20,5,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="Password:" VerticalAlignment="Center"/>
+                                    <PasswordBox x:Name="txtPassword" Grid.Column="1" Margin="5" MaxLength="255"/>
+                                </Grid>
+                                <Grid Margin="20,5,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="Confirm:" VerticalAlignment="Center"/>
+                                    <PasswordBox x:Name="txtPasswordConfirm" Grid.Column="1" Margin="5" MaxLength="255"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Protection" Margin="0,10,0,10">
+                            <StackPanel>
+                                <CheckBox x:Name="chkProtectService" Content="Protect service from termination" Margin="5"/>
+                                <CheckBox x:Name="chkHideProcesses" Content="Hide processes from Task Manager" Margin="5"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+        
+        <Border Grid.Row="1" Background="#F0F0F0" Padding="10" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="btnOK" Content="OK" Width="75" Height="25" Margin="5" Click="BtnOK_Click"/>
+                <Button x:Name="btnCancel" Content="Cancel" Width="75" Height="25" Margin="5" Click="BtnCancel_Click"/>
+                <Button x:Name="btnApply" Content="Apply" Width="75" Height="25" Margin="5" Click="BtnApply_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
