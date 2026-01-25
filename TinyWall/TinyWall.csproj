@@ -117,8 +117,8 @@
       <DependentUpon>PasswordForm.cs</DependentUpon>
     </EmbeddedResource>
 
-    <EmbeddedResource Update="Processes.ar.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.ar.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
 
     <EmbeddedResource Update="Resources\Exceptions.resx">
@@ -168,10 +168,10 @@
     <Compile Update="PasswordForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Services.cs">
+    <Compile Update="ServicesForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Processes.cs">
+    <Compile Update="ProcessesForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="SettingsForm.cs">
@@ -196,11 +196,11 @@
     <Compile Update="PasswordForm.Designer.cs">
       <DependentUpon>PasswordForm.cs</DependentUpon>
     </Compile>
-    <Compile Update="Services.Designer.cs">
-      <DependentUpon>Services.cs</DependentUpon>
+    <Compile Update="ServicesForm.Designer.cs">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </Compile>
-    <Compile Update="Processes.Designer.cs">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <Compile Update="ProcessesForm.Designer.cs">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </Compile>
     <Compile Update="SettingsForm.Designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
@@ -229,19 +229,19 @@
       <DependentUpon>PasswordForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.ar.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.ar.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Update="MainForm.resx">
       <DependentUpon>TinyWallController.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Update="SettingsForm.ar.resx">
@@ -484,95 +484,95 @@
     <EmbeddedResource Update="PasswordForm.zh.resx">
       <DependentUpon>PasswordForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.bg.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.bg.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.es.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.es.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.ko.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.ko.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.tr.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.tr.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.cs.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.cs.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.hu.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.hu.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.de.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.de.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.fr.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.fr.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.it.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.it.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.ja.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.ja.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.nl.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.nl.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.pl.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.pl.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.pt-BR.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.pt-BR.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.ru.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.ru.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Processes.zh.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
+    <EmbeddedResource Update="ProcessesForm.zh.resx">
+      <DependentUpon>ProcessesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.bg.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.bg.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.es.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.es.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.hu.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.hu.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.de.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.de.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.fr.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.fr.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.ko.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.ko.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.tr.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.tr.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.cs.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.cs.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.it.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.it.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.ja.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.ja.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.nl.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.nl.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.pl.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.pl.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.pt-BR.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.pt-BR.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.ru.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.ru.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Update="Services.zh.resx">
-      <DependentUpon>Services.cs</DependentUpon>
+    <EmbeddedResource Update="ServicesForm.zh.resx">
+      <DependentUpon>ServicesForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Update="SettingsForm.bg.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
