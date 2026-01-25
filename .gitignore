@@ -1,24 +1,23 @@
-# Documentation files (if needed to ignore)
-*.md
-
-# Build artifacts for C# projects
-*.exe
-*.dll
-*.pdb
-*.userprefs
-*.cache
-*.log
-[Tt]iny[Ff]ile*.tmp
+```
+# Build artifacts
+bin/
+obj/
+out/
+dist/
+build/
+target/
 
 # Dependencies
 packages/
 node_modules/
-.nuget/
+vendor/
 
-# IDE specific
-.vs/
-*.user
+# IDE files
+.vscode/
+.idea/
+*.userprefs
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
 
@@ -30,38 +29,15 @@ node_modules/
 .Trashes
 ehthumbs.db
 Thumbs.db
-desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-
-# Configuration files that might contain secrets
-.config/usersecrets/
-.vscode/settings.json
-
-# Performance related files if they are generated
-*.perf
-*.profile
-*.trace
-
-# Log files
+# Logs
 *.log
 
-# Backup files
-*.bak
-*.backup
-*~
-
-# Local configuration overrides
-appsettings.Local.json
-*.user.json
+# User-specific files
+.vs/
+*.VC.db
+*.VC.VC.opendb
 
 # Test results
 TestResults/
-
-# Publish output
-bin/
-obj/
+```
