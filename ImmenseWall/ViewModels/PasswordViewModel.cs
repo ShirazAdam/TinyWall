@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace pylorak.TinyWall.ViewModels
+namespace ImmenseWall.ViewModels
 {
     public class PasswordViewModel : ViewModelBase
     {

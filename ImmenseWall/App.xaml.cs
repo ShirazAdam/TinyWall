@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace pylorak.TinyWall
+namespace ImmenseWall
 {
     public partial class App : Application
     {
@@ -12,7 +12,7 @@ namespace pylorak.TinyWall
             InitializeResources();
 
             // Show main window or dialog as needed
-            var mainWindow = new Views.SettingsView();
+            var mainWindow = new ImmenseWall.Views.SettingsView();
             mainWindow.ShowDialog();
         }
 

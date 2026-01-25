@@ -12,7 +12,7 @@ using System.Security.Policy;
 using System.Windows;
 using System.Windows.Input;
 
-namespace pylorak.TinyWall.ViewModels
+namespace ImmenseWall.ViewModels
 {
     public class ExceptionListItem : ViewModelBase
     {

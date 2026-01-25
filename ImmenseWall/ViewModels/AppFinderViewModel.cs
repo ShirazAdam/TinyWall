@@ -112,7 +112,7 @@ namespace ImmenseWall.ViewModels
                         if (subject is not ExecutableSubject exe) continue;
 
                         // Add to results
-                        pylorak.TinyWall.App.Current.Dispatcher.Invoke(() =>
+                        App.Current.Dispatcher.Invoke(() =>
                         {
                             if (!FoundApplications.Any(fa => fa.Application.Name.Equals(app.Name)))
                             {
@@ -127,7 +127,7 @@ namespace ImmenseWall.ViewModels
                 // Do slow search
                 PerformSlowSearch(cancellationToken);
 
-                pylorak.TinyWall.App.Current.Dispatcher.Invoke(() =>
+                App.Current.Dispatcher.Invoke(() =>
                 {
                     StatusText = Resources.Messages.SearchResults;
                     IsSearching = false;
@@ -135,7 +135,7 @@ namespace ImmenseWall.ViewModels
             }
             catch (OperationCanceledException)
             {
-                pylorak.TinyWall.App.Current.Dispatcher.Invoke(() =>
+                App.Current.Dispatcher.Invoke(() =>
                 {
                     StatusText = Resources.Messages.SearchCancelled;
                     IsSearching = false;
