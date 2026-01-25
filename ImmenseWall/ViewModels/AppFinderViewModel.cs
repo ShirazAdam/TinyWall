@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using ImmenseWall.Properties;
-using pylorak.TinyWall.ViewModels;
 
 namespace ImmenseWall.ViewModels
 {
@@ -14,8 +14,8 @@ namespace ImmenseWall.ViewModels
     {
         private bool _isSelected;
         public Application Application { get; }
-        public string Name => Application.Name;
-        public string IconKey => Application.Name;
+        public string Name => Application.MainWindow?.Name;
+        public string IconKey => Application.MainWindow?.Name;
         public bool IsRecommended => Application.HasFlag("TWUI:Recommended");
 
         public bool IsSelected

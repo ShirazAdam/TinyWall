@@ -1,15 +1,14 @@
-﻿<Window x:Class="pylorak.TinyWall.Views.ApplicationExceptionView"
+﻿<Window x:Class="ImmenseWall.Views.ApplicationExceptionView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:pylorak.TinyWall.ViewModels" 
-        xmlns:viewModels="clr-namespace:ImmenseWall.ViewModels"
+        xmlns:vm="clr-namespace:ImmenseWall.ViewModels"
         Title="{x:Static resx:Messages.ApplicationExceptionTitle}"
         Height="600" Width="700"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
 
     <Window.DataContext>
-        <viewModels:ApplicationExceptionViewModel/>
+        <vm:ApplicationExceptionViewModel/>
     </Window.DataContext>
 
     <Window.Resources>

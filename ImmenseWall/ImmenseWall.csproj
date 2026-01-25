@@ -68,6 +68,9 @@
     <Compile Include="Views\AppFinderView.xaml.cs">
       <DependentUpon>AppFinderView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ApplicationExceptionView.xaml.cs">
+      <DependentUpon>ApplicationExceptionView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ConnectionsView.xaml.cs">
       <DependentUpon>ConnectionsView.xaml</DependentUpon>
     </Compile>
@@ -91,6 +94,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ApplicationExceptionView.xaml">
+      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ConnectionsView.xaml">
@@ -128,6 +132,23 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\pylorak.Utilities\pylorak.Utilities.csproj">
+      <Project>{88626d1e-88c0-493a-af9f-7adf9affc661}</Project>
+      <Name>pylorak.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\pylorak.Windows.Services\pylorak.Windows.Services.csproj">
+      <Project>{31fb6afc-ffa6-4b38-a438-d066fa84e90f}</Project>
+      <Name>pylorak.Windows.Services</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\pylorak.Windows.WFP\pylorak.Windows.WFP.csproj">
+      <Project>{d21201ce-6d78-4fbf-a5ef-7ef60adebec4}</Project>
+      <Name>pylorak.Windows.WFP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\pylorak.Windows\pylorak.Windows.csproj">
+      <Project>{a2ed13d3-503f-4640-a7de-75f7a6eaa566}</Project>
+      <Name>pylorak.Windows</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
