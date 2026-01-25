@@ -1,9 +1,7 @@
-﻿// RelayCommand.cs
-
-using System;
+﻿using System;
 using System.Windows.Input;
 
-namespace ImmenseWall.ViewModels
+namespace pylorak.TinyWall.ViewModels
 {
     public class RelayCommand : ICommand
     {
@@ -12,8 +10,8 @@ namespace ImmenseWall.ViewModels
 
         public event EventHandler CanExecuteChanged
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
 
         public RelayCommand(Action execute, Func<bool> canExecute = null)
@@ -23,6 +21,7 @@ namespace ImmenseWall.ViewModels
         }
 
         public bool CanExecute(object parameter) => _canExecute?.Invoke() ?? true;
+
         public void Execute(object parameter) => _execute();
     }
 
@@ -33,8 +32,8 @@ namespace ImmenseWall.ViewModels
 
         public event EventHandler CanExecuteChanged
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
 
         public RelayCommand(Action<T> execute, Func<T, bool> canExecute = null)
@@ -44,6 +43,7 @@ namespace ImmenseWall.ViewModels
         }
 
         public bool CanExecute(object parameter) => _canExecute?.Invoke((T)parameter) ?? true;
+
         public void Execute(object parameter) => _execute((T)parameter);
     }
 }

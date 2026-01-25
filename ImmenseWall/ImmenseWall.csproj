@@ -56,12 +56,51 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CmdLineArgs.cs" />
+    <Compile Include="Controller.cs" />
+    <Compile Include="Converters\BoolToSelectionModeConverter.cs" />
     <Compile Include="Converters\Converters.cs" />
+    <Compile Include="ExceptionPolicy.cs" />
+    <Compile Include="ExceptionSubject.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="FirewallException.cs" />
+    <Compile Include="FirewallLogEntry.cs" />
+    <Compile Include="FirewallLogWatcher.cs" />
+    <Compile Include="GlobalInstances.cs" />
+    <Compile Include="Hasher.cs" />
+    <Compile Include="HostsFileManager.cs" />
+    <Compile Include="ListViewItemComprarer.cs" />
+    <Compile Include="Message.cs" />
+    <Compile Include="MessageType.cs" />
+    <Compile Include="PipeClientEndpoint.cs" />
+    <Compile Include="PipeServerEndpoint.cs" />
+    <Compile Include="PolymorphicJsonConverter.cs" />
+    <Compile Include="ProcessInfo.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Protocol.cs" />
+    <Compile Include="Request.cs" />
+    <Compile Include="RuleAction.cs" />
+    <Compile Include="RuleDef.cs" />
+    <Compile Include="SerialisationHelper.cs" />
+    <Compile Include="ServerConfiguration.cs" />
+    <Compile Include="ServerState.cs" />
+    <Compile Include="ServicePidMap.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="TinyWallController.cs" />
+    <Compile Include="TinyWallDoctor.cs" />
+    <Compile Include="TinyWallService.cs" />
+    <Compile Include="UpdateChecker.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="UwpPackageList.cs" />
     <Compile Include="ViewModels\AppFinderViewModel.cs" />
     <Compile Include="ViewModels\ApplicationExceptionViewModel.cs" />
     <Compile Include="ViewModels\ConnectionsViewModel.cs" />
     <Compile Include="ViewModels\PasswordViewModel.cs" />
+    <Compile Include="ViewModels\ProcessesViewModel.cs" />
+    <Compile Include="ViewModels\ProcessInfoViewModel.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
+    <Compile Include="ViewModels\ServiceInfoViewModel.cs" />
+    <Compile Include="ViewModels\ServicesViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\UwpPackagesViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
@@ -74,9 +113,17 @@
     <Compile Include="Views\ConnectionsView.xaml.cs">
       <DependentUpon>ConnectionsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ProcessesView.xaml.cs">
+      <DependentUpon>ProcessesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ServicesView.xaml.cs">
+      <DependentUpon>ServicesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SettingsView.xaml.cs">
       <DependentUpon>SettingsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WfpSublayerKeys.cs" />
+    <Compile Include="WindowsFirewall.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -101,6 +148,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\ProcessesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ServicesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\SettingsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -120,6 +175,58 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="MainForm.ar.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.bg.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.cs.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.de.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.es.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.fr.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.hu.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.it.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.ja.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.ko.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.nl.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.pl.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.pt-BR.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.ru.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.tr.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.zh.resx">
+      <DependentUpon>TinyWallController.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

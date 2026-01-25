@@ -1,0 +1,68 @@
+﻿<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="$this.Text" xml:space="preserve">
+    <value>وحدة تحكم TinyWall</value>
+  </data>
+  <data name="mnuAllowLocalSubnet.Text" xml:space="preserve">
+    <value>إلغاء حظر حركة مرور LAN</value>
+  </data>
+  <data name="mnuConnections.Text" xml:space="preserve">
+    <value>إظهار الاتصالات</value>
+  </data>
+  <data name="mnuElevate.Text" xml:space="preserve">
+    <value>رفع</value>
+  </data>
+  <data name="mnuEnableHostsBlocklist.Text" xml:space="preserve">
+    <value>تمكين قوائم الحظر</value>
+  </data>
+  <data name="mnuLock.Text" xml:space="preserve">
+    <value>قفل</value>
+  </data>
+  <data name="mnuManage.Text" xml:space="preserve">
+    <value>أدار</value>
+  </data>
+  <data name="mnuMode.Text" xml:space="preserve">
+    <value>تغيير الوضع</value>
+  </data>
+  <data name="mnuModeAllowOutgoing.Text" xml:space="preserve">
+    <value>السماح بالصادر</value>
+  </data>
+  <data name="mnuModeBlockAll.Text" xml:space="preserve">
+    <value>حظر الكل</value>
+  </data>
+  <data name="mnuModeDisabled.Text" xml:space="preserve">
+    <value>تعطيل جدار الحماية</value>
+  </data>
+  <data name="mnuModeLearn.Text" xml:space="preserve">
+    <value>التعلم التلقائي</value>
+  </data>
+  <data name="mnuModeNormal.Text" xml:space="preserve">
+    <value>الحماية العادية</value>
+  </data>
+  <data name="mnuQuit.Text" xml:space="preserve">
+    <value>انهاء</value>
+  </data>
+  <data name="mnuTrafficRate.Text" xml:space="preserve">
+    <value>&lt;معدل حركة المرور&gt;</value>
+  </data>
+  <data name="mnuWhitelistByExecutable.Text" xml:space="preserve">
+    <value>القائمة البيضاء حسب الملف القابل للتنفيذ</value>
+  </data>
+  <data name="mnuWhitelistByProcess.Text" xml:space="preserve">
+    <value>القائمة البيضاء حسب العملية</value>
+  </data>
+  <data name="ofd.Filter" xml:space="preserve">
+    <value>جميع الملفات|*.*</value>
+  </data>
+</root>
