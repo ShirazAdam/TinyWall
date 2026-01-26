@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net481</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Deterministic>True</Deterministic>
     <VersionPrefix>0.1.0</VersionPrefix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.ServiceProcess" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.1" />
   </ItemGroup>
 
 </Project>
