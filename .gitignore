@@ -9,30 +9,17 @@
 /.tx/
 /.vscode/
 
-/LocalizationPack/**/*.resx
-/LocalizationPack/**/*.pdf
-/LocalizationPack/ZetaResourceEditor/
+/LocalisationPack/**/*.resx
+/LocalisationPack/**/*.pdf
+/LocalisationPack/ZetaResourceEditor/
 
 /TinyWall.suo
 /TinyWall.v11.suo
 
-/TinyWall/obj/
-/TinyWall/bin/
+bin/
+obj/
 
-/pylorak.Utilities/obj/
-/pylorak.Utilities/bin/
-
-/pylorak.Windows/obj/
-/pylorak.Windows/bin/
-
-/pylorak.Windows.Services/obj/
-/pylorak.Windows.Services/bin/
-
-/pylorak.Windows.WFP/bin/
-/pylorak.Windows.WFP/obj/
-
-/MsiSetup/obj/
-/MsiSetup/bin/
 /MsiSetup/Sources/ProgramFiles/
-/ImmenseWall/obj/Debug
-/ImmenseWall/bin/Debug
+
+build_errors*
+build_log*

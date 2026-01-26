@@ -1,0 +1,266 @@
+﻿<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllApplications" xml:space="preserve">
+    <value>جميع التطبيقات</value>
+  </data>
+  <data name="AllFilesFileFilter" xml:space="preserve">
+    <value>جميع الملفات</value>
+  </data>
+  <data name="AreYouSureYouWantToRemoveAllExceptions" xml:space="preserve">
+    <value>هل أنت متأكد من أنك تريد إزالة جميع استثناءات جدار الحماية؟</value>
+  </data>
+  <data name="CannotGetExecutablePathWhitelisting" xml:space="preserve">
+    <value>لا يمكن الحصول على مسار قابل للتنفيذ. فشلت القائمة البيضاء.</value>
+  </data>
+  <data name="CannotGetPathOfProcess" xml:space="preserve">
+    <value>لا يمكن الحصول على مسار العملية.</value>
+  </data>
+  <data name="ClickOnAWindowWhitelisting" xml:space="preserve">
+    <value>انقر فوق المنطقة الداخلية لأي نافذة مفتوحة لتحديد تطبيقها للإدراج في القائمة البيضاء.</value>
+  </data>
+  <data name="CommunicationWithTheServiceError" xml:space="preserve">
+    <value>واجه الاتصال بخدمة TinyWall خطأ.</value>
+  </data>
+  <data name="CompromisedApplication" xml:space="preserve">
+    <value>{0} ، ربما تتعرض للخطر</value>
+  </data>
+  <data name="ConfigurationHasBeenExported" xml:space="preserve">
+    <value>تم تصدير ملف التكوين بنجاح.</value>
+  </data>
+  <data name="ConfigurationHasBeenImported" xml:space="preserve">
+    <value>تم استيراد ملف التكوين بنجاح. اضغط على تطبيق في نافذة الإدارة لجعل الإعدادات الجديدة دائمة.</value>
+  </data>
+  <data name="ConfigurationImportError" xml:space="preserve">
+    <value>تعذر استيراد ملف التكوين.</value>
+  </data>
+  <data name="CouldNotApplySettingsInternalError" xml:space="preserve">
+    <value>تعذر تطبيق إعدادات جدار الحماية بسبب خطأ داخلي.</value>
+  </data>
+  <data name="CouldNotCloseProcess" xml:space="preserve">
+    <value>تعذر إغلاق العملية {0}({1}).</value>
+  </data>
+  <data name="CouldNotElevatePrivileges" xml:space="preserve">
+    <value>لا يمكن رفع الامتيازات.</value>
+  </data>
+  <data name="CouldNotElevatePrivilegesForUpdate" xml:space="preserve">
+    <value>تعذر رفع الامتيازات اللازمة للتحديث.</value>
+  </data>
+  <data name="CouldNotWhitelistProcess" xml:space="preserve">
+    <value>تعذر إدراج عملية {0} في القائمة البيضاء.</value>
+  </data>
+  <data name="DatabaseIsMissingOrCorrupt" xml:space="preserve">
+    <value>قاعدة البيانات مفقودة أو تالفة.</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>افتراضي</value>
+  </data>
+  <data name="DidYouInitiateTheUninstall" xml:space="preserve">
+    <value>هل بدأت إلغاء تثبيت / تحديث TinyWall؟</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>جاري تحميل التحديث...</value>
+  </data>
+  <data name="DownloadInterrupted" xml:space="preserve">
+    <value>توقف التنزيل.</value>
+  </data>
+  <data name="ErrorCheckingForUpdates" xml:space="preserve">
+    <value>لا يمكن الوصول إلى خادم التحديث.
+قد يكون الخادم معطلا ، أو يرجى التأكد من منح TinyWall إمكانية الوصول إلى الإنترنت ، ثم حاول مرة أخرى.</value>
+  </data>
+  <data name="FirewallModeAllowOut" xml:space="preserve">
+    <value>السماح بالصادر</value>
+  </data>
+  <data name="FirewallModeBlockAll" xml:space="preserve">
+    <value>حظر الكل</value>
+  </data>
+  <data name="FirewallModeDisabled" xml:space="preserve">
+    <value>ذوي الاحتياجات الخاصه</value>
+  </data>
+  <data name="FirewallModeLearn" xml:space="preserve">
+    <value>التعلم التلقائي</value>
+  </data>
+  <data name="FirewallModeNormal" xml:space="preserve">
+    <value>عادي</value>
+  </data>
+  <data name="FirewallModeUnknown" xml:space="preserve">
+    <value>مجهول</value>
+  </data>
+  <data name="FirewallRulesForRecognizedChanged" xml:space="preserve">
+    <value>تم تغيير قواعد جدار الحماية {0} المعترف بها. انقر فوق هذه النافذة المنبثقة لتحرير الاستثناء.</value>
+  </data>
+  <data name="FirewallRulesForUnrecognizedChanged" xml:space="preserve">
+    <value>تم تغيير قواعد جدار الحماية {0} غير المعترف بها. انقر فوق هذه النافذة المنبثقة لتحرير الاستثناء.</value>
+  </data>
+  <data name="Lock" xml:space="preserve">
+    <value>قفل</value>
+  </data>
+  <data name="NoUpdateAvailable" xml:space="preserve">
+    <value>لديك أحدث إصدار من TinyWall. لا يلزم التحديث.</value>
+  </data>
+  <data name="OperationFailed" xml:space="preserve">
+    <value>فشلت العملية.</value>
+  </data>
+  <data name="OtherSettingsPreventEffect" xml:space="preserve">
+    <value>نجحت العملية ، لكن الإعدادات الأخرى حالت دون تأثيرها الكامل.</value>
+  </data>
+  <data name="PasswordFieldsDoNotMatch" xml:space="preserve">
+    <value>حقول كلمة المرور غير متطابقة. يرجى التحقق من المدخلات الخاصة بك.</value>
+  </data>
+  <data name="Permanent" xml:space="preserve">
+    <value>دائم</value>
+  </data>
+  <data name="PleaseWaitWhileTinyWallChecksForUpdates" xml:space="preserve">
+    <value>يرجى الانتظار حتى يتحقق TinyWall من التحديثات المتاحة.</value>
+  </data>
+  <data name="PortListInvalid" xml:space="preserve">
+    <value>تنسيق قائمة المنافذ غير صالح.
+يمكنك استخدام رقم واحد أو أكثر في النطاق 1-65535 ، مفصولة بفواصل. يمكن أيضا استخدام asterix (*) للإشارة إلى جميع المنافذ الممكنة.</value>
+  </data>
+  <data name="SearchingPath" xml:space="preserve">
+    <value>جاري البحث: {0}</value>
+  </data>
+  <data name="SearchResults" xml:space="preserve">
+    <value>نتائج البحث:</value>
+  </data>
+  <data name="SettingHaveChangedRetry" xml:space="preserve">
+    <value>تم تغيير التكوين أثناء تعديل التفضيلات. لمنع فقدان الإعدادات ، يرجى إجراء التغييرات مرة أخرى.</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>بدء</value>
+  </data>
+  <data name="StartingUpdate" xml:space="preserve">
+    <value>جاري بدء التحديث...</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>وقف</value>
+  </data>
+  <data name="SubjectTypeExecutable" xml:space="preserve">
+    <value>التنفيذي</value>
+  </data>
+  <data name="SubjectTypeService" xml:space="preserve">
+    <value>خدمة</value>
+  </data>
+  <data name="SubjectTypeUwpApp" xml:space="preserve">
+    <value>حزمة UWP</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>نجاح.</value>
+  </data>
+  <data name="TheFirewallIsNowAllowsOutgoingConnections" xml:space="preserve">
+    <value>يسمح جدار الحماية الآن بالاتصالات الصادرة ولكنه يحظر الواردة.</value>
+  </data>
+  <data name="TheFirewallIsNowBlockingAllInAndOut" xml:space="preserve">
+    <value>يقوم جدار الحماية الآن بحظر جميع حركة المرور الواردة والصادرة.</value>
+  </data>
+  <data name="TheFirewallIsNowDisabled" xml:space="preserve">
+    <value>تم تعطيل جدار الحماية الآن.</value>
+  </data>
+  <data name="TheFirewallIsNowLearning" xml:space="preserve">
+    <value>يتعلم جدار الحماية الآن مع السماح بمرور كل حركة المرور.</value>
+  </data>
+  <data name="TheFirewallIsNowOperatingAsRecommended" xml:space="preserve">
+    <value>يعمل جدار الحماية الآن في الوضع الموصى به.</value>
+  </data>
+  <data name="TheFirewallSettingsHaveBeenUpdated" xml:space="preserve">
+    <value>تم تحديث إعدادات جدار الحماية بنجاح.</value>
+  </data>
+  <data name="TheTinyWallServiceIsUnavailable" xml:space="preserve">
+    <value>خدمة TinyWall غير متوفرة. يرجى التأكد من تثبيته وبدء تشغيله ، ثم أعد المحاولة.</value>
+  </data>
+  <data name="TinyWallHasBeenUnlocked" xml:space="preserve">
+    <value>تم إلغاء قفل TinyWall. يمكنك الآن إصدار أوامر تقوم بتعديل التكوين.</value>
+  </data>
+  <data name="TinyWallIsCurrentlyLocked" xml:space="preserve">
+    <value>TinyWall مغلق حاليا. إلغاء القفل وإعادة المحاولة.</value>
+  </data>
+  <data name="TinyWallSettingsFileFilter" xml:space="preserve">
+    <value>إعدادات TinyWall</value>
+  </data>
+  <data name="TinyWallUpdater" xml:space="preserve">
+    <value>المحدث TinyWall</value>
+  </data>
+  <data name="ToastAppWhitelisted" xml:space="preserve">
+    <value>تمت الإضافة إلى القائمة البيضاء</value>
+  </data>
+  <data name="ToastInputNeeded" xml:space="preserve">
+    <value>إجراءاتك مطلوبة لإضافتها إلى القائمة البيضاء.</value>
+  </data>
+  <data name="ToastWhitelistFailed" xml:space="preserve">
+    <value>فشلت الوظيفة الإضافية للقائمة البيضاء. حاول مرة أخرى.</value>
+  </data>
+  <data name="TrafficIn" xml:space="preserve">
+    <value>في</value>
+  </data>
+  <data name="TrafficOut" xml:space="preserve">
+    <value>خارج</value>
+  </data>
+  <data name="UnblockApp" xml:space="preserve">
+    <value>تم العثور على ملفات ذات صلة
+يمكن أن يكون الملف القابل للتنفيذ المحدد جزءا من {0}. لضمان إمكانية استخدام هذا التطبيق دون قيود ، يوصى أيضا بإلغاء حظر بعض الملفات الأخرى.</value>
+  </data>
+  <data name="UnblockAppCancel" xml:space="preserve">
+    <value>إلغاء القائمة البيضاء</value>
+  </data>
+  <data name="UnblockAppShowRelated" xml:space="preserve">
+    <value>إظهار/إخفاء الملفات التنفيذية ذات الصلة</value>
+  </data>
+  <data name="UnblockAppUnblockAllRecommended" xml:space="preserve">
+    <value>إلغاء حظر جميع الملفات الموصى بها</value>
+  </data>
+  <data name="UnblockAppUnblockOnlySelected" xml:space="preserve">
+    <value>إلغاء حظر الملف المحدد فقط</value>
+  </data>
+  <data name="UnknownApplication" xml:space="preserve">
+    <value>تطبيق غير معروف</value>
+  </data>
+  <data name="Unlock" xml:space="preserve">
+    <value>فتح</value>
+  </data>
+  <data name="UnlockFailed" xml:space="preserve">
+    <value>فشل إلغاء القفل. حاول مرة أخرى باستخدام عبارة مرور أخرى.</value>
+  </data>
+  <data name="UntilReboot" xml:space="preserve">
+    <value>حتى إعادة التشغيل</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>يتوفر إصدار أحدث {0} من TinyWall. هل تريد التحديث الآن؟</value>
+  </data>
+  <data name="UpdateAvailableBubble" xml:space="preserve">
+    <value>يتوفر إصدار أحدث {0} من TinyWall. انقر فوق هذه الفقاعة لبدء عملية التحديث.</value>
+  </data>
+  <data name="WhitelistingCancelled" xml:space="preserve">
+    <value>تم إلغاء القائمة البيضاء.</value>
+  </data>
+  <data name="XHour" xml:space="preserve">
+    <value>{0} ساعة</value>
+  </data>
+  <data name="XHours" xml:space="preserve">
+    <value>{0} ساعات</value>
+  </data>
+  <data name="XMinutes" xml:space="preserve">
+    <value>{0} دقيقة</value>
+  </data>
+  <data name="YouAreAboutToEnterLearningMode" xml:space="preserve">
+    <value>هل أنت متأكد من أنك تريد بدء التعلم التلقائي؟
+في وضع التعلم التلقائي ، سيسمح TinyWall بكل حركة المرور وتذكر التطبيقات التي استخدمت الشبكة. عند الخروج من وضع التعلم ، سيضيف TinyWall استثناءات لك تلقائيا. لاحظ مع ذلك أنه لا يمكن تعلم قواعد "الاستثناءات الخاصة" للتكوين.
+
+قبل الدخول في وضع التعلم ، تأكد من خلو نظامك من أي برامج ضارة. من الأفضل تشغيل وضع التعلم على الأنظمة المثبتة حديثا ويوصى بفحص جهاز الكمبيوتر الخاص بك بحثا عن الفيروسات قبل استخدام هذا الوضع.
+
+هل تريد الدخول إلى وضع التعلم الآن؟</value>
+  </data>
+  <data name="YouDoNotHaveAdministrativePrivilegesNeeded" xml:space="preserve">
+    <value>ليس لديك امتيازات إدارية مطلوبة لتنفيذ هذه العملية.
+حدد رفع من قائمة الدرج وحاول مرة أخرى.</value>
+  </data>
+</root>
