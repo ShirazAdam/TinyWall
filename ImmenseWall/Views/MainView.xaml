@@ -8,6 +8,28 @@
         mc:Ignorable="d"
         Title="{Binding Title}" Height="450" Width="800">
     <Grid>
-        <TextBlock Text="Welcome to ImmenseWall" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="#F0F0F0" BorderBrush="#DDDDDD" BorderThickness="0,0,1,0">
+            <StackPanel Margin="10">
+                <TextBlock Text="IMMENSEWALL" FontWeight="Bold" FontSize="16" Margin="0,0,0,20" HorizontalAlignment="Center" Foreground="#333333"/>
+                
+                <Button Content="Status" Command="{Binding NavigateCommand}" CommandParameter="Status" Margin="0,0,0,10" Padding="10"/>
+                <Button Content="Rules" Command="{Binding NavigateCommand}" CommandParameter="Rules" Margin="0,0,0,10" Padding="10"/>
+                <Button Content="Connections" Command="{Binding NavigateCommand}" CommandParameter="Connections" Margin="0,0,0,10" Padding="10"/>
+                <Button Content="Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings" Margin="0,0,0,10" Padding="10"/>
+                
+                <Separator Margin="0,10,0,10"/>
+                
+                <Button Content="Lock / Unlock" Command="{Binding NavigateCommand}" CommandParameter="Lock" Margin="0,0,0,10" Padding="10" Background="#FFCCCC"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content Area -->
+        <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}" Margin="20"/>
     </Grid>
 </Window>

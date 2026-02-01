@@ -8,6 +8,7 @@ using System.Text.Json.Serialization.Metadata;
 using ImmenseWall.Properties;
 using pylorak.Windows.WFP;
 using pylorak.Windows;
+using ImmenseWall.Services;
 using ImmenseWall.Models; // For Settings/Application if needed
 
 namespace ImmenseWall.Models.Database
@@ -63,7 +64,7 @@ namespace ImmenseWall.Models.Database
         {
             var ret = new List<FirewallExceptionV3>();
 
-            foreach (DatabaseClasses.Application app in KnownApplications)
+            foreach (Application app in KnownApplications)
             {
                 if (app.HasFlag("TWUI:Special"))
                     continue;
@@ -162,10 +163,10 @@ namespace ImmenseWall.Models.Database
                         UseCommandLinks = true
                     };
 
-                    var button1 = new TaskDialogButton(101, Resources.Messages.UnblockAppUnblockAllRecommended);
-                    var button2 = new TaskDialogButton(102, Resources.Messages.UnblockAppUnblockOnlySelected);
-                    var button3 = new TaskDialogButton(103, Resources.Messages.UnblockAppCancel);
-                    dialog.Buttons = new TaskDialogButton[] { button1, button2, button3 };
+                    var button1 = new ImmenseWall.Services.TaskDialogue.TaskDialogButton(101, Resources.Messages.UnblockAppUnblockAllRecommended);
+                    var button2 = new ImmenseWall.Services.TaskDialogue.TaskDialogButton(102, Resources.Messages.UnblockAppUnblockOnlySelected);
+                    var button3 = new ImmenseWall.Services.TaskDialogue.TaskDialogButton(103, Resources.Messages.UnblockAppCancel);
+                    dialog.Buttons = new ImmenseWall.Services.TaskDialogue.TaskDialogButton[] { button1, button2, button3 };
 
                     var fileListStr = exceptions.Aggregate(string.Empty, (current, fwex) => current + (fwex.Subject.ToString() + Environment.NewLine));
                     dialog.ExpandedInformation = fileListStr.Trim();

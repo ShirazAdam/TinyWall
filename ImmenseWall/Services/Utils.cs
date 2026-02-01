@@ -585,7 +585,7 @@ namespace ImmenseWall.Services
         {
             SplitFirstLine(msg, out var firstLine, out var contentLines);
 
-            var taskDialogue = new TaskDialog
+            var taskDialogue = new ImmenseWall.Services.TaskDialogue.TaskDialog
             {
                 WindowTitle = title,
                 MainInstruction = firstLine,

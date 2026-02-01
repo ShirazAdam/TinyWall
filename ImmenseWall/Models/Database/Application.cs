@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using ImmenseWall.Services;
+using ImmenseWall.Properties;
 
 namespace ImmenseWall.Models.Database
 {
