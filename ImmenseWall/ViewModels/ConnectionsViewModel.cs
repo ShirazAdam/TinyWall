@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImmenseWall.Models;
 using pylorak.Windows.NetStat;
+using ImmenseWall.Services; // Added for Controller and IconHelper
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Linq;
@@ -14,8 +15,11 @@ namespace ImmenseWall.ViewModels
         [ObservableProperty]
         private ObservableCollection<ConnectionItem> _connections = new();
 
-        public ConnectionsViewModel()
+        private readonly Controller _controller;
+
+        public ConnectionsViewModel(Controller controller)
         {
+            _controller = controller;
         }
 
         [RelayCommand]
@@ -25,64 +29,72 @@ namespace ImmenseWall.ViewModels
             
             await Task.Run(() => 
             {
+                // Helper function to create ConnectionItem
+                ConnectionItem CreateItem(uint pid, string protocol, string local, string remote, string state)
+                {
+                    var item = new ConnectionItem
+                    {
+                        ProcessId = pid,
+                        Protocol = protocol,
+                        LocalAddress = local,
+                        RemoteAddress = remote,
+                        State = state,
+                        ProcessName = pid.ToString() // Default to PID
+                    };
+
+                    try
+                    {
+                        string path = _controller.TryGetProcessPath(pid); // Converted to uint in Controller
+                        if (!string.IsNullOrEmpty(path))
+                        {
+                            item.ProcessName = System.IO.Path.GetFileName(path);
+                            // Verify file exists before trying to get icon to avoid crashes/errors
+                            if (System.IO.File.Exists(path))
+                            {
+                                var icon = Services.IconHelper.GetIcon(path);
+                                if (icon != null)
+                                {
+                                    // Freeze the image source to allow it to be accessed from the UI thread
+                                    if (icon.CanFreeze) icon.Freeze();
+                                    item.Icon = icon;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore errors during process/icon resolution
+                    }
+
+                    return item;
+                }
+
                 // TCP IPv4
                 var tcp4 = NetStat.GetExtendedTcp4Table(false);
                 foreach (TcpRow row in tcp4)
                 {
-                    list.Add(new ConnectionItem 
-                    {
-                        ProcessId = row.ProcessId,
-                        Protocol = "TCP",
-                        LocalAddress = row.LocalEndPoint.ToString(),
-                        RemoteAddress = row.RemoteEndPoint.ToString(),
-                        State = row.State.ToString(),
-                        ProcessName = row.ProcessId.ToString() // Placeholder until we have name resolution
-                    });
+                    list.Add(CreateItem(row.ProcessId, "TCP", row.LocalEndPoint.ToString(), row.RemoteEndPoint.ToString(), row.State.ToString()));
                 }
                 
                 // TCP IPv6
                 var tcp6 = NetStat.GetExtendedTcp6Table(false);
                 foreach (TcpRow row in tcp6)
                 {
-                     list.Add(new ConnectionItem 
-                    {
-                        ProcessId = row.ProcessId,
-                        Protocol = "TCPv6",
-                        LocalAddress = row.LocalEndPoint.ToString(),
-                        RemoteAddress = row.RemoteEndPoint.ToString(),
-                        State = row.State.ToString(),
-                        ProcessName = row.ProcessId.ToString()
-                    });
+                    list.Add(CreateItem(row.ProcessId, "TCPv6", row.LocalEndPoint.ToString(), row.RemoteEndPoint.ToString(), row.State.ToString()));
                 }
                 
                 // UDP IPv4
                 var udp4 = NetStat.GetExtendedUdp4Table(false);
                 foreach (UdpRow row in udp4)
                 {
-                     list.Add(new ConnectionItem 
-                    {
-                        ProcessId = row.ProcessId,
-                        Protocol = "UDP",
-                        LocalAddress = row.LocalEndPoint.ToString(),
-                        RemoteAddress = "*",
-                        State = "n/a",
-                        ProcessName = row.ProcessId.ToString()
-                    });
+                    list.Add(CreateItem(row.ProcessId, "UDP", row.LocalEndPoint.ToString(), "*", "n/a"));
                 }
                 
-                 // UDP IPv6
+                // UDP IPv6
                 var udp6 = NetStat.GetExtendedUdp6Table(false);
-                 foreach (UdpRow row in udp6)
+                foreach (UdpRow row in udp6)
                 {
-                     list.Add(new ConnectionItem 
-                    {
-                        ProcessId = row.ProcessId,
-                        Protocol = "UDPv6",
-                        LocalAddress = row.LocalEndPoint.ToString(),
-                        RemoteAddress = "*",
-                        State = "n/a",
-                        ProcessName = row.ProcessId.ToString()
-                    });
+                    list.Add(CreateItem(row.ProcessId, "UDPv6", row.LocalEndPoint.ToString(), "*", "n/a"));
                 }
             });
 

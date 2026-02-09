@@ -11,5 +11,6 @@ namespace ImmenseWall.Models
         public string RemoteAddress { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
         public string Direction { get; set; } = string.Empty;
+        public System.Windows.Media.ImageSource? Icon { get; set; }
     }
 }

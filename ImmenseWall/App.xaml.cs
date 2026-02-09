@@ -41,7 +41,7 @@ public partial class App : global::System.Windows.Application
         services.AddSingleton(s => AppDatabase.Load());
         services.AddSingleton(s => 
         {
-             var path = Path.Combine(Utils.AppDataPath, "config");
+             var path = Path.Combine(Utils.AppDataPath, "config.json");
              // If config doesn't exist, CreateDefault? 
              // Logic from TinyWallService.LoadServerConfig:
              try 

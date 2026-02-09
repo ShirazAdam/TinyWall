@@ -1,0 +1,69 @@
+<Window x:Class="ImmenseWall.Views.RuleEditView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ImmenseWall.ViewModels"
+        mc:Ignorable="d"
+        Title="{Binding WindowTitle}" Height="500" Width="450"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        d:DataContext="{d:DesignInstance Type=vm:RuleEditViewModel, IsDesignTimeCreatable=False}">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+    
+    <Grid Background="White" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="{Binding WindowTitle}" FontSize="18" FontWeight="Bold"/>
+             <!-- Signature Status could go here -->
+        </StackPanel>
+
+        <!-- Settings -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <Label Content="Duration:"/>
+            <ComboBox ItemsSource="{Binding TimerOptions}" SelectedItem="{Binding SelectedTimer}" DisplayMemberPath="Display" Margin="0,0,0,10"/>
+            
+            <CheckBox Content="Apply to child processes" IsChecked="{Binding InheritToChildren}" Margin="0,0,0,10"/>
+        </StackPanel>
+
+        <!-- Policy -->
+        <GroupBox Header="Communication Behavior" Grid.Row="2" Padding="10">
+            <StackPanel>
+                <RadioButton Content="Unrestricted" IsChecked="{Binding IsAllow}" Margin="0,0,0,5"/>
+                <RadioButton Content="No communication (Block)" IsChecked="{Binding IsBlock}" Margin="0,0,0,5"/>
+                <RadioButton Content="Outbound only" IsChecked="{Binding IsOutboundOnly}" Margin="0,0,0,5"/>
+                <RadioButton Content="Custom" IsChecked="{Binding IsCustom}" Margin="0,0,0,5"/>
+
+                <StackPanel Margin="20,5,0,0" IsEnabled="{Binding IsCustom}">
+                   <Label Content="Outbound TCP Ports:"/>
+                   <TextBox Text="{Binding OutboundTcpPorts}" Margin="0,0,0,5"/>
+                   <Label Content="Outbound UDP Ports:"/>
+                   <TextBox Text="{Binding OutboundUdpPorts}" Margin="0,0,0,5"/>
+                   <Label Content="Inbound TCP Ports:"/>
+                   <TextBox Text="{Binding InboundTcpPorts}" Margin="0,0,0,5"/>
+                   <Label Content="Inbound UDP Ports:"/>
+                   <TextBox Text="{Binding InboundUdpPorts}" Margin="0,0,0,5"/>
+                </StackPanel>
+                
+                 <CheckBox Content="Allow within local network only" IsChecked="{Binding LocalNetworkOnly}" Margin="0,10,0,0"
+                           IsEnabled="{Binding IsBlock, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"/> 
+                           <!-- Note: Inverse bool to vis not standard, might need converter or style trigger. For now just binding IsEnabled to !IsBlock via style or code? Simple disabled if block is checked. -->
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Save" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" Width="80" Margin="0,0,10,0" IsDefault="True"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" Width="80" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

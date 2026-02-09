@@ -29,6 +29,7 @@ namespace ImmenseWall.Services
     [JsonSerializable(typeof(TwMessageSetPassword))]
     [JsonSerializable(typeof(TwMessageSimple))]
     [JsonSerializable(typeof(TwMessageAddTempException))]
+    [JsonSerializable(typeof(TwMessageDisplayPowerEvent))]
     [JsonSerializable(typeof(GlobalSubject))]
     [JsonSerializable(typeof(AppContainerSubject))]
     [JsonSerializable(typeof(ExecutableSubject))]

@@ -21,6 +21,13 @@
 
         <DataGrid Grid.Row="1" ItemsSource="{Binding Connections}" Margin="10" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" SelectionMode="Single">
             <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Icon" Width="30">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding Icon}" Width="16" Height="16"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Process" Binding="{Binding ProcessName}" Width="150"/>
                 <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="60"/>
                 <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="80"/>

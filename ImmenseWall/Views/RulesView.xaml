@@ -14,18 +14,26 @@
         <StackPanel Grid.Row="0" Margin="20">
             <TextBlock Text="Firewall Exceptions" FontSize="20" FontWeight="Bold"/>
             <TextBlock Text="Manage applications that are allowed to communicate." Foreground="Gray"/>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Content="Add Rule" Command="{Binding AddRuleCommand}" Margin="0,0,10,0" Padding="10,5"/>
+                <Button Content="Edit Rule" Command="{Binding EditRuleCommand}" Margin="0,0,10,0" Padding="10,5"/>
+                <Button Content="Delete Rule" Command="{Binding DeleteRuleCommand}" Padding="10,5"/>
+            </StackPanel>
         </StackPanel>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Exceptions}" Margin="10" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" SelectionMode="Single">
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Exceptions}" SelectedItem="{Binding SelectedRule}" Margin="10" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" SelectionMode="Single">
             <DataGrid.Columns>
-                <!-- Display name (Subject.ToString()) -->
-                <DataGridTextColumn Header="Application" Binding="{Binding Subject}" Width="250"/>
-                <!-- We can try to bind specific properties if we know them, but Subject is polymorphic. 
-                     For now, let's just show basic info. 
-                     Maybe Policy? -->
-                <DataGridTextColumn Header="Policy" Binding="{Binding Policy}" Width="150"/>
-                <DataGridTextColumn Header="Active For" Binding="{Binding Timer}" Width="100"/>
-                <DataGridTextColumn Header="Creation Date" Binding="{Binding CreationDate}" Width="150"/>
+                <DataGridTemplateColumn Header=" " Width="30">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding Icon}" Width="16" Height="16"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="250"/>
+                <DataGridTextColumn Header="Policy" Binding="{Binding PolicySummary}" Width="200"/>
+                <DataGridTextColumn Header="Active For" Binding="{Binding Exception.Timer}" Width="100"/>
+                <DataGridTextColumn Header="Creation Date" Binding="{Binding Exception.CreationDate}" Width="150"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

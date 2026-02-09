@@ -30,7 +30,11 @@ namespace ImmenseWall.Models.IPC
                 MessageType.LOCK => JsonSerializer.Deserialize<TwMessageSimple>(ref reader, SourceGenerationContext.Default.TwMessageSimple),
                 MessageType.STOP_SERVICE => JsonSerializer.Deserialize<TwMessageSimple>(ref reader, SourceGenerationContext.Default.TwMessageSimple),
                 MessageType.MINUTE_TIMER => JsonSerializer.Deserialize<TwMessageSimple>(ref reader, SourceGenerationContext.Default.TwMessageSimple),
+                MessageType.REENUMERATE_ADDRESSES => JsonSerializer.Deserialize<TwMessageSimple>(ref reader, SourceGenerationContext.Default.TwMessageSimple),
+                MessageType.DATABASE_UPDATED => JsonSerializer.Deserialize<TwMessageSimple>(ref reader, SourceGenerationContext.Default.TwMessageSimple),
+                MessageType.RELOAD_WFP_FILTERS => JsonSerializer.Deserialize<TwMessageSimple>(ref reader, SourceGenerationContext.Default.TwMessageSimple),
                 MessageType.ADD_TEMPORARY_EXCEPTION => (TwMessage?)JsonSerializer.Deserialize<TwMessageAddTempException>(ref reader, SourceGenerationContext.Default.TwMessageAddTempException),
+                MessageType.DISPLAY_POWER_EVENT => JsonSerializer.Deserialize<TwMessageDisplayPowerEvent>(ref reader, SourceGenerationContext.Default.TwMessageDisplayPowerEvent),
                 _ => throw new JsonException($"Tried to deserialize unsupported type with discriminator {(MessageType)discriminator}."),
             };
             return ret;
@@ -66,6 +70,8 @@ namespace ImmenseWall.Models.IPC
                     JsonSerializer.Serialize<TwMessageSimple>(writer, typedVal, SourceGenerationContext.Default.TwMessageSimple); break;
                 case TwMessageAddTempException typedVal:
                     JsonSerializer.Serialize<TwMessageAddTempException>(writer, typedVal, SourceGenerationContext.Default.TwMessageAddTempException); break;
+                case TwMessageDisplayPowerEvent typedVal:
+                    JsonSerializer.Serialize<TwMessageDisplayPowerEvent>(writer, typedVal, SourceGenerationContext.Default.TwMessageDisplayPowerEvent); break;
                 default:
                     throw new JsonException($"Tried to serialize unsupported type {value.GetType()}.");
             }
