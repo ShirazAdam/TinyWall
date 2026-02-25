@@ -521,25 +521,13 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void StartUpdate(object sender, AnyEventArgs e)
-        {
-            Updater.StartUpdate();
-        }
+        private void StartUpdate(object sender, AnyEventArgs e) => Updater.StartUpdate();
 
-        private void HotKeyWhitelistProcess_Pressed(object sender, HandledEventArgs e)
-        {
-            MnuWhitelistByProcess_Click(this, EventArgs.Empty);
-        }
+        private void HotKeyWhitelistProcess_Pressed(object sender, HandledEventArgs e) => MnuWhitelistByProcess_Click(this, EventArgs.Empty);
 
-        private void HotKeyWhitelistExecutable_Pressed(object sender, HandledEventArgs e)
-        {
-            MnuWhitelistByExecutable_Click(this, EventArgs.Empty);
-        }
+        private void HotKeyWhitelistExecutable_Pressed(object sender, HandledEventArgs e) => MnuWhitelistByExecutable_Click(this, EventArgs.Empty);
 
-        private void HotKeyWhitelistWindow_Pressed(object sender, HandledEventArgs e)
-        {
-            MnuWhitelistByWindow_Click(this, EventArgs.Empty);
-        }
+        private void HotKeyWhitelistWindow_Pressed(object sender, HandledEventArgs e) => MnuWhitelistByWindow_Click(this, EventArgs.Empty);
 
         private void MnuQuit_Click(object sender, EventArgs e)
         {
@@ -590,7 +578,6 @@ namespace pylorak.TinyWall
                     firewallModeName = Resources.Messages.FirewallModeUnknown;
                     break;
                 default:
-                    //throw new ArgumentOutOfRangeException();
                     break;
             }
 
@@ -611,9 +598,6 @@ namespace pylorak.TinyWall
             HandleSetModeResponse(resp, mode);
         }
 
-        /// <summary>
-        /// Switches the firewall mode asynchronously without blocking the UI thread.
-        /// </summary>
         private async Task SetModeAsync(FirewallMode mode)
         {
             var resp = await GlobalInstances.Controller!.SwitchFirewallModeAsync(mode);
@@ -778,9 +762,6 @@ namespace pylorak.TinyWall
             return updated;
         }
 
-        /// <summary>
-        /// Loads settings from the server asynchronously without blocking the UI thread.
-        /// </summary>
         private async Task<bool> LoadSettingsFromServerAsync(bool force = false)
         {
             Guid inChangeset = force ? Guid.Empty : GlobalInstances.ClientChangeset;
@@ -889,7 +870,7 @@ namespace pylorak.TinyWall
 
                 foreach (var subj in from subj in subjects let found = exceptions.Any(ex => ex.Subject.Equals(subj)) where !found select subj)
                 {
-                    // Try to recognize app based on this file
+                    // Try to recognise app based on this file
                     exceptions.AddRange(GlobalInstances.AppDatabase!.GetExceptionsForApp(subj, true, out _));
                 }
             }
@@ -1010,6 +991,25 @@ namespace pylorak.TinyWall
                     if (showUi)
                         ShowBalloonTip(Resources.Messages.CouldNotApplySettingsInternalError, ToolTipIcon.Warning);
                     break;
+                case MessageType.INVALID_COMMAND:
+                case MessageType.RESPONSE_LOCKED:
+                case MessageType.COM_ERROR:
+                case MessageType.GET_SETTINGS:
+                case MessageType.GET_PROCESS_PATH:
+                case MessageType.READ_FW_LOG:
+                case MessageType.IS_LOCKED:
+                case MessageType.UNLOCK:
+                case MessageType.MODE_SWITCH:
+                case MessageType.REINIT:
+                case MessageType.LOCK:
+                case MessageType.SET_PASSPHRASE:
+                case MessageType.STOP_SERVICE:
+                case MessageType.MINUTE_TIMER:
+                case MessageType.REENUMERATE_ADDRESSES:
+                case MessageType.DATABASE_UPDATED:
+                case MessageType.ADD_TEMPORARY_EXCEPTION:
+                case MessageType.RELOAD_WFP_FILTERS:
+                case MessageType.DISPLAY_POWER_EVENT:
                 default:
                     if (showUi)
                         DefaultPopups(resp.Type);
@@ -1070,10 +1070,7 @@ namespace pylorak.TinyWall
 
             return false;
         }
-        public bool FlashIfOpen(Form frm)
-        {
-            return FlashIfOpen(frm.GetType());
-        }
+        public bool FlashIfOpen(Form frm) => FlashIfOpen(frm.GetType());
 
         private async void MnuManage_Click(object sender, EventArgs e)
         {
@@ -1103,7 +1100,7 @@ namespace pylorak.TinyWall
                 await ApplyFirewallSettingsAsync(sf.TmpConfig.Service);
 
                 // Handle password change request
-                string? newPassword = sf.NewPassword;
+                var newPassword = sf.NewPassword;
                 if (newPassword is not null)
                 {
                     // If the new password is empty, we do not hash it because an empty password
@@ -1346,10 +1343,6 @@ namespace pylorak.TinyWall
             return false;
         }
 
-        /// <summary>
-        /// Checks if the server is locked and attempts to unlock it asynchronously.
-        /// Does not block the UI thread during the lock check or unlock attempt.
-        /// </summary>
         internal async Task<bool> EnsureUnlockedServerAsync(bool showUi = true)
         {
             Locked = await GlobalInstances.Controller!.IsServerLockedAsync();

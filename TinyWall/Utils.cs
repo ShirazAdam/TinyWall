@@ -23,8 +23,8 @@ namespace pylorak.TinyWall
     {
         internal static void Append(this StringBuilder sb, ReadOnlySpan<char> str)
         {
-            for (int i = 0; i < str.Length; ++i)
-                sb.Append(str[i]);
+            foreach (var t in str)
+                sb.Append(t);
         }
 
         internal static async Task<T> WaitAsync<T>(this Task<T> task, CancellationToken ct)
