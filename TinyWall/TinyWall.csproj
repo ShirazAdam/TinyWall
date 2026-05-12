@@ -1,626 +1,626 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <LangVersion>14.0</LangVersion>
-    <OutputType>WinExe</OutputType>
-    <UseWindowsForms>true</UseWindowsForms>
-    <NeutralLanguage>en-GB</NeutralLanguage>
-    <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8605;CS8607;CS8622;CS8631;CS8765;CS8767;NU1510</NoWarn>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <RootNamespace>pylorak.TinyWall</RootNamespace>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+	<PlatformTarget>AnyCPU</PlatformTarget>
+	<LangVersion>14.0</LangVersion>
+	<OutputType>WinExe</OutputType>
+	<UseWindowsForms>true</UseWindowsForms>
+	<NeutralLanguage>en-GB</NeutralLanguage>
+	<Nullable>enable</Nullable>
+	<NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8605;CS8607;CS8622;CS8631;CS8765;CS8767;NU1510</NoWarn>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	<RootNamespace>pylorak.TinyWall</RootNamespace>
+	<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	<EnableWindowsTargeting>true</EnableWindowsTargeting>
+	<!-- Used for WinRT access in .Net 4.8, not needed with .NET 5+ -->
 
-    <!-- Used for WinRT access in .Net 4.8, not needed with .NET 5+ -->
-
   </PropertyGroup>
   <PropertyGroup>
-    <Product>TinyWall</Product>
-    <AssemblyTitle>TinyWall</AssemblyTitle>
-    <Company>Károly Pados</Company>
-    <Description>A free, lightweight and non-intrusive firewall.</Description>
-    <Copyright>Copyright © 2011 Károly Pados</Copyright>
-    <Version>3.5.1</Version>
+	<Product>TinyWall</Product>
+	<AssemblyTitle>TinyWall</AssemblyTitle>
+	<Company>Károly Pados</Company>
+	<Description>A free, lightweight and non-intrusive firewall.</Description>
+	<Copyright>Copyright © 2011 Károly Pados</Copyright>
+	<Version>4.0.0</Version>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\img\firewall.ico</ApplicationIcon>
+	<ApplicationIcon>Resources\img\firewall.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AssemblyVersion></AssemblyVersion>
-    <Title>TinyWall</Title>
+	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<AssemblyVersion></AssemblyVersion>
+	<Title>TinyWall</Title>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>False</Optimize>
-    <DebugType>full</DebugType>
+	<Optimize>False</Optimize>
+	<DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>True</Optimize>
-    <DebugType>full</DebugType>
+	<Optimize>True</Optimize>
+	<DebugType>full</DebugType>
   </PropertyGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
 
-    <Compile Include="../pylorak.Utilities/*.cs" LinkBase="pylorak.Utilities" />
-    <Compile Include="../pylorak.Windows/*.cs" LinkBase="pylorak.Windows" />
-    <Compile Include="../pylorak.Windows/NetStat/*.cs" LinkBase="pylorak.Windows.NetStat" />
-    <Compile Include="../pylorak.Windows/TaskDialogue/*.cs" LinkBase="pylorak.Windows.TaskDialogue" />
-    <Compile Include="../pylorak.Windows.Services/*.cs" LinkBase="pylorak.Windows.Services" />
-    <Compile Include="../pylorak.Windows.WFP/*.cs" LinkBase="pylorak.Windows.WFP" />
-    <Compile Remove="Installer\*.cs" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
-    <PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
-    <PackageReference Include="NeoSmart.Synchronization" Version="2.0.0" />
-    <PackageReference Include="Nullable" Version="1.3.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.Management" Version="11.0.0-preview.4.26230.115" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="11.0.0-preview.4.26230.115" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="11.0.0-preview.4.26230.115" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
-    <PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+	<Compile Include="../pylorak.Utilities/*.cs" LinkBase="pylorak.Utilities" />
+	<Compile Include="../pylorak.Windows/*.cs" LinkBase="pylorak.Windows" />
+	<Compile Include="../pylorak.Windows/NetStat/*.cs" LinkBase="pylorak.Windows.NetStat" />
+	<Compile Include="../pylorak.Windows/TaskDialogue/*.cs" LinkBase="pylorak.Windows.TaskDialogue" />
+	<Compile Include="../pylorak.Windows.Services/*.cs" LinkBase="pylorak.Windows.Services" />
+	<Compile Include="../pylorak.Windows.WFP/*.cs" LinkBase="pylorak.Windows.WFP" />
+	<Compile Remove="Installer\*.cs" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+	<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
+	<PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
+	<PackageReference Include="NeoSmart.Synchronization" Version="2.0.0" />
+	<PackageReference Include="Nullable" Version="1.3.1">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+	<PackageReference Include="System.Management" Version="11.0.0-preview.4.26230.115" />
+	<PackageReference Include="System.Reflection.MetadataLoadContext" Version="11.0.0-preview.4.26230.115" />
+	<PackageReference Include="System.ServiceProcess.ServiceController" Version="11.0.0-preview.4.26230.115" />
+	<PackageReference Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
+	<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
 
-    <Reference Include="Interop.NetFwTypeLib">
-      <HintPath>Interop\Interop.NetFwTypeLib.dll</HintPath>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </Reference>
+	<Reference Include="Interop.NetFwTypeLib">
+	  <HintPath>Interop\Interop.NetFwTypeLib.dll</HintPath>
+	  <EmbedInteropTypes>true</EmbedInteropTypes>
+	</Reference>
 
-    <Reference Include="Interop.TaskScheduler">
-      <HintPath>Interop\Interop.TaskScheduler.dll</HintPath>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </Reference>
+	<Reference Include="Interop.TaskScheduler">
+	  <HintPath>Interop\Interop.TaskScheduler.dll</HintPath>
+	  <EmbedInteropTypes>true</EmbedInteropTypes>
+	</Reference>
 
-    <EmbeddedResource Update="AppFinderForm.ar.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.ar.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="ApplicationExceptionForm.ar.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.ar.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="ConnectionsForm.ar.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.ar.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="DevelToolForm.ar.resx">
-      <DependentUpon>DevelToolForm.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="DevelToolForm.ar.resx">
+	  <DependentUpon>DevelToolForm.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="MainForm.ar.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="MainForm.ar.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="PasswordForm.ar.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.ar.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="Processes.ar.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="Processes.ar.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="Resources\Exceptions.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Exceptions.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Icons.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Icons.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Messages.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+	<EmbeddedResource Update="Resources\Exceptions.resx">
+	  <Generator>ResXFileCodeGenerator</Generator>
+	  <LastGenOutput>Exceptions.Designer.cs</LastGenOutput>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Resources\Icons.resx">
+	  <Generator>ResXFileCodeGenerator</Generator>
+	  <LastGenOutput>Icons.Designer.cs</LastGenOutput>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Resources\Messages.resx">
+	  <Generator>ResXFileCodeGenerator</Generator>
+	  <SubType>Designer</SubType>
+	  <LastGenOutput>Messages.Designer.cs</LastGenOutput>
+	</EmbeddedResource>
 
-    <Compile Update="Resources\Exceptions.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Exceptions.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Icons.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Icons.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Messages.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Messages.resx</DependentUpon>
-    </Compile>
+	<Compile Update="Resources\Exceptions.Designer.cs">
+	  <AutoGen>True</AutoGen>
+	  <DesignTime>True</DesignTime>
+	  <DependentUpon>Exceptions.resx</DependentUpon>
+	</Compile>
+	<Compile Update="Resources\Icons.Designer.cs">
+	  <AutoGen>True</AutoGen>
+	  <DesignTime>True</DesignTime>
+	  <DependentUpon>Icons.resx</DependentUpon>
+	</Compile>
+	<Compile Update="Resources\Messages.Designer.cs">
+	  <AutoGen>True</AutoGen>
+	  <DesignTime>True</DesignTime>
+	  <DependentUpon>Messages.resx</DependentUpon>
+	</Compile>
 
-    <Compile Update="AppFinderForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="ApplicationExceptionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="ConnectionsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="DevelToolForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="PasswordForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Services.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Processes.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="SettingsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="UwpPackagesForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+	<Compile Update="AppFinderForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="ApplicationExceptionForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="ConnectionsForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="DevelToolForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="PasswordForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="Services.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="Processes.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="SettingsForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
+	<Compile Update="UwpPackagesForm.cs">
+	  <SubType>Form</SubType>
+	</Compile>
 
-    <Compile Update="AppFinderForm.Designer.cs">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </Compile>
-    <Compile Update="ApplicationExceptionForm.Designer.cs">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </Compile>
-    <Compile Update="ConnectionsForm.Designer.cs">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </Compile>
-    <Compile Update="DevelToolForm.Designer.cs">
-      <DependentUpon>DevelToolForm.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PasswordForm.Designer.cs">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Services.Designer.cs">
-      <DependentUpon>Services.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Processes.Designer.cs">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </Compile>
-    <Compile Update="SettingsForm.Designer.cs">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </Compile>
-    <Compile Update="UwpPackagesForm.Designer.cs">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </Compile>
+	<Compile Update="AppFinderForm.Designer.cs">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</Compile>
+	<Compile Update="ApplicationExceptionForm.Designer.cs">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</Compile>
+	<Compile Update="ConnectionsForm.Designer.cs">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</Compile>
+	<Compile Update="DevelToolForm.Designer.cs">
+	  <DependentUpon>DevelToolForm.cs</DependentUpon>
+	</Compile>
+	<Compile Update="PasswordForm.Designer.cs">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</Compile>
+	<Compile Update="Services.Designer.cs">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</Compile>
+	<Compile Update="Processes.Designer.cs">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</Compile>
+	<Compile Update="SettingsForm.Designer.cs">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</Compile>
+	<Compile Update="UwpPackagesForm.Designer.cs">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</Compile>
 
-    <EmbeddedResource Update="AppFinderForm.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="DevelToolForm.resx">
-      <DependentUpon>DevelToolForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.ar.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.ar.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.ar.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="DevelToolForm.resx">
+	  <DependentUpon>DevelToolForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.ar.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.ar.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.ar.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	  <SubType>Designer</SubType>
+	</EmbeddedResource>
 
-    <EmbeddedResource Update="AppFinderForm.de.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.bg.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.fr.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.it.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.ja.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.ko.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.nl.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.pl.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.pt-BR.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.es.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.hu.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.tr.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.cs.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.ru.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AppFinderForm.zh.resx">
-      <DependentUpon>AppFinderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.bg.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.de.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.es.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.hu.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.fr.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.it.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.ja.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.ko.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.nl.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.pl.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.pt-BR.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.ru.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.tr.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.cs.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ApplicationExceptionForm.zh.resx">
-      <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.bg.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.es.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.hu.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.de.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.fr.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.it.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.ko.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.tr.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.cs.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.ja.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.nl.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.pl.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.pt-BR.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.ru.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ConnectionsForm.zh.resx">
-      <DependentUpon>ConnectionsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.bg.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.es.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.hu.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.de.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.fr.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.tr.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.cs.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.it.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.ja.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.ko.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.nl.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.pl.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.pt-BR.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.ru.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="MainForm.zh.resx">
-      <DependentUpon>TinyWallController.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.bg.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.es.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.ko.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.tr.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.cs.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.hu.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.de.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.fr.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.it.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.ja.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.nl.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.pl.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.pt-BR.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.ru.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="PasswordForm.zh.resx">
-      <DependentUpon>PasswordForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.bg.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.es.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.ko.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.tr.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.cs.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.hu.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.de.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.fr.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.it.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.ja.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.nl.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.pl.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.pt-BR.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.ru.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Processes.zh.resx">
-      <DependentUpon>Processes.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.bg.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.es.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.hu.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.de.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.fr.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.ko.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.tr.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.cs.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.it.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.ja.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.nl.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.pl.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.pt-BR.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.ru.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Services.zh.resx">
-      <DependentUpon>Services.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.bg.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.es.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.hu.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.de.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.fr.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.it.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.ko.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.tr.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.cs.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.ja.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.nl.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.pl.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.pt-BR.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.ru.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SettingsForm.zh.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.bg.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.de.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.es.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.hu.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.ru.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="UwpPackagesForm.pt-BR.resx">
-      <DependentUpon>UwpPackagesForm.cs</DependentUpon>
-    </EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.de.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.bg.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.fr.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.it.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.ja.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.ko.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.nl.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.pl.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.pt-BR.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.es.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.hu.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.tr.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.cs.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.ru.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="AppFinderForm.zh.resx">
+	  <DependentUpon>AppFinderForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.bg.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.de.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.es.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.hu.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.fr.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.it.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.ja.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.ko.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.nl.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.pl.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.pt-BR.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.ru.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.tr.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.cs.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ApplicationExceptionForm.zh.resx">
+	  <DependentUpon>ApplicationExceptionForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.bg.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.es.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.hu.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.de.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.fr.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.it.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.ko.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.tr.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.cs.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.ja.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.nl.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.pl.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.pt-BR.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.ru.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="ConnectionsForm.zh.resx">
+	  <DependentUpon>ConnectionsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.bg.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.es.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.hu.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.de.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.fr.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.tr.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.cs.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.it.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.ja.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.ko.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.nl.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.pl.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.pt-BR.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.ru.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="MainForm.zh.resx">
+	  <DependentUpon>TinyWallController.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.bg.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.es.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.ko.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.tr.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.cs.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.hu.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.de.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.fr.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.it.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.ja.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.nl.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.pl.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.pt-BR.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.ru.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="PasswordForm.zh.resx">
+	  <DependentUpon>PasswordForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.bg.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.es.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.ko.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.tr.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.cs.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.hu.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.de.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.fr.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.it.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.ja.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.nl.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.pl.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.pt-BR.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.ru.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Processes.zh.resx">
+	  <DependentUpon>Processes.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.bg.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.es.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.hu.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.de.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.fr.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.ko.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.tr.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.cs.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.it.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.ja.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.nl.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.pl.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.pt-BR.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.ru.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="Services.zh.resx">
+	  <DependentUpon>Services.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.bg.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.es.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.hu.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.de.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.fr.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.it.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.ko.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.tr.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.cs.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.ja.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.nl.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.pl.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.pt-BR.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.ru.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="SettingsForm.zh.resx">
+	  <DependentUpon>SettingsForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.bg.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.de.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.es.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.hu.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.ru.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
+	<EmbeddedResource Update="UwpPackagesForm.pt-BR.resx">
+	  <DependentUpon>UwpPackagesForm.cs</DependentUpon>
+	</EmbeddedResource>
 
   </ItemGroup>
 </Project>
