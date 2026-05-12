@@ -33,3 +33,8 @@ Upgraded pylorak.Windows.WFP to net10.0-windows, removed unsupported CER-related
 
 Upgraded the TinyWall WinForms application to net10.0-windows10.0.26100.0, updated .NET-aligned packages, replaced unsupported COMReference items with generated interop assemblies, excluded legacy installer classes, replaced ManagedInstallerClass calls with sc.exe service management, modernised hashing and named-pipe access-control usage, fixed span split and TaskDialog compatibility issues, and validated that the application builds successfully with warnings.
 
+
+## [2026-05-12 21:07] 05-installer-packaging
+
+Reviewed TinyWallSetup.vdproj after the .NET 10 upgrade. The setup project remains a Visual Studio setup project and still references a .NET Framework 4.8.1 prerequisite in Debug. A win-x64 Release framework-dependent publish of TinyWall succeeded, confirming the application output can be produced for packaging. Follow-up packaging decisions are documented for framework-dependent versus self-contained deployment and x86, x64, and ARM64 installer outputs.
+
