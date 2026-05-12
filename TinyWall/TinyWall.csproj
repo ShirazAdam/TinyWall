@@ -7,6 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <NeutralLanguage>en-GB</NeutralLanguage>
     <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8605;CS8607;CS8622;CS8631;CS8765;CS8767;NU1510</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -61,6 +62,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Management" Version="11.0.0-preview.4.26230.115" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="11.0.0-preview.4.26230.115" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="11.0.0-preview.4.26230.115" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
     <PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />

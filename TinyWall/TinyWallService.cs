@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
@@ -1207,9 +1208,14 @@ namespace pylorak.TinyWall
             var tmpFile = Path.GetTempFileName();
             try
             {
-                using (var downloader = new WebClient())
+                using (var downloader = new HttpClient())
                 {
-                    if (module.UpdateUrl != null) downloader.DownloadFile(module.UpdateUrl, tmpCompressedPath);
+                    if (module.UpdateUrl != null)
+                    {
+                        using var sourceStream = downloader.GetStreamAsync(module.UpdateUrl).GetAwaiter().GetResult();
+                        using var destinationStream = new FileStream(tmpCompressedPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        sourceStream.CopyTo(destinationStream);
+                    }
                 }
                 Utils.DecompressDeflate(tmpCompressedPath, tmpFile);
 

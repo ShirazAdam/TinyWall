@@ -15,5 +15,5 @@
 - ✅ 04-tinywall-application: TinyWall application
 - ✅ 05-installer-packaging: Installer packaging
 - ✅ 06-solution-validation: Solution validation
-
+   - ✅ 06.01-inno-setup-installer: Create Inno Setup installer path
 **Legend**: ✅ Complete | 🔄 In Progress | 🔲 Pending | ⚠️ Blocked | ❌ Failed

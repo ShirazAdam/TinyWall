@@ -169,7 +169,7 @@ namespace pylorak.TinyWall
             try
             {
                 // Construct encryptor
-                using var symmetricKey = new AesCryptoServiceProvider();
+                using var symmetricKey = Aes.Create();
                 symmetricKey.Mode = CipherMode.CBC;
                 symmetricKey.Key = Encoding.ASCII.GetBytes(key);
                 symmetricKey.IV = Encoding.ASCII.GetBytes(iv);
@@ -192,7 +192,7 @@ namespace pylorak.TinyWall
         public static void SerialiseToEncryptedFile<T>(T obj, string filePath, string key, string iv) where T : ISerializable<T>
         {
             // Construct encryptor
-            using var symmetricKey = new AesCryptoServiceProvider();
+            using var symmetricKey = Aes.Create();
             symmetricKey.Mode = CipherMode.CBC;
             symmetricKey.Key = Encoding.ASCII.GetBytes(key);
             symmetricKey.IV = Encoding.ASCII.GetBytes(iv);
@@ -242,7 +242,7 @@ namespace pylorak.TinyWall
         public static T LoadFromEncryptedXmlFile<T>(string filepath, string key, string iv)
         {
             // Construct encryptor
-            using var symmetricKey = new AesCryptoServiceProvider();
+            using var symmetricKey = Aes.Create();
             symmetricKey.Mode = CipherMode.CBC;
             symmetricKey.Key = Encoding.ASCII.GetBytes(key);
             symmetricKey.IV = Encoding.ASCII.GetBytes(iv);

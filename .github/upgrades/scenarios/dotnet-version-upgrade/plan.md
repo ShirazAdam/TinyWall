@@ -76,3 +76,19 @@ Review `TinyWallSetup.vdproj` after the application upgrade because setup projec
 Run full validation after all upgrade groups are complete. This includes restore, build, targeted tests if available, application smoke checks, and architecture-specific verification for x86, x64, and ARM outputs.
 
 **Done when**: The upgraded solution restores and builds successfully, available tests pass or are documented, smoke checks are completed, and any remaining warnings or known limitations are recorded.
+
+---
+
+### 07-inno-setup-installer
+
+Replace the previous Visual Studio setup project direction with an Inno Setup packaging approach for the upgraded .NET 10 application. The installer work should cover Windows 10 and Windows 11, support the required CPU architectures, and use the .NET 10 publish output as installer input.
+
+**Done when**: An Inno Setup packaging script or documented packaging entry point exists, architecture-specific output assumptions are clear, and the old `.vdproj` setup path is no longer the primary installer option.
+
+---
+
+### 08-warning-remediation
+
+Remediate build warnings introduced or exposed during the .NET 10 upgrade. This includes nullable warnings, obsolete API warnings, high-DPI configuration warnings, and package pruning warnings where safe fixes are available.
+
+**Done when**: The solution builds with warnings remediated or with only explicitly documented, intentionally retained warnings.

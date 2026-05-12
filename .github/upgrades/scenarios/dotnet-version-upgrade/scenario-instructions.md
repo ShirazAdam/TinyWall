@@ -18,6 +18,8 @@
 - **Target Framework**: .NET 10 (`net10.0`)
 - **Architecture Target**: x86, x64, ARM
 - **Operating System Target**: Windows 10 and Windows 11 only
+- **Installer Option**: Inno Setup
+- **Warning Policy**: Remediate build warnings after the .NET 10 upgrade
 - **Language Style**: British English everywhere, including code, comments, identifiers, documentation, and user-facing text
 - **Change Control**: Do not make implementation repository changes until the user has reviewed and approved the plan
 - **Source Branch**: `master`
@@ -30,6 +32,8 @@
 - Hybrid strategy selected — assessment shows a small dependency chain, independent Windows-facing projects, and a concentrated TinyWall application compatibility workload.
 - Automatic commits enabled — user approved continuing the upgrade with commits after each phase.
 - Windows 10 and Windows 11 are the intentional operating system targets, so Windows-specific .NET 10 target frameworks are acceptable.
+- Installer option changed to Inno Setup — user requested replacing the previous installer direction.
+- Build warning remediation added — user requested remediation of all warnings after the .NET 10 upgrade.
 
 ## Custom Instructions
 <!-- Task-specific overrides: "For {taskId}: {instruction}" -->

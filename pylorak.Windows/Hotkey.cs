@@ -140,7 +140,6 @@ namespace pylorak.Windows
 			this.Register();
 		}
 
-        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public bool PreFilterMessage(ref System.Windows.Forms.Message message)
 		{
 			// Only process WM_HOTKEY messages

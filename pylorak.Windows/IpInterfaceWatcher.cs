@@ -2,7 +2,6 @@
 using System.Security;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
-using System.Runtime.ConstrainedExecution;
 using System.ComponentModel;
 using pylorak.Utilities;
 
@@ -26,8 +25,6 @@ namespace pylorak.Windows
                 SetHandle(handle);
             }
 
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-            [PrePrepareMethod]
             protected override bool ReleaseHandle()
             {
                 return (0 == NativeMethods.CancelMibChangeNotify2(handle));

@@ -184,7 +184,7 @@ namespace pylorak.TinyWall
                 {
                     try
                     {
-                        X509Certificate cert = X509Certificate.CreateFromSignedFile(ExecutablePath);
+                        X509Certificate cert = X509CertificateLoader.LoadCertificateFromFile(ExecutablePath);
                         _certSubject = cert.Subject;
                     }
                     catch

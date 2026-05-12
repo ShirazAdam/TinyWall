@@ -2,7 +2,6 @@
 using pylorak.Utilities;
 using System;
 using System.IO;
-using System.Net;
 using System.Threading;
 
 namespace pylorak.TinyWall
@@ -50,6 +49,7 @@ namespace pylorak.TinyWall
         {
             // Start controller application
             System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.SystemAware);
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
             do
@@ -112,22 +112,6 @@ namespace pylorak.TinyWall
             catch
             {
                 // ignored
-            }
-
-            // Setup TLS 1.2 & 1.3 support, if supported
-            if (ServicePointManager.SecurityProtocol != 0)
-            {
-                try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12; }
-                catch
-                {
-                    // ignored
-                }
-
-                try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls13; }
-                catch
-                {
-                    // ignored
-                }
             }
 
             // Parse comman-line options

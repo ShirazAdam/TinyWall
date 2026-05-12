@@ -43,3 +43,8 @@ Reviewed TinyWallSetup.vdproj after the .NET 10 upgrade. The setup project remai
 
 Completed final solution validation. The upgraded solution restores and builds successfully, no test projects were discovered, and framework-dependent publish validation passed for win-x86, win-x64, and win-arm64. Remaining warnings and runtime validation limitations were documented.
 
+
+## [2026-05-12 21:14] 06.01-inno-setup-installer
+
+Added the Inno Setup installer path requested by the user. Created installer/TinyWall.iss and installer/README.md with architecture-specific packaging instructions for win-x86, win-x64, and win-arm64, and documented that the old Visual Studio setup project is no longer the primary installer option.
+
