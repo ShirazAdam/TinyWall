@@ -4,7 +4,6 @@ using pylorak.Windows.WFP;
 using pylorak.Windows.WFP.Interop;
 using System;
 using System.Collections.Generic;
-using System.Configuration.Install;
 using System.Diagnostics;
 using System.ServiceProcess;
 using TaskScheduler;
@@ -57,15 +56,7 @@ namespace pylorak.TinyWall
 
             if (Utils.RunningAsAdmin())
             {
-                // Run installers
-                try
-                {
-                    ManagedInstallerClass.InstallHelper(new string[] { "/i", Utils.ExecutablePath });
-                }
-                catch (Exception e)
-                {
-                    Utils.LogException(e, logContext);
-                }
+                InstallService(logContext);
 
                 // Ensure dependencies
                 TinyWallDoctor.EnsureHealth(logContext);
@@ -103,6 +94,26 @@ namespace pylorak.TinyWall
             }
 
             return true;
+        }
+
+        private static void InstallService(string logContext)
+        {
+            try
+            {
+                using var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "sc.exe",
+                    Arguments = $"create \"{TinyWallService.SERVICE_NAME}\" binPath= \"{Utils.ExecutablePath}\" start= auto DisplayName= \"{TinyWallService.ServiceDisplayName}\" depend= \"{string.Join('/', TinyWallService.SERVICE_DEPENDENCIES)}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+
+                process?.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                Utils.LogException(e, logContext);
+            }
         }
 
         internal static int Uninstall()
@@ -221,7 +232,15 @@ namespace pylorak.TinyWall
 
             try
             {
-                ManagedInstallerClass.InstallHelper(new string[] { "/u", Utils.ExecutablePath });
+                using var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "sc.exe",
+                    Arguments = $"delete \"{TinyWallService.SERVICE_NAME}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+
+                process?.WaitForExit();
             }
             catch (Exception e) { Utils.LogException(e, Utils.LOG_ID_INSTALLER); }
 

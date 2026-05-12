@@ -581,11 +581,11 @@ namespace pylorak.TinyWall
                 restLines += Environment.NewLine + lines[i];
         }
 
-        internal static DialogResult ShowMessageBox(string msg, string title, TaskDialogCommonButtons buttons, TaskDialogIcon icon, IWin32Window? parent = null)
+        internal static DialogResult ShowMessageBox(string msg, string title, TaskDialogCommonButtons buttons, Microsoft.Samples.TaskDialogIcon icon, IWin32Window? parent = null)
         {
             SplitFirstLine(msg, out var firstLine, out var contentLines);
 
-            var taskDialogue = new TaskDialog
+            var taskDialogue = new Microsoft.Samples.TaskDialog
             {
                 WindowTitle = title,
                 MainInstruction = firstLine,

@@ -32,7 +32,7 @@ namespace pylorak.TinyWall
             var descriptor = new UpdateDescriptor();
             updater._state = UpdaterState.GettingDescriptor;
 
-            var dialogue = new TaskDialog
+            var dialogue = new Microsoft.Samples.TaskDialog
             {
                 CustomMainIcon = Resources.Icons.firewall,
                 WindowTitle = Resources.Messages.TinyWall,
@@ -72,7 +72,7 @@ namespace pylorak.TinyWall
                     updater.CheckVersion(descriptor);
                     break;
                 case (int)DialogResult.Abort:
-                    Utils.ShowMessageBox(updater._errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, TaskDialogIcon.Error);
+                    Utils.ShowMessageBox(updater._errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, Microsoft.Samples.TaskDialogIcon.Error);
                     break;
             }
         }
@@ -90,20 +90,20 @@ namespace pylorak.TinyWall
             if (windowsNewAnyTwUpdate || windowsOldTwMinorFixOnly)
             {
                 var prompt = string.Format(CultureInfo.CurrentCulture, Resources.Messages.UpdateAvailable, updateModule.ComponentVersion);
-                if (Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No, TaskDialogIcon.Warning) == DialogResult.Yes)
+                if (Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No, Microsoft.Samples.TaskDialogIcon.Warning) == DialogResult.Yes)
                     DownloadUpdate(updateModule);
             }
             else
             {
                 var prompt = Resources.Messages.NoUpdateAvailable;
-                Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Ok, TaskDialogIcon.Information);
+                Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Ok, Microsoft.Samples.TaskDialogIcon.Information);
             }
         }
 
         private void DownloadUpdate(UpdateModule mainModule)
         {
             _errorMsg = string.Empty;
-            var dialogue = new TaskDialog
+            var dialogue = new Microsoft.Samples.TaskDialog
             {
                 CustomMainIcon = Resources.Icons.firewall,
                 WindowTitle = Resources.Messages.TinyWall,
@@ -136,7 +136,7 @@ namespace pylorak.TinyWall
                     InstallUpdate(tmpFile);
                     break;
                 case (int)DialogResult.Abort:
-                    Utils.ShowMessageBox(_errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, TaskDialogIcon.Error);
+                    Utils.ShowMessageBox(_errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, Microsoft.Samples.TaskDialogIcon.Error);
                     break;
             }
         }

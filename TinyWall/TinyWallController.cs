@@ -1420,7 +1420,7 @@ namespace pylorak.TinyWall
 
             Utils.SplitFirstLine(Resources.Messages.YouAreAboutToEnterLearningMode, out var firstLine, out var contentLines);
 
-            var dialog = new TaskDialog
+            var dialog = new Microsoft.Samples.TaskDialog
             {
                 CustomMainIcon = Resources.Icons.firewall,
                 WindowTitle = Resources.Messages.TinyWall,

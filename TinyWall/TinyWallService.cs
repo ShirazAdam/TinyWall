@@ -500,12 +500,9 @@ namespace pylorak.TinyWall
             {
                 if (-1 != str.IndexOf('-'))
                 {
-                    ReadOnlySpan<char> min, max;
-                    using (var enumerator = str.Split('-'))
-                    {
-                        enumerator.MoveNext(); min = enumerator.Current;
-                        enumerator.MoveNext(); max = enumerator.Current;
-                    }
+                    var separatorIndex = str.IndexOf('-');
+                    var min = str[..separatorIndex];
+                    var max = str[(separatorIndex + 1)..];
                     return (min.DecimalToUInt16(), max.DecimalToUInt16());
                 }
                 else
@@ -561,7 +558,7 @@ namespace pylorak.TinyWall
                 Debug.Assert(!r.RemoteAddresses.Equals("*"));
 
                 var validAddressFound = false;
-                foreach (var ipStr in r.RemoteAddresses.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var ipStr in r.RemoteAddresses.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     if (ipStr.Equals(RuleDef.LOCALSUBNET_ID, StringComparison.Ordinal))
                     {
@@ -610,7 +607,7 @@ namespace pylorak.TinyWall
             if (!Utils.IsNullOrEmpty(r.LocalPorts))
             {
                 Debug.Assert(!r.LocalPorts.Equals("*"));
-                foreach (var p in r.LocalPorts.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var p in r.LocalPorts.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var (minPort, maxPort) = ParseUInt16Range(p);
                     conditions.Add(new PortFilterCondition(minPort, maxPort, RemoteOrLocal.Local));
@@ -619,7 +616,7 @@ namespace pylorak.TinyWall
             if (!Utils.IsNullOrEmpty(r.RemotePorts))
             {
                 Debug.Assert(!r.RemotePorts.Equals("*"));
-                foreach (var p in r.RemotePorts.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var p in r.RemotePorts.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var (minPort, maxPort) = ParseUInt16Range(p);
                     conditions.Add(new PortFilterCondition(minPort, maxPort, RemoteOrLocal.Remote));
@@ -630,10 +627,11 @@ namespace pylorak.TinyWall
             if (!Utils.IsNullOrEmpty(r.IcmpTypesAndCodes))
             {
                 Debug.Assert(!r.IcmpTypesAndCodes.Equals("*"));
-                foreach (var e in r.IcmpTypesAndCodes.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var icmpValue in r.IcmpTypesAndCodes.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
-                    using var tc = e.Split(':');
-                    tc.MoveNext(); var icmpType = tc.Current;
+                    var e = icmpValue.AsSpan();
+                    var separatorIndex = e.IndexOf(':');
+                    var icmpType = separatorIndex < 0 ? e : e[..separatorIndex];
 
                     if (LayerIsIcmpError(layer))
                     {
@@ -642,9 +640,9 @@ namespace pylorak.TinyWall
                             conditions.Add(new IcmpErrorTypeFilterCondition(icmpTypeVal));
 
                         // ICMP Code
-                        if (!tc.MoveNext()) continue;
+                        if (separatorIndex < 0) continue;
 
-                        var icmpCode = tc.Current;
+                        var icmpCode = e[(separatorIndex + 1)..];
                         if ((icmpCode.Length != 0) && !icmpCode.Equals("*", StringComparison.Ordinal) && icmpCode.TryDecimalToUInt16(out var icmpCodeVal))
                             conditions.Add(new IcmpErrorCodeFilterCondition(icmpCodeVal));
                     }

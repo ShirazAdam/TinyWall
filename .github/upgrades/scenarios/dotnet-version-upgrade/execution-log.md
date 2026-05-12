@@ -28,3 +28,8 @@ Validated the upgraded foundation libraries by building pylorak.Windows.Services
 
 Upgraded pylorak.Windows.WFP to net10.0-windows, removed unsupported CER-related imports and attributes from WFP interop code, replaced obsolete SHA1Managed usage with SHA1.HashData, and validated that the project builds successfully with nullable warnings.
 
+
+## [2026-05-12 21:04] 04-tinywall-application
+
+Upgraded the TinyWall WinForms application to net10.0-windows10.0.26100.0, updated .NET-aligned packages, replaced unsupported COMReference items with generated interop assemblies, excluded legacy installer classes, replaced ManagedInstallerClass calls with sc.exe service management, modernised hashing and named-pipe access-control usage, fixed span split and TaskDialog compatibility issues, and validated that the application builds successfully with warnings.
+
