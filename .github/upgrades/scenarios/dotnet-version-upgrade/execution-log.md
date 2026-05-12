@@ -38,3 +38,8 @@ Upgraded the TinyWall WinForms application to net10.0-windows10.0.26100.0, updat
 
 Reviewed TinyWallSetup.vdproj after the .NET 10 upgrade. The setup project remains a Visual Studio setup project and still references a .NET Framework 4.8.1 prerequisite in Debug. A win-x64 Release framework-dependent publish of TinyWall succeeded, confirming the application output can be produced for packaging. Follow-up packaging decisions are documented for framework-dependent versus self-contained deployment and x86, x64, and ARM64 installer outputs.
 
+
+## [2026-05-12 21:10] 06-solution-validation
+
+Completed final solution validation. The upgraded solution restores and builds successfully, no test projects were discovered, and framework-dependent publish validation passed for win-x86, win-x64, and win-arm64. Remaining warnings and runtime validation limitations were documented.
+
