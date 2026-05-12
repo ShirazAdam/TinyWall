@@ -2,9 +2,9 @@ name: .NET 10 Desktop
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "upgrade-to-NET10" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "upgrade-to-NET10" ]
 
 jobs:
 
