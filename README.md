@@ -4,30 +4,33 @@
 
 A free, lightweight and non-intrusive firewall.
 
-#### Original author's website: https://tinywall.pados.hu
+#### Original author's website: <https://tinywall.pados.hu>
 
 ## About this repository
 
 This is forked from the source code of TinyWall as found at its [original author's website](https://tinywall.pados.hu). Upstream development is now largely inactive at the author's site, but this repository is being maintained by me and updated with my ideas or improvements.
 
-#### Hosted on:
- - GitHub -> https://github.com/ShirazAdam/Tinywall
- - CodeBerg (**Archived due to lack of Windows runners**) -> https://codeberg.org/ShirazAdam/Tinywall
- - GitLab (**Archived due to lack of Windows runners**) -> https://gitlab.com/ShirazAdam/TinyWall
- 
+#### Hosted on
+
+ - GitHub -> <https://github.com/ShirazAdam/Tinywall>
+ - CodeBerg (**Archived due to lack of Windows runners**) -> <https://codeberg.org/ShirazAdam/Tinywall>
+ - GitLab (**Archived due to lack of Windows runners**) -> <https://gitlab.com/ShirazAdam/TinyWall>
 
 ## How to build
 
 ### Necessary tools
-- [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
-- [.NET Framework 4.8.1](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
-- [Microsoft Visual Studio 2022 Installer Project Extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
+
+- [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com/vs/)
+- [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+- [Microsoft Visual Studio 2022/2026 Installer Project Extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
 
 ### To build the application
+
 1. Open the solution file in Visual Studio and compile the `TinyWall` project. The other projects referenced inside the solution need not be compiled separately as they will be statically compiled into the application.
 1. Done.
 
 ### To update/build build the database of known applications
+
 1. Adjust the individual JSON files in the `TinyWall\Database` folder.
 1. Start the application with the `/develtool` flag.
 1. Use the `Database creator` tab to create one combined database file in JSON format. The output file will be called `profiles.json`.
@@ -48,13 +51,11 @@ For complex features or large changes, please contact me first if your changes a
 
 If you prefer that, you can also build and distribute your own version of the binaries. In this case though you need to choose a different name other than TinyWall for your application.
 
-
 ## Licence
 
 - Task Dialogue wrapper (code in directory `pylorak.Windows\TaskDialog`) written by KevinGre ([link](https://www.codeproject.com/Articles/17026/TaskDialog-for-WinForms)) and placed under Public Domain.
 
 - All other code in the repository is under the GNU GPLv3 Licence. See `LICENCE.txt` for more information.
-
 
 ## Original Author Contact Details
 
