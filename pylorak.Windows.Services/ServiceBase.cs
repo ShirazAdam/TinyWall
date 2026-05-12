@@ -21,7 +21,6 @@ namespace pylorak.Windows.Services
         public string Name; // only for DBT_DEVTYP_DEVICEINTERFACE
     }
 
-    [InstallerType(typeof(System.ServiceProcess.ServiceProcessInstaller))]
     public abstract class ServiceBase : IDisposable
     {
         [StructLayout(LayoutKind.Sequential)]

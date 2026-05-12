@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.ServiceProcess;
 
 namespace pylorak.Windows.Services
@@ -28,7 +27,6 @@ namespace pylorak.Windows.Services
             return service;
         }
 
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         public ServiceControlManager()
         {
             // Open the service control manager
@@ -45,7 +43,6 @@ namespace pylorak.Windows.Services
         /// <summary>
         /// Sets the nominated service to restart on failure.
         /// </summary>
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         public void SetRestartOnFailure(string serviceName, bool restartOnFailure)
         {
             const uint delay = 1000;
@@ -111,7 +108,6 @@ namespace pylorak.Windows.Services
                 throw new Win32Exception();
         }
 
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         public void SetStartupMode(string serviceName, ServiceStartMode mode)
         {
             using var service = OpenService(
@@ -136,7 +132,6 @@ namespace pylorak.Windows.Services
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         }
 
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         public void SetLoadOrderGroup(string serviceName, string group)
         {
             using var service = OpenService(
@@ -161,7 +156,6 @@ namespace pylorak.Windows.Services
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         }
 
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         public uint GetStartupMode(string serviceName)
         {
             using var service = OpenService(serviceName, ServiceAccessRights.SERVICE_QUERY_CONFIG);
@@ -177,7 +171,6 @@ namespace pylorak.Windows.Services
             return query_srv_config.dwStartType;
         }
 
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         public uint? GetServicePid(string serviceName)
         {
             using var service = OpenService(serviceName, ServiceAccessRights.SERVICE_QUERY_STATUS);

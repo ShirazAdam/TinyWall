@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Runtime.ConstrainedExecution;
 using System.Security;
 using Microsoft.Win32.SafeHandles;
 
@@ -25,7 +24,6 @@ namespace pylorak.Windows.Services
             SetHandle(handle);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         override protected bool ReleaseHandle()
         {
             return NativeMethods.CloseServiceHandle(handle);
@@ -44,7 +42,6 @@ namespace pylorak.Windows.Services
                 DeviceNotifFlags Flags);
 
             [DllImport("user32")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
             public static extern bool UnregisterPowerSettingNotification(IntPtr hPowerNotif);
         }
 
@@ -63,7 +60,6 @@ namespace pylorak.Windows.Services
             SetHandle(ptr);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         protected override bool ReleaseHandle()
         {
             return NativeMethods.UnregisterPowerSettingNotification(handle);
@@ -82,7 +78,6 @@ namespace pylorak.Windows.Services
                 DeviceNotifFlags Flags);
 
             [DllImport("user32")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
             public static extern bool UnregisterDeviceNotification(IntPtr hDeviceNotif);
         }
 
@@ -109,7 +104,6 @@ namespace pylorak.Windows.Services
             SetHandle(ptr);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         protected override bool ReleaseHandle()
         {
             return NativeMethods.UnregisterDeviceNotification(handle);

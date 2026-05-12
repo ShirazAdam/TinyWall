@@ -17,6 +17,7 @@
 - **Pace**: Methodical
 - **Target Framework**: .NET 10 (`net10.0`)
 - **Architecture Target**: x86, x64, ARM
+- **Operating System Target**: Windows 10 and Windows 11 only
 - **Language Style**: British English everywhere, including code, comments, identifiers, documentation, and user-facing text
 - **Change Control**: Do not make implementation repository changes until the user has reviewed and approved the plan
 - **Source Branch**: `master`
@@ -28,6 +29,7 @@
 - Source branch corrected to `master` — user clarified the initial source branch.
 - Hybrid strategy selected — assessment shows a small dependency chain, independent Windows-facing projects, and a concentrated TinyWall application compatibility workload.
 - Automatic commits enabled — user approved continuing the upgrade with commits after each phase.
+- Windows 10 and Windows 11 are the intentional operating system targets, so Windows-specific .NET 10 target frameworks are acceptable.
 
 ## Custom Instructions
 <!-- Task-specific overrides: "For {taskId}: {instruction}" -->

@@ -9,15 +9,15 @@ namespace pylorak.Utilities
         public static string GetHash(string text, string salt, int iterations, int numBytes)
         {
             var saltBytes = Encoding.UTF8.GetBytes(salt);
-            using var hasher = new Rfc2898DeriveBytes(text, saltBytes, iterations);
-            return Convert.ToBase64String(hasher.GetBytes(numBytes));
+            var hashBytes = Rfc2898DeriveBytes.Pbkdf2(text, saltBytes, iterations, HashAlgorithmName.SHA256, numBytes);
+            return Convert.ToBase64String(hashBytes);
         }
         public static string GetHashForStorage(string text, string salt, int iterations, int numBytes)
         {
             var saltBytes = Encoding.UTF8.GetBytes(salt);
-            using var hasher = new Rfc2898DeriveBytes(text, saltBytes, iterations);
-            var hash = Convert.ToBase64String(hasher.GetBytes(numBytes));
-            return string.Format("Rfc2898;{0};{1};{2};{3}", salt, iterations, numBytes, hash);
+            var hashBytes = Rfc2898DeriveBytes.Pbkdf2(text, saltBytes, iterations, HashAlgorithmName.SHA256, numBytes);
+            var hash = Convert.ToBase64String(hashBytes);
+            return string.Format("Rfc2898-SHA256;{0};{1};{2};{3}", salt, iterations, numBytes, hash);
         }
         public static bool CompareHash(string storedHash, string text)
         {

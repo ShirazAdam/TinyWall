@@ -1,7 +1,6 @@
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -255,8 +254,6 @@ namespace Microsoft.Samples
             // Look up the privilege LUID inside the cache
             //
 
-            RuntimeHelpers.PrepareConstrainedRegions();
-
             try
             {
                 privilegeLock.AcquireReaderLock(Timeout.Infinite);
@@ -356,8 +353,6 @@ namespace Microsoft.Samples
                         }
                     }
                 }
-
-                RuntimeHelpers.PrepareConstrainedRegions();
 
                 try
                 {
@@ -567,12 +562,6 @@ namespace Microsoft.Samples
                 return;
             }
 
-            //
-            // This code must be eagerly prepared and non-interruptible.
-            //
-
-            RuntimeHelpers.PrepareConstrainedRegions();
-
             try
             {
                 //
@@ -654,8 +643,6 @@ namespace Microsoft.Samples
 
             var p = new Privilege(privilege);
 
-            RuntimeHelpers.PrepareConstrainedRegions();
-
             try
             {
                 if (enabled)
@@ -704,13 +691,6 @@ namespace Microsoft.Samples
             {
                 throw new InvalidOperationException("Must revert the privilege prior to attempting this operation");
             }
-
-            //
-            // Need to make this block of code non-interruptible so that it would preserve
-            // consistency of thread oken state even in the face of catastrophic exceptions
-            //
-
-            RuntimeHelpers.PrepareConstrainedRegions();
 
             try
             {
@@ -818,8 +798,6 @@ namespace Microsoft.Samples
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         private void Reset()
         {
-            RuntimeHelpers.PrepareConstrainedRegions();
-
             try
             {
                 // Payload is in the finally block
