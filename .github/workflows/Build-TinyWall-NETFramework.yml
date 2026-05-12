@@ -1,6 +1,9 @@
 name: Build TinyWall (.NET Framework 4.8.1)
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
