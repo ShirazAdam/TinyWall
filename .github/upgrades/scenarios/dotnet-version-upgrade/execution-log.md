@@ -23,3 +23,8 @@ Upgraded pylorak.Windows.Services to net10.0-windows, aligning it with the Windo
 
 Validated the upgraded foundation libraries by building pylorak.Windows.Services, which also built pylorak.Windows and pylorak.Utilities transitively. No applicable foundation test projects were discovered. The foundation group is ready for the next upgrade group.
 
+
+## [2026-05-12 20:52] 03-windows-filtering-library
+
+Upgraded pylorak.Windows.WFP to net10.0-windows, removed unsupported CER-related imports and attributes from WFP interop code, replaced obsolete SHA1Managed usage with SHA1.HashData, and validated that the project builds successfully with nullable warnings.
+

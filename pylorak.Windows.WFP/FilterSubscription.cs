@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
+
 using System.Security;
 
 namespace pylorak.Windows.WFP
@@ -23,7 +23,7 @@ namespace pylorak.Windows.WFP
             internal delegate void FWPM_FILTER_CHANGE_CALLBACK0(IntPtr context, IntPtr change);
 
             [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterSubscribeChanges0")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+
             internal static extern uint FwpmFilterSubscribeChanges0(
                 [In] FwpmEngineSafeHandle engineHandle,
                 [In] ref Interop.FWPM_FILTER_SUBSCRIPTION0 subscription,

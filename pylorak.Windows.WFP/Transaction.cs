@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
+
+
 using System.Security;
 
 namespace pylorak.Windows.WFP
@@ -19,18 +19,18 @@ namespace pylorak.Windows.WFP
             }
 
             [DllImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionBegin0")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+
             internal static extern uint FwpmTransactionBegin0(
                 [In] FwpmEngineSafeHandle engineHandle,
                 [In] TransactionFlags flags);
 
             [DllImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionCommit0")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+
             internal static extern uint FwpmTransactionCommit0(
                 [In] FwpmEngineSafeHandle engineHandle);
 
             [DllImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionAbort0")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+
             internal static extern uint FwpmTransactionAbort0(
                 [In] FwpmEngineSafeHandle engineHandle);
         }
@@ -47,7 +47,7 @@ namespace pylorak.Windows.WFP
             bool success = false;
 
             // Atomically start transaction and increase reference count
-            RuntimeHelpers.PrepareConstrainedRegions();
+
             try { }
             finally
             {
@@ -71,7 +71,7 @@ namespace pylorak.Windows.WFP
             uint err;
 
             // Atomically close transaction and decrease reference count
-            RuntimeHelpers.PrepareConstrainedRegions();
+
             try { }
             finally
             {
@@ -95,7 +95,7 @@ namespace pylorak.Windows.WFP
             uint err;
 
             // Atomically close transaction and decrease reference count
-            RuntimeHelpers.PrepareConstrainedRegions();
+
             try { }
             finally
             {

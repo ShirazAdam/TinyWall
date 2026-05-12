@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.ConstrainedExecution;
+
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.AccessControl;
@@ -374,7 +374,7 @@ namespace pylorak.Windows.WFP
         internal static class NativeMethods
         {
             [DllImport("FWPUClnt.dll", EntryPoint = "FwpmGetAppIdFromFileName0")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+
             internal static extern uint FwpmGetAppIdFromFileName0(
                 [MarshalAs(UnmanagedType.LPWStr), In] string fileName,
                 [Out] out FwpmMemorySafeHandle appId);
@@ -539,8 +539,7 @@ namespace pylorak.Windows.WFP
             byte[] unicode = System.Text.UnicodeEncoding.Unicode.GetBytes(serviceName);
 
             // 4: Run bytes() thru the sha1 hash function.
-            using var hasher = new System.Security.Cryptography.SHA1Managed();
-            var sha1 = hasher.ComputeHash(unicode);
+            var sha1 = System.Security.Cryptography.SHA1.HashData(unicode);
 
             // 5: Reverse the byte() string  returned from the SHA1 hash function(on Little Endian systems Not tested on Big Endian systems)
             // Optimised away by reversing array order in steps 7 and 10.

@@ -3,16 +3,17 @@
   "operationId": "a0be5bbd-e203-4bf6-8cf7-ff978ae0aaf4",
   "description": "Upgrade .NET projects to newer .NET versions",
   "startTime": "2026-05-12T19:24:09.1468058Z",
-  "lastUpdateTime": "2026-05-12T19:49:36.1537332Z",
+  "lastUpdateTime": "2026-05-12T19:52:37.8073437Z",
   "stage": "Assessment",
   "properties": {
     "task:02.03-pylorak-windows-services:startedAt": "2026-05-12T19:45:01.4128452Z",
     "task:02.01-pylorak-utilities:startedAt": "2026-05-12T19:41:44.0694205Z",
-    "currentTask": "02.04-foundation-validation",
+    "currentTask": "03-windows-filtering-library",
     "task:02.04-foundation-validation:startedAt": "2026-05-12T19:49:36.1537332Z",
     "task:02.02-pylorak-windows:startedAt": "2026-05-12T19:43:22.4569620Z",
     "task:01-sdk-environment:startedAt": "2026-05-12T19:39:47.7438250Z",
     "UpgradeTargetFramework": "net10.0",
+    "task:03-windows-filtering-library:startedAt": "2026-05-12T19:50:53.8291058Z",
     "task:02-foundation-libraries:startedAt": "2026-05-12T19:41:11.4343304Z"
   },
   "folderPath": ""
