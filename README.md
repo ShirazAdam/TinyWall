@@ -4,6 +4,8 @@
 
 A free, lightweight and non-intrusive firewall.
 
+### .NET 10 version of TinyWall: https://github.com/ShirazAdam/TinyWall/tree/upgrade-to-NET10
+
 #### Original author's website: https://tinywall.pados.hu
 
 ## About this repository
