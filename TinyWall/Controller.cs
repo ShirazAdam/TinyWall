@@ -53,7 +53,7 @@ namespace pylorak.TinyWall
                 return fwLog.Entries;
             else
                 // TODO: Do we want to show an error to the user?
-                return Array.Empty<FirewallLogEntry>();
+                return [];
         }
 
         public MessageType SwitchFirewallMode(FirewallMode mode)

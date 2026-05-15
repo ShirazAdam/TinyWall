@@ -95,7 +95,7 @@ namespace pylorak.TinyWall
             Process[] procs = Process.GetProcesses();
 
             if (!string.IsNullOrWhiteSpace(_searchItem))
-                procs = procs.Where(p => p.ProcessName.ToLower().Contains(_searchItem.ToLower())).ToArray();
+                procs = [.. procs.Where(p => p.ProcessName.ToLower().Contains(_searchItem.ToLower()))];
 
             foreach (var t in procs)
             {
@@ -165,7 +165,7 @@ namespace pylorak.TinyWall
             //        })
             //        .ToList();
 
-            listView.Items.AddRange(itemColl.ToArray());
+            listView.Items.AddRange([.. itemColl]);
             listView.EndUpdate();
 
             lblPleaseWait.Visible = false;

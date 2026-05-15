@@ -208,7 +208,7 @@ namespace pylorak.TinyWall
         }
 
         private static readonly Type[] KnownDataContractTypes =
-        {
+        [
             typeof(BlockListSettings),
             typeof(ServerProfileConfiguration),
             typeof(ServerConfiguration),
@@ -231,7 +231,7 @@ namespace pylorak.TinyWall
 
             typeof(UpdateModule),
             typeof(UpdateDescriptor),
-        };
+        ];
 
         public static T DeserialiseDc<T>(Stream stream)
         {

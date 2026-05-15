@@ -10,7 +10,7 @@ namespace pylorak.Windows
         private readonly IntPtr hQuery;
         private readonly IntPtr hTxCounter;
         private readonly IntPtr hRxCounter;
-        private byte[] buffer = Array.Empty<byte>();
+        private byte[] buffer = [];
 
         public TrafficRateMonitor()
         {

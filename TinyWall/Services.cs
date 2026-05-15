@@ -124,10 +124,10 @@ namespace pylorak.TinyWall
             ServiceController[] services = ServiceController.GetServices();
 
             if (!string.IsNullOrWhiteSpace(_searchItem))
-                services = services.Where(s =>
+                services = [.. services.Where(s =>
                     s.ServiceName.ToLower().Contains(_searchItem.ToLower())
                     || s.DisplayName.ToLower().Contains(_searchItem.ToLower())
-                ).ToArray();
+                )];
 
             foreach (var srv in services)
             {
@@ -157,7 +157,7 @@ namespace pylorak.TinyWall
             //               subItem[2].Text.ToLower().Contains(_searchItem);
             //    }).ToList();
 
-            listView.Items.AddRange(itemColl.ToArray());
+            listView.Items.AddRange([.. itemColl]);
             listView.EndUpdate();
 
             return Task.CompletedTask;

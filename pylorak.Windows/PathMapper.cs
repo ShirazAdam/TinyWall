@@ -259,7 +259,7 @@ namespace pylorak.Windows
                         // RebuildCacheImpl_2 - Cannot discover devices mounted to mount points
                         var tmpCache = RebuildCacheImpl_1();
                         try { tmpCache = RebuildCacheImpl_2(tmpCache); } catch { }
-                        Cache = tmpCache.ToArray();
+                        Cache = [.. tmpCache];
                     }
                     catch
                     {

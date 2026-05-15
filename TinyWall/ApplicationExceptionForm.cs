@@ -11,7 +11,7 @@ namespace pylorak.TinyWall
 {
     internal partial class ApplicationExceptionForm : Form
     {
-        private static readonly char[] PortListSeparators = { ',' };
+        private static readonly char[] PortListSeparators = [','];
 
         internal List<FirewallExceptionV3> ExceptionSettings { get; } = new();
 
@@ -38,7 +38,7 @@ namespace pylorak.TinyWall
 
                 if (method != null)
                 {
-                    object[] param = { ControlStyles.SupportsTransparentBackColor, true };
+                    object[] param = [ControlStyles.SupportsTransparentBackColor, true];
                     method.Invoke(transparentLabel1, param);
                 }
             }

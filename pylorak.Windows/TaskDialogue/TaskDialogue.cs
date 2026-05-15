@@ -818,8 +818,8 @@ namespace Microsoft.Samples
             this.customMainIcon = null;
             this.footerIcon = TaskDialogIcon.None;
             this.customFooterIcon = null;
-            this.buttons = Array.Empty<TaskDialogButton>();
-            this.radioButtons = Array.Empty<TaskDialogButton>();
+            this.buttons = [];
+            this.radioButtons = [];
             this.flags = 0;
             this.defaultButton = 0;
             this.defaultRadioButton = 0;

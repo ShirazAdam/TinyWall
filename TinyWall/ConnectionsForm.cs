@@ -215,9 +215,9 @@ namespace pylorak.TinyWall
             list.Items.Clear();
 
             if (!string.IsNullOrWhiteSpace(_searchText))
-                _itemColl = _itemColl.Where(item => item.SubItems[0].Text.ToLower().Contains(_searchText)).ToList();
+                _itemColl = [.. _itemColl.Where(item => item.SubItems[0].Text.ToLower().Contains(_searchText))];
 
-            list.Items.AddRange(_itemColl.ToArray());
+            list.Items.AddRange([.. _itemColl]);
             list.EndUpdate();
 
             lblPleaseWait.Visible = false;

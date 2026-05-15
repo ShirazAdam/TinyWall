@@ -162,7 +162,7 @@ namespace pylorak.TinyWall.DatabaseClasses
                     var button1 = new TaskDialogButton(101, Resources.Messages.UnblockAppUnblockAllRecommended);
                     var button2 = new TaskDialogButton(102, Resources.Messages.UnblockAppUnblockOnlySelected);
                     var button3 = new TaskDialogButton(103, Resources.Messages.UnblockAppCancel);
-                    dialog.Buttons = new TaskDialogButton[] { button1, button2, button3 };
+                    dialog.Buttons = [button1, button2, button3];
 
                     var fileListStr = exceptions.Aggregate(string.Empty, (current, fwex) => current + (fwex.Subject.ToString() + Environment.NewLine));
                     dialog.ExpandedInformation = fileListStr.Trim();

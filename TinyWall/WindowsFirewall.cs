@@ -12,13 +12,13 @@ namespace pylorak.TinyWall
         private readonly EventLogWatcher? _wfEventWatcher;
 
         // This is a list of apps that are allowed to change firewall rules
-        private static readonly string[] WhitelistedApps = {
+        private static readonly string[] WhitelistedApps = [
 #if DEBUG
             Path.Combine(Path.GetDirectoryName(Utils.ExecutablePath)!, "TinyWall.vshost.exe"),
 #endif
             Utils.ExecutablePath,
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "dllhost.exe")
-        };
+        ];
 
         public WindowsFirewall()
         {

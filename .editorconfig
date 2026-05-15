@@ -1,6 +1,12 @@
 root = true
 
 [*.cs]
+# C# 10 modernisation preferences
+csharp_style_namespace_declarations = file_scoped:info
+
+# C# 12 modernisation preferences
+dotnet_style_prefer_collection_expression = true:info
+
 # C# 14 modernisation preferences
 csharp_style_prefer_unbound_generic_type_in_nameof = true:info
 csharp_style_prefer_implicit_lambda = true:info

@@ -14,7 +14,7 @@ namespace pylorak.TinyWall
 {
     internal partial class DevelToolForm : Form
     {
-        private static readonly string[] SigningFilePatterns = { "*.dll", "*.exe", "*.msi" };
+        private static readonly string[] SigningFilePatterns = ["*.dll", "*.exe", "*.msi"];
 
         // Key - The primary resource
         // Value - List of satellite resources

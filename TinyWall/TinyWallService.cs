@@ -1366,7 +1366,7 @@ namespace pylorak.TinyWall
                 case MessageType.READ_FW_LOG:
                     {
                         var args = (TwMessageReadFwLog)req;
-                        return args.CreateResponse(GetFwLog().ToArray());
+                        return args.CreateResponse([.. GetFwLog()]);
                     }
                 case MessageType.IS_LOCKED:
                     {
@@ -1847,7 +1847,7 @@ namespace pylorak.TinyWall
                 if (newExceptions == null) return;
 
                 lock (_firewallThreadThrottler.SynchRoot) { _firewallThreadThrottler.Request(); }
-                _q.Add(new TwRequest(TwMessageAddTempException.CreateRequest(newExceptions.ToArray())));
+                _q.Add(new TwRequest(TwMessageAddTempException.CreateRequest([.. newExceptions])));
             }
             finally
             {
@@ -2030,12 +2030,12 @@ namespace pylorak.TinyWall
 
     internal sealed class TinyWallService : ServiceBase
     {
-        internal static readonly string[] SERVICE_DEPENDENCIES = new string[]
-        {
+        internal static readonly string[] SERVICE_DEPENDENCIES =
+        [
             "Schedule",
             "Winmgmt",
             "BFE"
-        };
+        ];
 
         internal const string SERVICE_NAME = "TinyWall";
 

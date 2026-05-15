@@ -620,7 +620,7 @@ namespace pylorak.Windows.Services
 
         public static void Run(ServiceBase srv)
         {
-            Run(new ServiceBase[] { srv });
+            Run([srv]);
         }
 
         public static void Run(ServiceBase[] services)

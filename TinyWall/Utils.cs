@@ -569,7 +569,7 @@ namespace pylorak.TinyWall
 
         internal static void SplitFirstLine(string str, out string firstLine, out string restLines)
         {
-            var lines = str.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = str.Split([Environment.NewLine], StringSplitOptions.None);
 
             firstLine = lines[0];
             restLines = string.Empty;
@@ -623,11 +623,11 @@ namespace pylorak.TinyWall
                 {
                     // First, remove deprecated log files if any is found
                     // TODO: This can probably be removed in the future
-                    string[] oldLogs = {
+                    string[] oldLogs = [
                         Path.Combine(AppDataPath, "errorlog"),
                         Path.Combine(AppDataPath, "service.log"),
                         Path.Combine(AppDataPath, "client.log"),
-                    };
+                    ];
 
                     foreach (var file in oldLogs)
                     {

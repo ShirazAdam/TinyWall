@@ -84,7 +84,7 @@ namespace pylorak.TinyWall
             //
             // TrayMenu
             //
-            TrayMenu.Items.AddRange(new ToolStripItem[] {
+            TrayMenu.Items.AddRange([
             mnuTrafficRate,
             toolStripMenuItem1,
             mnuMode,
@@ -100,7 +100,7 @@ namespace pylorak.TinyWall
             mnuWhitelistByProcess,
             mnuWhitelistByWindow,
             toolStripMenuItem5,
-            mnuQuit});
+            mnuQuit]);
             TrayMenu.Name = "TrayMenu";
             resources.ApplyResources(TrayMenu, "TrayMenu");
             TrayMenu.Opening += TrayMenu_Opening;
@@ -120,12 +120,12 @@ namespace pylorak.TinyWall
             // mnuMode
             //
             mnuMode.AccessibleRole = AccessibleRole.ButtonMenu;
-            mnuMode.DropDownItems.AddRange(new ToolStripItem[] {
+            mnuMode.DropDownItems.AddRange([
             mnuModeNormal,
             mnuModeBlockAll,
             mnuModeAllowOutgoing,
             mnuModeDisabled,
-            mnuModeLearn});
+            mnuModeLearn]);
             mnuMode.Name = "mnuMode";
             resources.ApplyResources(mnuMode, "mnuMode");
             //

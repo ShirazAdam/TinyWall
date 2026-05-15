@@ -162,8 +162,7 @@ namespace pylorak.Windows.WFP
 
     public sealed class IpFilterCondition : FilterCondition
     {
-        private static readonly byte[] MaskByteBitsLookup = new byte[]
-        { 0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF };
+        private static readonly byte[] MaskByteBitsLookup = [0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF];
 
         private SafeHGlobalHandle? nativeMem;
 

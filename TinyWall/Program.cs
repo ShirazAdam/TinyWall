@@ -38,7 +38,7 @@ namespace pylorak.TinyWall
             }
 
 #if DEBUG
-            tw.Start(Array.Empty<string>());
+            tw.Start([]);
             tw.StartedEvent.WaitOne();
 #else
             pylorak.Windows.Services.ServiceBase.Run(tw);

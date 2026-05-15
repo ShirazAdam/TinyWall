@@ -28,7 +28,7 @@ namespace pylorak.TinyWall
         public string MagicWord = "TinyWall Update Descriptor";
 
         [DataMember]
-        public UpdateModule[] Modules = Array.Empty<UpdateModule>();
+        public UpdateModule[] Modules = [];
 
         public JsonTypeInfo<UpdateDescriptor> GetJsonTypeInfo()
         {

@@ -92,14 +92,14 @@ namespace pylorak.TinyWall
 
             if (!string.IsNullOrWhiteSpace(_searchItem))
             {
-                packages = packageList.Where(p =>
+                packages = [.. packageList.Where(p =>
                     p.Name.ToLower().Contains(_searchItem.ToLower())
                     || p.Publisher.ToLower().Contains(_searchItem.ToLower())
-                ).ToList();
+                )];
             }
             else
             {
-                packages = packageList.ToList();
+                packages = [.. packageList];
             }
 
             foreach (var package in packages)
@@ -117,7 +117,7 @@ namespace pylorak.TinyWall
             listView.Items.Clear();
             listView.ListViewItemSorter = new ListViewItemComparer(0);
 
-            listView.Items.AddRange(itemColl.ToArray());
+            listView.Items.AddRange([.. itemColl]);
             listView.EndUpdate();
 
             lblPleaseWait.Visible = false;

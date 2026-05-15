@@ -197,7 +197,7 @@ namespace pylorak.Utilities
             {
                 get
                 {
-                    return buffer.ToArray();
+                    return [.. buffer];
                 }
             }
         }
