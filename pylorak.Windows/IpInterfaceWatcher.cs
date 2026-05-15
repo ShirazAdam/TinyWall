@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -7,9 +7,9 @@ using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
-    public class IpInterfaceWatcher : Disposable
+    public partial class IpInterfaceWatcher : Disposable
     {
-        private sealed class SafeIpHlprNotifyHandle : SafeHandleZeroOrMinusOneIsInvalid
+        private sealed partial class SafeIpHlprNotifyHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
             [SuppressUnmanagedCodeSecurity]
             private static class NativeMethods

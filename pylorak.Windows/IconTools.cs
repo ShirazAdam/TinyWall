@@ -1,4 +1,4 @@
-﻿// Building a Better ExtractAssociatedIcon
+// Building a Better ExtractAssociatedIcon
 // Bradley Smith - 2010/07/28
 // (updated 2014/11/13)
 
@@ -11,7 +11,7 @@ using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
-    public static class IconTools
+    public static partial class IconTools
     {
         public enum ShellIconSize : int
         {
@@ -31,7 +31,7 @@ namespace pylorak.Windows
         private const int SHGFI_USEFILEATTRIBUTES = 0x10;
 
         [SuppressUnmanagedCodeSecurity]
-        private class NativeMethods
+        private partial class NativeMethods
         {
             [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
             public static extern IntPtr SHGetFileInfo(
@@ -42,8 +42,9 @@ namespace pylorak.Windows
                 ShellIconSize uFlags
             );
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto)]
-            public extern static bool DestroyIcon(IntPtr handle);
+            [DllImport("user32.dll")]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool DestroyIcon(IntPtr handle);
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

@@ -13,7 +13,7 @@ namespace Microsoft.Samples
 
     internal delegate void PrivilegedCallback(object? state);
 
-    internal sealed class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
+    internal sealed partial class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         public SafeTokenHandle() : base(true) { }
 
@@ -30,6 +30,7 @@ namespace Microsoft.Samples
 
         [DllImport("kernel32", SetLastError = true),
          SuppressUnmanagedCodeSecurity]
+        [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseHandle(IntPtr handle);
 
         override protected bool ReleaseHandle()
@@ -38,7 +39,7 @@ namespace Microsoft.Samples
         }
     }
 
-    internal sealed class Privilege
+    internal sealed partial class Privilege
     {
         [Flags]
         internal enum TokenAccessLevels
@@ -120,55 +121,55 @@ namespace Microsoft.Samples
             internal const int ERROR_CANT_OPEN_ANONYMOUS = 0x543;
 
             [DllImport("kernel32", SetLastError = true)]
-
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool CloseHandle(IntPtr handle);
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-
+            [DllImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool AdjustTokenPrivileges(
                 [In] SafeTokenHandle TokenHandle,
-                [In] bool DisableAllPrivileges,
+                [In][MarshalAs(UnmanagedType.Bool)] bool DisableAllPrivileges,
                 [In] ref TOKEN_PRIVILEGE NewState,
                 [In] uint BufferLength,
                 [In, Out] ref TOKEN_PRIVILEGE PreviousState,
                 [In, Out] ref uint ReturnLength);
 
-            [DllImport("advapi32", CharSet = CharSet.Auto, SetLastError = true)]
-
+            [DllImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool RevertToSelf();
 
-            [DllImport("advapi32", EntryPoint = "LookupPrivilegeValueW", CharSet = CharSet.Unicode, SetLastError = true)]
-
+            [DllImport("advapi32", EntryPoint = "LookupPrivilegeValueW", SetLastError = true, CharSet = CharSet.Unicode)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool LookupPrivilegeValue(
                 [In] string? lpSystemName,
                 [In] string lpName,
                 [In, Out] ref LUID Luid);
 
-            [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+            [DllImport("kernel32", SetLastError = true)]
 
             internal static extern IntPtr GetCurrentProcess();
 
-            [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+            [DllImport("kernel32", SetLastError = true)]
 
             internal static extern IntPtr GetCurrentThread();
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-
+            [DllImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool OpenProcessToken(
                 [In] IntPtr ProcessToken,
                 [In] TokenAccessLevels DesiredAccess,
                 [In, Out] ref SafeTokenHandle TokenHandle);
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-
+            [DllImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool OpenThreadToken(
                 [In] IntPtr ThreadToken,
                 [In] TokenAccessLevels DesiredAccess,
-                [In] bool OpenAsSelf,
+                [In][MarshalAs(UnmanagedType.Bool)] bool OpenAsSelf,
                 [In, Out] ref SafeTokenHandle TokenHandle);
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-
+            [DllImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool DuplicateTokenEx(
                 [In] SafeTokenHandle ExistingToken,
                 [In] TokenAccessLevels DesiredAccess,
@@ -177,8 +178,8 @@ namespace Microsoft.Samples
                 [In] TokenType TokenType,
                 [In, Out] ref SafeTokenHandle NewToken);
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-
+            [DllImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool SetThreadToken(
                 [In] IntPtr Thread,
                 [In] SafeTokenHandle Token);

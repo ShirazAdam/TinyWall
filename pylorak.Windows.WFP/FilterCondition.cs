@@ -367,7 +367,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class AppIdFilterCondition : FilterCondition
+    public sealed partial class AppIdFilterCondition : FilterCondition
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods
@@ -423,7 +423,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public abstract class SecurityDescriptorFilterCondition : FilterCondition
+    public abstract partial class SecurityDescriptorFilterCondition : FilterCondition
     {
         private static class NativeMethods
         {
@@ -576,7 +576,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class PackageIdFilterCondition : FilterCondition
+    public sealed partial class PackageIdFilterCondition : FilterCondition
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods
@@ -723,7 +723,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class LocalInterfaceCondition : FilterCondition
+    public sealed partial class LocalInterfaceCondition : FilterCondition
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods

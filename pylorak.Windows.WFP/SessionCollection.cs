@@ -7,7 +7,7 @@ using System.Security;
 
 namespace pylorak.Windows.WFP
 {
-    public class SessionCollection : System.Collections.ObjectModel.ReadOnlyCollection<Interop.FWPM_SESSION0>
+    public partial class SessionCollection : System.Collections.ObjectModel.ReadOnlyCollection<Interop.FWPM_SESSION0>
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods

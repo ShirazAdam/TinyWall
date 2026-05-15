@@ -6,7 +6,7 @@ using System.Security;
 
 namespace pylorak.Windows.WFP
 {
-    public sealed class Transaction : IDisposable
+    public sealed partial class Transaction : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Diagnostics;
@@ -6,7 +6,7 @@ using Microsoft.Win32;
 
 namespace pylorak.Windows
 {
-    public static class VersionInfo
+    public static partial class VersionInfo
     {
         [StructLayout(LayoutKind.Sequential)]
         private struct OsVersionInfoEx
@@ -28,9 +28,9 @@ namespace pylorak.Windows
         [SuppressUnmanagedCodeSecurity]
         internal static class SafeNativeMethods
         {
-            [DllImport("kernel32", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+            [DllImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            private static extern bool IsWow64Process([In] IntPtr hProcess, [Out] out bool wow64Process);
+            private static extern bool IsWow64Process([In] IntPtr hProcess, [Out][MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
 
             [DllImport("kernel32")]
             static extern ulong VerSetConditionMask(ulong dwlConditionMask, uint dwTypeBitMask, byte dwConditionMask);

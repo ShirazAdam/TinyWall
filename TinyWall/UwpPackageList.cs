@@ -1,4 +1,4 @@
-﻿using pylorak.Windows;
+using pylorak.Windows;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using Windows.Management.Deployment;
 
 namespace pylorak.TinyWall
 {
-    public class UwpPackageList : IReadOnlyList<UwpPackageList.Package>
+    public partial class UwpPackageList : IReadOnlyList<UwpPackageList.Package>
     {
         public enum TamperedState
         {
@@ -18,7 +18,7 @@ namespace pylorak.TinyWall
             Yes
         }
 
-        public readonly struct Package : IEquatable<Package>
+        public readonly partial struct Package : IEquatable<Package>
         {
             [SuppressUnmanagedCodeSecurity]
             private static class NativeMethods

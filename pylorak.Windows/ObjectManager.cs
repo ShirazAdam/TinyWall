@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32.SafeHandles;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +8,7 @@ using System.Security;
 
 namespace pylorak.Windows
 {
-    public sealed class SafeNtObjectHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeNtObjectHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -34,7 +34,7 @@ namespace pylorak.Windows
         }
     }
 
-    public class SafeUnicodeStringHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public partial class SafeUnicodeStringHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -137,7 +137,7 @@ namespace pylorak.Windows
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct UNICODE_STRING
+    public partial struct UNICODE_STRING
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -174,7 +174,7 @@ namespace pylorak.Windows
         public UNICODE_STRING TypeName;
     }
 
-    public class ObjectManager
+    public partial class ObjectManager
     {
         private static class NativeMethods
         {
@@ -257,7 +257,7 @@ namespace pylorak.Windows
             public static extern NtStatus NtOpenDirectoryObject(out SafeNtObjectHandle Handle, AccessMask DesiredAccess, ref OBJECT_ATTRIBUTES ObjectAttributes);
 
             [DllImport("ntdll")]
-            public static extern NtStatus NtQueryDirectoryObject(SafeNtObjectHandle DirectoryHandle, IntPtr Buffer, uint Length, bool ReturnSingleEntry, bool RestartScan, ref uint Context, out uint ReturnLength);
+            public static extern NtStatus NtQueryDirectoryObject(SafeNtObjectHandle DirectoryHandle, IntPtr Buffer, uint Length, [MarshalAs(UnmanagedType.Bool)] bool ReturnSingleEntry, [MarshalAs(UnmanagedType.Bool)] bool RestartScan, ref uint Context, out uint ReturnLength);
 
             [DllImport("ntdll")]
             public static extern NtStatus NtOpenSymbolicLinkObject(out SafeNtObjectHandle Handle, AccessMask DesiredAccess, ref OBJECT_ATTRIBUTES ObjectAttributes);

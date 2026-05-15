@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Security;
 using System.Runtime.InteropServices;
 using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
-    public static class WinTrust
+    public static partial class WinTrust
     {
         public enum VerifyResult
         {
@@ -165,7 +165,7 @@ namespace pylorak.Windows
         [SuppressUnmanagedCodeSecurity]
         private static class SafeNativeMethods
         {
-            [DllImport("wintrust.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            [DllImport("wintrust.dll", SetLastError = true)]
             public static extern WinVerifyTrustResult WinVerifyTrust(
                 [In] IntPtr hwnd,
                 [In][MarshalAs(UnmanagedType.LPStruct)] Guid pgActionID,

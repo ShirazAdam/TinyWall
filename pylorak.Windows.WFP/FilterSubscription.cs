@@ -14,7 +14,7 @@ namespace pylorak.Windows.WFP
 
     public delegate void FilterChangeCallback(object context, FilterChangeType type, Guid filterKey);
 
-    public sealed class FilterSubscription : IDisposable
+    public sealed partial class FilterSubscription : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods

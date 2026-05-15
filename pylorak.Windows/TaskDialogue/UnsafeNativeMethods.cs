@@ -14,7 +14,7 @@ namespace Microsoft.Samples
     /// <summary>
     /// Class to hold native code interop declarations.
     /// </summary>
-    internal static partial class UnsafeNativeMethods
+    internal static class UnsafeNativeMethods
     {
         /// <summary>
         /// WM_USER taken from WinUser.h
@@ -270,8 +270,8 @@ namespace Microsoft.Samples
         /// <param name="pnButton">The push button pressed.</param>
         /// <param name="pnRadioButton">The radio button that was selected.</param>
         /// <param name="pfVerificationFlagChecked">The state of the verification checkbox on dismiss of the Task Dialog.</param>
-        [DllImport("ComCtl32.dll", CharSet = CharSet.Unicode, PreserveSig = false, EntryPoint = "TaskDialogIndirect")]
-        internal static extern void TaskDialogIndirect(
+        [DllImport("ComCtl32.dll", EntryPoint = "TaskDialogIndirect")]
+        internal static extern int TaskDialogIndirect(
             [In] ref TASKDIALOGCONFIG pTaskConfig,
             [Out] out int pnButton,
             [Out] out int pnRadioButton,

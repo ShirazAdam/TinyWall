@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.Runtime.InteropServices;
@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace pylorak.Windows
 {
-    public static class GlobalAtomTable
+    public static partial class GlobalAtomTable
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -28,7 +28,7 @@ namespace pylorak.Windows
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern ushort GlobalFindAtom([In] string lpString);
 
-            [DllImport("kernel32", SetLastError = true, ExactSpelling = true)]
+            [DllImport("kernel32", SetLastError = true)]
             public static extern ushort GlobalDeleteAtom(ushort nAtom);
 
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]

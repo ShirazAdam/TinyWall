@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
@@ -20,7 +20,7 @@ namespace pylorak.Windows
         Win32
     }
 
-    public sealed class PathMapper : Disposable
+    public sealed partial class PathMapper : Disposable
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -28,11 +28,12 @@ namespace pylorak.Windows
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern int QueryDosDevice(string lpDeviceName, [Out] StringBuilder lpTargetPath, int ucchMax);
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            [DllImport("kernel32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             public static unsafe extern bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]

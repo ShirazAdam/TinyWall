@@ -9,7 +9,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace pylorak.Windows
 {
-    public sealed class SafeHGlobalHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeHGlobalHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -139,13 +139,13 @@ namespace pylorak.Windows
         }
     }
 
-    public sealed class SafeObjectHandle : SafeHandleZeroOrMinusOneIsInvalid   // OpenProcess returns 0 on failure
+    public sealed partial class SafeObjectHandle : SafeHandleZeroOrMinusOneIsInvalid   // OpenProcess returns 0 on failure
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
         {
             [DllImport("kernel32", SetLastError = true)]
-
+            [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool CloseHandle(IntPtr hHandle);
         }
 
@@ -163,7 +163,7 @@ namespace pylorak.Windows
         }
     }
 
-    public sealed class HeapSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class HeapSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -220,7 +220,7 @@ namespace pylorak.Windows
         HKEY_DYN_DATA = -2147483642
     }
 
-    public sealed class SafeRegistryHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeRegistryHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [Flags]
         public enum RegistryRights : uint
@@ -296,7 +296,7 @@ namespace pylorak.Windows
         }
     }
 
-    public sealed class AllocHLocalSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class AllocHLocalSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -335,7 +335,7 @@ namespace pylorak.Windows
         }
     }
 
-    public sealed class FindVolumeSafeHandle : SafeHandleMinusOneIsInvalid
+    public sealed partial class FindVolumeSafeHandle : SafeHandleMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -347,7 +347,7 @@ namespace pylorak.Windows
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool FindNextVolume(IntPtr hFindVolume, [Out] StringBuilder lpszVolumeName, int cchBufferLength);
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            [DllImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool FindVolumeClose(IntPtr hFindVolume);
         }
@@ -403,7 +403,7 @@ namespace pylorak.Windows
         }
     }
 
-    public sealed class SafeSidHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeSidHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -411,7 +411,7 @@ namespace pylorak.Windows
             [DllImport("advapi32")]
             public static extern IntPtr FreeSid(IntPtr pSid);
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
+            [DllImport("advapi32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool ConvertSidToStringSid(IntPtr Sid, out AllocHLocalSafeHandle StringSid);
         }

@@ -7,7 +7,7 @@ using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
-    public class Hotkey : Disposable, IMessageFilter    // TODO: Can IMessageFilter be removed?
+    public partial class Hotkey : Disposable, IMessageFilter    // TODO: Can IMessageFilter be removed?
     {
         private static class NativeMethods
         {

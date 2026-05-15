@@ -7,7 +7,7 @@ using System.Security;
 
 namespace pylorak.Windows.WFP
 {
-    public class ProviderCollection : System.Collections.ObjectModel.ReadOnlyCollection<Interop.FWPM_PROVIDER0>
+    public partial class ProviderCollection : System.Collections.ObjectModel.ReadOnlyCollection<Interop.FWPM_PROVIDER0>
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods

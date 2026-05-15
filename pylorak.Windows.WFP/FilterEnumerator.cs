@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Security;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 
 namespace pylorak.Windows.WFP
 {
-    public abstract class FilterEnumeratorBase : IDisposable
+    public abstract partial class FilterEnumeratorBase : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods

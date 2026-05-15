@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace pylorak.Windows.Services
@@ -8,14 +8,16 @@ namespace pylorak.Windows.Services
         [DllImport("user32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
-        [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-        public extern static IntPtr RegisterServiceCtrlHandlerEx(string serviceName, ServiceCtrlHandlerExDelegate callback, IntPtr userData);
+        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr RegisterServiceCtrlHandlerEx(string serviceName, ServiceCtrlHandlerExDelegate callback, IntPtr userData);
 
         [DllImport("advapi32", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
-        [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
-        public extern static bool StartServiceCtrlDispatcher(IntPtr entry);
+        [DllImport("advapi32", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool StartServiceCtrlDispatcher(IntPtr entry);
 
         [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern SafeServiceHandle OpenSCManager(
@@ -69,6 +71,7 @@ namespace pylorak.Windows.Services
             IntPtr lpInfo);
 
         [DllImport("advapi32", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool QueryServiceStatus(SafeServiceHandle hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
         [DllImport("advapi32", SetLastError = true)]

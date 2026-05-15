@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Security;
@@ -16,7 +16,7 @@ namespace pylorak.Windows
         SecurityDescriptorChange = 0x8,
     }
 
-    public class RegistryWatcher : Disposable
+    public partial class RegistryWatcher : Disposable
     {
         private readonly bool WatchSubTree;
         private readonly RegNotifyFilter NotifyFilter;
@@ -129,7 +129,7 @@ namespace pylorak.Windows
         private static class NativeMethods
         {
             [DllImport("advapi32")]
-            internal static extern int RegNotifyChangeKeyValue(IntPtr hKey, bool watchSubtree, RegNotifyFilter notifyFilter, IntPtr hEvent, bool asynchronous);
+            internal static extern int RegNotifyChangeKeyValue(IntPtr hKey, [MarshalAs(UnmanagedType.Bool)] bool watchSubtree, RegNotifyFilter notifyFilter, IntPtr hEvent, [MarshalAs(UnmanagedType.Bool)] bool asynchronous);
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
-    public class MouseInterceptor : Disposable
+    public partial class MouseInterceptor : Disposable
     {
         private static class NativeMethods
         {
@@ -39,17 +39,17 @@ namespace pylorak.Windows
                 public IntPtr dwExtraInfo;
             }
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+            [DllImport("user32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
-            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern IntPtr GetModuleHandle(string lpModuleName);
         }
 

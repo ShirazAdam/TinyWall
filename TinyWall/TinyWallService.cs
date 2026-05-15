@@ -1212,6 +1212,7 @@ namespace pylorak.TinyWall
                 {
                     if (module.UpdateUrl != null)
                     {
+                        // Keep this synchronous in the service context; async changes are limited to UI responsiveness paths.
                         using var sourceStream = downloader.GetStreamAsync(module.UpdateUrl).GetAwaiter().GetResult();
                         using var destinationStream = new FileStream(tmpCompressedPath, FileMode.Create, FileAccess.Write, FileShare.None);
                         sourceStream.CopyTo(destinationStream);

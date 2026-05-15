@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,18 +25,19 @@ namespace pylorak.Windows
         }
     }
 
-    public static class ProcessManager
+    public static partial class ProcessManager
     {
         [SuppressUnmanagedCodeSecurity]
         protected static class NativeMethods
         {
             [DllImport("kernel32", SetLastError = true)]
-            internal static extern SafeObjectHandle OpenProcess(ProcessAccessFlags dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+            internal static extern SafeObjectHandle OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwProcessId);
 
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             internal static extern bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] StringBuilder lpExeName, ref int size);
 
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+            [DllImport("kernel32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static unsafe extern bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] char* lpExeName, ref int size);
 
             [DllImport("ntdll")]
@@ -45,8 +46,10 @@ namespace pylorak.Windows
             [DllImport("kernel32", SetLastError = true)]
             internal static extern SafeObjectHandle CreateToolhelp32Snapshot(SnapshotFlags flags, int id);
             [DllImport("kernel32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool Process32First(SafeObjectHandle hSnapshot, [In, Out] ref PROCESSENTRY32 lppe);
             [DllImport("kernel32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool Process32Next(SafeObjectHandle hSnapshot, [In, Out] ref PROCESSENTRY32 lppe);
 
             [DllImport("user32", SetLastError = true)]

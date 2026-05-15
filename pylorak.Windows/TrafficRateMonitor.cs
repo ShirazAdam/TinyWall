@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Security;
 using System.Runtime.InteropServices;
 using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
-    class TrafficRateMonitor : Disposable
+    partial class TrafficRateMonitor : Disposable
     {
         private readonly IntPtr hQuery;
         private readonly IntPtr hTxCounter;
@@ -135,13 +135,13 @@ namespace pylorak.Windows
             [DllImport("pdh", CharSet = CharSet.Unicode)]
             public static extern int PdhAddEnglishCounter(IntPtr hQuery, string szFullCounterPath, IntPtr dwUserData, [Out] out IntPtr phCounter);
 
-            [DllImport("pdh", CharSet = CharSet.Unicode)]
+            [DllImport("pdh")]
             public static extern int PdhCollectQueryData(IntPtr hQuery);
 
-            [DllImport("pdh", CharSet = CharSet.Unicode)]
+            [DllImport("pdh")]
             public static extern int PdhGetFormattedCounterArray(IntPtr hCounter, PDH_FMT dwFormat, ref int lpdwBufferSize, ref int lpdwItemCount, IntPtr ItemBuffer);
 
-            [DllImport("pdh", CharSet = CharSet.Unicode)]
+            [DllImport("pdh")]
             public static extern int PdhCloseQuery(IntPtr hQuery);
         }
     }

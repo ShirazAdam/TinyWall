@@ -7,7 +7,7 @@ using System.Security;
 
 namespace pylorak.Windows.WFP
 {
-    public class SublayerCollection : System.Collections.ObjectModel.ReadOnlyCollection<Sublayer>
+    public partial class SublayerCollection : System.Collections.ObjectModel.ReadOnlyCollection<Sublayer>
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods

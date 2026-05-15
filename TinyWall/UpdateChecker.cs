@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace pylorak.TinyWall
@@ -45,26 +46,24 @@ namespace pylorak.TinyWall
                 CallbackTimer = true
             };
 
-            var updateThread = new Thread(() =>
+            using var updateCancellation = new CancellationTokenSource();
+            var updateTask = Task.Run(async () =>
             {
                 try
                 {
-                    descriptor = UpdateChecker.GetDescriptor();
+                    descriptor = await UpdateChecker.GetDescriptorAsync(updateCancellation.Token).ConfigureAwait(false);
                     updater._state = UpdaterState.DescriptorReady;
                 }
                 catch
                 {
                     updater._errorMsg = Resources.Messages.ErrorCheckingForUpdates;
                 }
-            });
-
-            updateThread.Start();
+            }, updateCancellation.Token);
 
             switch (dialogue.Show())
             {
                 case (int)DialogResult.Cancel:
-                    updateThread.Interrupt();
-                    updateThread.Join(500);
+                    updateCancellation.Cancel();
                     break;
                 case (int)DialogResult.OK:
                     updater.CheckVersion(descriptor);
@@ -120,18 +119,26 @@ namespace pylorak.TinyWall
 
             var tmpFile = Path.GetTempFileName() + ".msi";
             var updateUrl = new Uri(mainModule.UpdateUrl!);
-            using var httpClient = new HttpClient();
-            using var downloadStream = httpClient.GetStreamAsync(updateUrl).GetAwaiter().GetResult();
-            using (var fileStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None))
+
+            using var downloadCancellation = new CancellationTokenSource();
+            _ = Task.Run(async () =>
             {
-                downloadStream.CopyTo(fileStream);
-            }
-            _downloadProgress = 100;
-            _state = UpdaterState.UpdateDownloadReady;
+                try
+                {
+                    await UpdateChecker.DownloadUpdateAsync(updateUrl, tmpFile, downloadCancellation.Token).ConfigureAwait(false);
+                    _downloadProgress = 100;
+                    _state = UpdaterState.UpdateDownloadReady;
+                }
+                catch
+                {
+                    _errorMsg = Resources.Messages.ErrorCheckingForUpdates;
+                }
+            }, downloadCancellation.Token);
 
             switch (dialogue.Show())
             {
                 case (int)DialogResult.Cancel:
+                    downloadCancellation.Cancel();
                     break;
                 case (int)DialogResult.OK:
                     InstallUpdate(tmpFile);
@@ -179,7 +186,7 @@ namespace pylorak.TinyWall
         private const int UPDATER_VERSION = 6;
         private const string URL_UPDATE_DESCRIPTOR = @"https://tinywall.pados.hu/updates/UpdVer{0}/update.json";
 
-        internal static UpdateDescriptor GetDescriptor()
+        internal static async Task<UpdateDescriptor> GetDescriptorAsync(CancellationToken cancellationToken = default)
         {
             var url = string.Format(CultureInfo.InvariantCulture, URL_UPDATE_DESCRIPTOR, UPDATER_VERSION);
             var tmpFile = Path.GetTempFileName();
@@ -189,11 +196,11 @@ namespace pylorak.TinyWall
                 using (var httpClient = new HttpClient())
                 {
                     httpClient.DefaultRequestHeaders.Add("TW-Version", Application.ProductVersion);
-                    using var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+                    using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    using var sourceStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+                    using var sourceStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
                     using var destinationStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None);
-                    sourceStream.CopyTo(destinationStream);
+                    await sourceStream.CopyToAsync(destinationStream, cancellationToken).ConfigureAwait(false);
                 }
 
                 var descriptor = SerialisationHelper.DeserialiseFromFile(tmpFile, new UpdateDescriptor());
@@ -204,6 +211,14 @@ namespace pylorak.TinyWall
             {
                 File.Delete(tmpFile);
             }
+        }
+
+        internal static async Task DownloadUpdateAsync(Uri updateUrl, string targetFile, CancellationToken cancellationToken = default)
+        {
+            using var httpClient = new HttpClient();
+            using var downloadStream = await httpClient.GetStreamAsync(updateUrl, cancellationToken).ConfigureAwait(false);
+            using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
+            await downloadStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
         }
 
         internal static UpdateModule? GetUpdateModule(UpdateDescriptor descriptor, string moduleName)

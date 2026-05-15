@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace pylorak.Windows
 {
 
-    public static class WindowFlasher
+    public static partial class WindowFlasher
     {
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
 
         [DllImport("user32.dll")]
-        private static extern bool FlashWindow(IntPtr hwnd, bool bInvert);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool FlashWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool bInvert);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct FLASHWINFO

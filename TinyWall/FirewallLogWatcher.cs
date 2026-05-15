@@ -1,4 +1,4 @@
-﻿using Microsoft.Samples;
+using Microsoft.Samples;
 using pylorak.Utilities;
 using pylorak.Windows;
 using System;

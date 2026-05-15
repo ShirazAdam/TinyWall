@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
 namespace pylorak.Windows
 {
-    public static class NetworkPath
+    public static partial class NetworkPath
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
         {
-            [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+            [DllImport("shlwapi.dll")]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static unsafe extern bool PathIsNetworkPath(char* pszPath);
 

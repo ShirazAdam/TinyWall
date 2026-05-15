@@ -1,4 +1,4 @@
-﻿using Microsoft.Samples;
+using Microsoft.Samples;
 using pylorak.Windows;
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace pylorak.TinyWall
         }
     }
 
-    internal static class Utils
+    internal static partial class Utils
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class SafeNativeMethods
@@ -55,8 +55,8 @@ namespace pylorak.TinyWall
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool GetNamedPipeClientProcessId(IntPtr pipe, out ulong clientProcessId);
 
-            [DllImport("Wer.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-            internal static extern void WerAddExcludedApplication(
+            [DllImport("Wer.dll", CharSet = CharSet.Unicode)]
+            internal static extern int WerAddExcludedApplication(
                 [MarshalAs(UnmanagedType.LPWStr)]
                 string pwzExeName,
                 [MarshalAs(UnmanagedType.Bool)]
@@ -112,7 +112,8 @@ namespace pylorak.TinyWall
             #endregion
 
             #region DoMouseRightClick
-            [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+            [DllImport("user32.dll")]
+            [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
             public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, IntPtr dwExtraInfo);
             //private const uint MOUSEEVENTF_LEFTDOWN = 0x02;
             //private const uint MOUSEEVENTF_LEFTUP = 0x04;

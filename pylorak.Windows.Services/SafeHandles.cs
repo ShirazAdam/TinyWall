@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.Win32.SafeHandles;
 
 namespace pylorak.Windows.Services
 {
-    public sealed class SafeServiceHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeServiceHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -30,7 +30,7 @@ namespace pylorak.Windows.Services
         }
     }
 
-    public sealed class SafeHandlePowerSettingNotification : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeHandlePowerSettingNotification : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -42,6 +42,7 @@ namespace pylorak.Windows.Services
                 DeviceNotifFlags Flags);
 
             [DllImport("user32")]
+            [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool UnregisterPowerSettingNotification(IntPtr hPowerNotif);
         }
 
@@ -66,7 +67,7 @@ namespace pylorak.Windows.Services
         }
     }
 
-    public sealed class SafeHandleDeviceNotification : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class SafeHandleDeviceNotification : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -78,6 +79,7 @@ namespace pylorak.Windows.Services
                 DeviceNotifFlags Flags);
 
             [DllImport("user32")]
+            [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool UnregisterDeviceNotification(IntPtr hDeviceNotif);
         }
 

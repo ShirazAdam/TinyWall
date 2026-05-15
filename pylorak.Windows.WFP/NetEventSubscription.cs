@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -250,7 +250,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class NetEventSubscription0 : NetEventSubscription
+    public sealed partial class NetEventSubscription0 : NetEventSubscription
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods
@@ -305,7 +305,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class NetEventSubscription1 : NetEventSubscription
+    public sealed partial class NetEventSubscription1 : NetEventSubscription
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods
