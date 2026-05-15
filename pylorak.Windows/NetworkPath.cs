@@ -31,7 +31,7 @@ namespace pylorak.Windows
 
         public static bool IsUncPath(string path)
         {
-            return IsUncPath(path.AsSpan());
+            return IsUncPath(path);
         }
 
         public static bool IsUncPath(ReadOnlySpan<char> path)
@@ -80,7 +80,7 @@ namespace pylorak.Windows
 
         public static bool IsNetworkPath(string path)
         {
-            return IsNetworkPath(path.AsSpan());
+            return IsNetworkPath(path);
         }
 
         public static bool IsNetworkPath(ReadOnlySpan<char> path)

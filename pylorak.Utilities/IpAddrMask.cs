@@ -220,7 +220,7 @@ namespace pylorak.Utilities
 
         public static IpAddrMask Parse(string str)
         {
-            return Parse(str.AsSpan());
+            return Parse(str);
         }
 
         public static IpAddrMask Parse(ReadOnlySpan<char> str)

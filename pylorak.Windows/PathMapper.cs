@@ -253,11 +253,11 @@ namespace pylorak.Windows
                 {
                     try
                     {
-                    // We have two different methods to discover drives and volumes.
-                    // We chain them and execute both because each one has limitations:
-                    // RebuildCacheImpl_1 - Cannot discover some types of drives, such as those created by ImDisk
-                    // RebuildCacheImpl_2 - Cannot discover devices mounted to mount points
-                    var tmpCache = RebuildCacheImpl_1();
+                        // We have two different methods to discover drives and volumes.
+                        // We chain them and execute both because each one has limitations:
+                        // RebuildCacheImpl_1 - Cannot discover some types of drives, such as those created by ImDisk
+                        // RebuildCacheImpl_2 - Cannot discover devices mounted to mount points
+                        var tmpCache = RebuildCacheImpl_1();
                         try { tmpCache = RebuildCacheImpl_2(tmpCache); } catch { }
                         Cache = tmpCache.ToArray();
                     }
@@ -307,7 +307,7 @@ namespace pylorak.Windows
             if (path is null)
                 return string.Empty;
 
-            return ConvertPathIgnoreErrors(path.AsSpan(), target);
+            return ConvertPathIgnoreErrors(path, target);
         }
 
         private static readonly string REGISTRY_CONST = "Registry";
@@ -372,7 +372,7 @@ namespace pylorak.Windows
                 return target switch
                 {
                     PathFormat.Win32 => ret.ToString(),
-                    PathFormat.NativeNt => SpanUtils.Concat(@"\Device\Mup\".AsSpan(), ret.Slice(2)),
+                    PathFormat.NativeNt => SpanUtils.Concat(@"\Device\Mup\", ret.Slice(2)),
                     _ => throw new NotSupportedException(),
                 };
             }
@@ -430,13 +430,13 @@ namespace pylorak.Windows
                         throw new NotSupportedException();
                 }
             }
-            else if (ret.StartsWith("Volume{".AsSpan(), StringComparison.OrdinalIgnoreCase))
+            else if (ret.StartsWith("Volume{", StringComparison.OrdinalIgnoreCase))
             {   // Volume GUID path, like \\?\Volume{26a21bda-a627-11d7-9931-806e6f6e6963}\Windows\explorer.exe
 
                 if (target == PathFormat.Volume)
                     return path.ToString();
 
-                ret = SpanUtils.Concat(@"\\?\".AsSpan(), ret).AsSpan();
+                ret = SpanUtils.Concat(@"\\?\", ret).AsSpan();
                 foreach (var cacheEntry in Cache)
                 {
                     for (int j = 0; j < cacheEntry.Volumes.Count; ++j)
@@ -496,12 +496,12 @@ namespace pylorak.Windows
 
         private unsafe static ReadOnlySpan<char> ReplaceLeading(ReadOnlySpan<char> text, string needle, string replacement)
         {
-            if (text.StartsWith(needle.AsSpan(), StringComparison.OrdinalIgnoreCase))
+            if (text.StartsWith(needle, StringComparison.OrdinalIgnoreCase))
             {
                 text = text.Slice(needle.Length);
                 if (!string.IsNullOrEmpty(replacement))
                 {
-                    text = SpanUtils.Concat(replacement.AsSpan(), text).AsSpan();
+                    text = SpanUtils.Concat(replacement, text).AsSpan();
                 }
             }
 

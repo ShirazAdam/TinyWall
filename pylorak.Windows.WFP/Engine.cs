@@ -207,7 +207,7 @@ namespace pylorak.Windows.WFP
                 numFilterConditions = 0,
                 actionMask = 0xFFFFFFFFu,
             };
-            
+
             return new FilterEnumerator(this, template, getFilterConditions);
         }
 

@@ -186,15 +186,15 @@ namespace pylorak.TinyWall
 
             try
             {
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Add("TW-Version", Application.ProductVersion);
-                using var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
-                response.EnsureSuccessStatusCode();
-                using var sourceStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
-                using var destinationStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None);
-                sourceStream.CopyTo(destinationStream);
-            }
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.DefaultRequestHeaders.Add("TW-Version", Application.ProductVersion);
+                    using var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+                    response.EnsureSuccessStatusCode();
+                    using var sourceStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+                    using var destinationStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                    sourceStream.CopyTo(destinationStream);
+                }
 
                 var descriptor = SerialisationHelper.DeserialiseFromFile(tmpFile, new UpdateDescriptor());
 

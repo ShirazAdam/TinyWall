@@ -6,7 +6,7 @@ namespace pylorak.Utilities
     {
         public static bool Equals(this ReadOnlySpan<char> span, string other, StringComparison opts)
         {
-            return span.Equals(other.AsSpan(), opts);
+            return span.Equals(other, opts);
         }
 
         private static (ulong, bool) DecimalToNumeric(this ReadOnlySpan<char> span, int maxDecimals, bool negativeAllowed)
