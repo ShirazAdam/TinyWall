@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -70,7 +72,7 @@ namespace pylorak.TinyWall
 
                 foreach (var entry in entries)
                 {
-                    ConstructListItem(items, entry.Process, entry.Protocol, entry.LocalEndPoint, entry.RemoteEndPoint, entry.State, entry.Timestamp, entry.Direction);
+                    ConstructListItem(items, entry);
                 }
 
                 if (!string.IsNullOrWhiteSpace(searchText))
@@ -113,7 +115,7 @@ namespace pylorak.TinyWall
 
                 var path = GetPathFromPidCached(procCache, tcpRow.ProcessId);
                 var pi = ProcessInfo.Create(tcpRow.ProcessId, path, packageList, servicePids);
-                entries.Add(new ConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
+                entries.Add(CreateConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
             }
 
             tcpTable = NetStat.GetExtendedTcp6Table(false);
@@ -125,7 +127,7 @@ namespace pylorak.TinyWall
 
                 var path = GetPathFromPidCached(procCache, tcpRow.ProcessId);
                 var pi = ProcessInfo.Create(tcpRow.ProcessId, path, packageList, servicePids);
-                entries.Add(new ConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
+                entries.Add(CreateConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
             }
 
             if (showListen)
@@ -137,7 +139,7 @@ namespace pylorak.TinyWall
                 {
                     var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
                     var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
-                    entries.Add(new ConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
+                    entries.Add(CreateConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
                 }
 
                 udpTable = NetStat.GetExtendedUdp6Table(false);
@@ -146,7 +148,7 @@ namespace pylorak.TinyWall
                 {
                     var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
                     var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
-                    entries.Add(new ConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
+                    entries.Add(CreateConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
                 }
             }
 
@@ -241,7 +243,7 @@ namespace pylorak.TinyWall
 
                 if (entry is { LocalIp: not null, RemoteIp: not null })
                 {
-                    entries.Add(new ConnectionListEntry(
+                    entries.Add(CreateConnectionListEntry(
                         pi,
                         entry.Protocol.ToString(),
                         new IPEndPoint(IPAddress.Parse(entry.LocalIp), entry.LocalPort),
@@ -253,12 +255,50 @@ namespace pylorak.TinyWall
             }
         }
 
-        private sealed record ConnectionListEntry(ProcessInfo Process, string Protocol, IPEndPoint LocalEndPoint, IPEndPoint RemoteEndPoint, string State, DateTime Timestamp, RuleDirection Direction);
+        private static ConnectionListEntry CreateConnectionListEntry(ProcessInfo process, string protocol, IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, string state, DateTime timestamp, RuleDirection direction)
+        {
+            string? imageKey = null;
+            byte[]? iconPng = null;
 
-        private void ConstructListItem(List<ListViewItem> itemColl, ProcessInfo e, string protocol, IPEndPoint localEp, IPEndPoint remoteEp, string state, DateTime ts, RuleDirection dir)
+            if (process.Package.HasValue)
+            {
+                imageKey = @"store";
+            }
+            else if (process.Path == "System")
+            {
+                imageKey = @"system";
+            }
+            else if (NetworkPath.IsNetworkPath(process.Path))
+            {
+                imageKey = @"network-drive";
+            }
+            else if (System.IO.Path.IsPathRooted(process.Path) && System.IO.File.Exists(process.Path))
+            {
+                try
+                {
+                    using var bitmap = Utils.GetIconContained(process.Path, 16, 16);
+                    using var iconStream = new MemoryStream();
+                    bitmap.Save(iconStream, ImageFormat.Png);
+                    iconPng = iconStream.ToArray();
+                    imageKey = process.Path;
+                }
+                catch
+                {
+                    // Keep the item without a path-specific icon if shell icon extraction fails.
+                }
+            }
+
+            return new ConnectionListEntry(process, protocol, localEndPoint, remoteEndPoint, state, timestamp, direction, imageKey, iconPng);
+        }
+
+        private sealed record ConnectionListEntry(ProcessInfo Process, string Protocol, IPEndPoint LocalEndPoint, IPEndPoint RemoteEndPoint, string State, DateTime Timestamp, RuleDirection Direction, string? ImageKey, byte[]? IconPng);
+
+        private void ConstructListItem(List<ListViewItem> itemColl, ConnectionListEntry entry)
         {
             try
             {
+                var e = entry.Process;
+
                 // Construct list item
                 string name = e.Package.HasValue ? e.Package.Value.Name : System.IO.Path.GetFileName(e.Path);
                 string title = (e.Pid != 0) ? $"{name} ({e.Pid})" : $"{name}";
@@ -268,38 +308,26 @@ namespace pylorak.TinyWall
                     ToolTipText = e.Path
                 };
 
-                // Add icon
-                if (e.Package.HasValue)
+                if (entry.ImageKey is not null)
                 {
-                    li.ImageKey = @"store";
-                }
-                else if (e.Path == "System")
-                {
-                    li.ImageKey = @"system";
-                }
-                else if (NetworkPath.IsNetworkPath(e.Path))
-                {
-                    li.ImageKey = @"network-drive";
-                }
-                else if (System.IO.Path.IsPathRooted(e.Path) && System.IO.File.Exists(e.Path))
-                {
-                    if (!IconList.Images.ContainsKey(e.Path))
+                    if ((entry.IconPng is not null) && !IconList.Images.ContainsKey(entry.ImageKey))
                     {
-                        // Get icon
-                        IconList.Images.Add(e.Path, Utils.GetIconContained(e.Path, _iconSize.Width, _iconSize.Height));
+                        using var iconStream = new MemoryStream(entry.IconPng);
+                        IconList.Images.Add(entry.ImageKey, Image.FromStream(iconStream));
                     }
-                    li.ImageKey = e.Path;
+
+                    li.ImageKey = entry.ImageKey;
                 }
 
                 li.SubItems.Add(e.Pid == 0 ? string.Empty : string.Join(", ", e.Services.ToArray()));
-                li.SubItems.Add(protocol);
-                li.SubItems.Add(localEp.Port.ToString(CultureInfo.InvariantCulture).PadLeft(5));
-                li.SubItems.Add(localEp.Address.ToString());
-                li.SubItems.Add(remoteEp.Port.ToString(CultureInfo.InvariantCulture).PadLeft(5));
-                li.SubItems.Add(remoteEp.Address.ToString());
-                li.SubItems.Add(state);
+                li.SubItems.Add(entry.Protocol);
+                li.SubItems.Add(entry.LocalEndPoint.Port.ToString(CultureInfo.InvariantCulture).PadLeft(5));
+                li.SubItems.Add(entry.LocalEndPoint.Address.ToString());
+                li.SubItems.Add(entry.RemoteEndPoint.Port.ToString(CultureInfo.InvariantCulture).PadLeft(5));
+                li.SubItems.Add(entry.RemoteEndPoint.Address.ToString());
+                li.SubItems.Add(entry.State);
 
-                switch (dir)
+                switch (entry.Direction)
                 {
                     case RuleDirection.In:
                         li.SubItems.Add(Resources.Messages.TrafficIn);
@@ -313,7 +341,7 @@ namespace pylorak.TinyWall
                         li.SubItems.Add(string.Empty);
                         break;
                 }
-                li.SubItems.Add(ts.ToString("dd/MM/yyyy HH:mm:ss"));
+                li.SubItems.Add(entry.Timestamp.ToString("dd/MM/yyyy HH:mm:ss"));
                 itemColl.Add(li);
             }
             catch

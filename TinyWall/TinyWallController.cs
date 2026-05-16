@@ -1294,7 +1294,6 @@ namespace pylorak.TinyWall
             _balloonClickedCallback = balloonClicked;
             _balloonClickedCallbackArgument = handlerArg;
             Tray.ShowBalloonTip(periodMs, "TinyWall", msg, icon);
-            Thread.Sleep(500);
         }
 
         private static void SetHotkey(ComponentResourceManager resourceManager, ref Hotkey? hk, HandledEventHandler hkCallback, Keys keyCode, ToolStripMenuItem menu, string mnuName)
