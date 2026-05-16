@@ -4,14 +4,18 @@ using System.Security;
 
 namespace pylorak.Windows
 {
-    public static class NetworkPath
+    public static partial class NetworkPath
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+            //[DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+            //[return: MarshalAs(UnmanagedType.Bool)]
+            //internal static extern unsafe bool PathIsNetworkPath(char* pszPath);
+
+            [LibraryImport("shlwapi.dll", StringMarshalling = StringMarshalling.Utf16, EntryPoint = "PathIsNetworkPathW")]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern unsafe bool PathIsNetworkPath(char* pszPath);
+            internal static partial bool PathIsNetworkPath(string pszPath);
 
             #region WNetGetUniversalName
             internal const int UNIVERSAL_NAME_INFO_LEVEL = 0x00000001;
@@ -19,13 +23,16 @@ namespace pylorak.Windows
             internal const int ERROR_NOT_CONNECTED = 2250;
             internal const int NOERROR = 0;
 
-            [DllImport("mpr.dll", CharSet = CharSet.Unicode)]
-            [return: MarshalAs(UnmanagedType.U4)]
-            internal static extern int WNetGetUniversalName(
-                string lpLocalPath,
-                [MarshalAs(UnmanagedType.U4)] int dwInfoLevel,
-                IntPtr lpBuffer,
-                [MarshalAs(UnmanagedType.U4)] ref int lpBufferSize);
+            //[DllImport("mpr.dll", CharSet = CharSet.Unicode)]
+            //[return: MarshalAs(UnmanagedType.U4)]
+            //internal static extern int WNetGetUniversalName(
+            //    string lpLocalPath,
+            //    [MarshalAs(UnmanagedType.U4)] int dwInfoLevel,
+            //    IntPtr lpBuffer,
+            //    [MarshalAs(UnmanagedType.U4)] ref int lpBufferSize);
+
+            [LibraryImport("mpr.dll", StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial int WNetGetUniversalName(string lpLocalPath, int dwInfoLevel, IntPtr lpBuffer, ref int lpBufferSize);
             #endregion
         }
 
@@ -80,18 +87,7 @@ namespace pylorak.Windows
 
         public static bool IsNetworkPath(string path)
         {
-            return IsNetworkPath(path.AsSpan());
-        }
-
-        public static bool IsNetworkPath(ReadOnlySpan<char> path)
-        {
-            unsafe
-            {
-                fixed (char* ptr = path)
-                {
-                    return NativeMethods.PathIsNetworkPath(ptr);
-                }
-            }
+            return !string.IsNullOrWhiteSpace(path) && NativeMethods.PathIsNetworkPath(path);
         }
     }
 }

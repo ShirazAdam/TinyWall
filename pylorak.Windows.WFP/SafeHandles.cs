@@ -5,15 +5,19 @@ using System.Security;
 
 namespace pylorak.Windows.WFP
 {
-    public sealed class FwpmEngineSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class FwpmEngineSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmEngineClose0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmEngineClose0")]
 
-            internal static extern uint FwpmEngineClose0(
-                [In] IntPtr engineHandle);
+            //internal static extern uint FwpmEngineClose0(
+            //    [In] IntPtr engineHandle);
+
+            [LibraryImport("FWPUClnt.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+
+            internal static partial uint FwpmEngineClose0(IntPtr engineHandle);
         }
 
         public FwpmEngineSafeHandle()
@@ -29,15 +33,20 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class FwpmMemorySafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class FwpmMemorySafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFreeMemory0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmFreeMemory0")]
 
-            internal static extern void FwpmFreeMemory0(
-                [In] ref IntPtr p);
+            //internal static extern void FwpmFreeMemory0(
+            //    [In] ref IntPtr p);
+
+            [LibraryImport("FWPUClnt.dll", StringMarshalling = StringMarshalling.Utf16, EntryPoint = "FwpmFreeMemory0")]
+
+            internal static partial void FwpmFreeMemory0(ref IntPtr p);
+
         }
 
         public FwpmMemorySafeHandle()
@@ -54,16 +63,19 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class FwpmFilterSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class FwpmFilterSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterUnsubscribeChanges0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterUnsubscribeChanges0")]
 
-            internal static extern uint FwpmFilterUnsubscribeChanges0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr changeHandle);
+            //internal static extern uint FwpmFilterUnsubscribeChanges0([In] FwpmEngineSafeHandle engineHandle, [In] IntPtr changeHandle);
+
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterUnsubscribeChanges0", StringMarshalling = StringMarshalling.Utf16)]
+
+            internal static partial uint FwpmFilterUnsubscribeChanges0(FwpmEngineSafeHandle engineHandle, IntPtr changeHandle);
+
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;
@@ -71,7 +83,9 @@ namespace pylorak.Windows.WFP
         public FwpmFilterSubscriptionSafeHandle(IntPtr wrappedHndl, FwpmEngineSafeHandle engineHndl) : base(true)
         {
             bool success = false;
+
             engineHndl.DangerousAddRef(ref success);
+
             if (!success)
             {
                 _ = NativeMethods.FwpmFilterUnsubscribeChanges0(engineHndl, wrappedHndl);
@@ -95,16 +109,21 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed class FwpmNetEventSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed partial class FwpmNetEventSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventUnsubscribe0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventUnsubscribe0")]
 
-            internal static extern uint FwpmNetEventUnsubscribe0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr changeHandle);
+            //internal static extern uint FwpmNetEventUnsubscribe0(
+            //    [In] FwpmEngineSafeHandle engineHandle,
+            //    [In] IntPtr changeHandle);
+
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventUnsubscribe0", StringMarshalling = StringMarshalling.Utf16)]
+
+            internal static partial uint FwpmNetEventUnsubscribe0(FwpmEngineSafeHandle engineHandle, IntPtr changeHandle);
+
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;
@@ -112,7 +131,9 @@ namespace pylorak.Windows.WFP
         public FwpmNetEventSubscriptionSafeHandle(IntPtr wrappedHndl, FwpmEngineSafeHandle engineHndl) : base(true)
         {
             bool success = false;
+
             engineHndl.DangerousAddRef(ref success);
+
             if (!success)
             {
                 _ = NativeMethods.FwpmNetEventUnsubscribe0(engineHndl, wrappedHndl);
@@ -139,13 +160,18 @@ namespace pylorak.Windows.WFP
     public sealed partial class FwpmFilterEnumSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDestroyEnumHandle0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDestroyEnumHandle0")]
 
-            internal static extern uint FwpmFilterDestroyEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr enumHandle);
+            //internal static extern uint FwpmFilterDestroyEnumHandle0(
+            //    [In] FwpmEngineSafeHandle engineHandle,
+            //    [In] IntPtr enumHandle);
+
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
+
+            internal static partial uint FwpmFilterDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
+
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;
@@ -153,7 +179,9 @@ namespace pylorak.Windows.WFP
         public FwpmFilterEnumSafeHandle(IntPtr wrappedHndl, FwpmEngineSafeHandle engineHndl) : base(true)
         {
             bool success = false;
+
             engineHndl.DangerousAddRef(ref success);
+
             if (!success)
             {
                 _ = NativeMethods.FwpmFilterDestroyEnumHandle0(engineHndl, wrappedHndl);
@@ -180,13 +208,18 @@ namespace pylorak.Windows.WFP
     public sealed partial class FwpmProviderEnumSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDestroyEnumHandle0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDestroyEnumHandle0")]
 
-            internal static extern uint FwpmProviderDestroyEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr enumHandle);
+            //internal static extern uint FwpmProviderDestroyEnumHandle0(
+            //    [In] FwpmEngineSafeHandle engineHandle,
+            //    [In] IntPtr enumHandle);
+
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
+
+            internal static partial uint FwpmProviderDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
+
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;
@@ -194,7 +227,9 @@ namespace pylorak.Windows.WFP
         public FwpmProviderEnumSafeHandle(IntPtr wrappedHndl, FwpmEngineSafeHandle engineHndl) : base(true)
         {
             bool success = false;
+
             engineHndl.DangerousAddRef(ref success);
+
             if (!success)
             {
                 _ = NativeMethods.FwpmProviderDestroyEnumHandle0(engineHndl, wrappedHndl);
@@ -204,8 +239,6 @@ namespace pylorak.Windows.WFP
             _safeEngineHandle = engineHndl;
             SetHandle(wrappedHndl);
         }
-
-
 
         protected override bool ReleaseHandle()
         {
@@ -221,13 +254,18 @@ namespace pylorak.Windows.WFP
     public sealed partial class FwpmSessionEnumSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSessionDestroyEnumHandle0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmSessionDestroyEnumHandle0")]
 
-            internal static extern uint FwpmSessionDestroyEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr enumHandle);
+            //internal static extern uint FwpmSessionDestroyEnumHandle0(
+            //    [In] FwpmEngineSafeHandle engineHandle,
+            //    [In] IntPtr enumHandle);
+
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSessionDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
+
+            internal static partial uint FwpmSessionDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
+
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;
@@ -235,7 +273,9 @@ namespace pylorak.Windows.WFP
         public FwpmSessionEnumSafeHandle(IntPtr wrappedHndl, FwpmEngineSafeHandle engineHndl) : base(true)
         {
             bool success = false;
+
             engineHndl.DangerousAddRef(ref success);
+
             if (!success)
             {
                 _ = NativeMethods.FwpmSessionDestroyEnumHandle0(engineHndl, wrappedHndl);
@@ -262,13 +302,18 @@ namespace pylorak.Windows.WFP
     public sealed partial class FwpmSublayerEnumSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDestroyEnumHandle0")]
+            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDestroyEnumHandle0")]
 
-            internal static extern uint FwpmSubLayerDestroyEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr enumHandle);
+            //internal static extern uint FwpmSubLayerDestroyEnumHandle0(
+            //    [In] FwpmEngineSafeHandle engineHandle,
+            //    [In] IntPtr enumHandle);
+
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
+
+            internal static partial uint FwpmSubLayerDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
+
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;
@@ -276,7 +321,9 @@ namespace pylorak.Windows.WFP
         public FwpmSublayerEnumSafeHandle(IntPtr wrappedHndl, FwpmEngineSafeHandle engineHndl) : base(true)
         {
             bool success = false;
+
             engineHndl.DangerousAddRef(ref success);
+
             if (!success)
             {
                 _ = NativeMethods.FwpmSubLayerDestroyEnumHandle0(engineHndl, wrappedHndl);
@@ -286,8 +333,6 @@ namespace pylorak.Windows.WFP
             _safeEngineHandle = engineHndl;
             SetHandle(wrappedHndl);
         }
-
-
 
         protected override bool ReleaseHandle()
         {
@@ -303,13 +348,20 @@ namespace pylorak.Windows.WFP
     public sealed partial class SafeHGlobalHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32")]
-            public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+            //[DllImport("kernel32")]
+            //public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [DllImport("kernel32")]
-            public static extern IntPtr GlobalFree(IntPtr hMem);
+            //[DllImport("kernel32")]
+            //public static extern IntPtr GlobalFree(IntPtr hMem);
+
+            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16)]
+            public static partial IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+
+            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16)]
+            public static partial IntPtr GlobalFree(IntPtr hMem);
+
         }
 
         private Type? MarshalDestroyType;
@@ -435,32 +487,39 @@ namespace pylorak.Windows.WFP
     public sealed partial class AllocHLocalSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32.dll")]
-            internal static extern IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
+            //[DllImport("kernel32.dll")]
+            //internal static extern IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [DllImport("kernel32.dll")]
+            //[DllImport("kernel32.dll")]
 
-            internal static extern IntPtr LocalFree(IntPtr hMem);
+            //internal static extern IntPtr LocalFree(IntPtr hMem);
+
+            [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
+
+            [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial IntPtr LocalFree(IntPtr hMem);
+
         }
 
         public AllocHLocalSafeHandle(int nBytes)
             : base(true)
         {
-            this.handle = NativeMethods.LocalAlloc(0, new UIntPtr((uint)nBytes));
+            handle = NativeMethods.LocalAlloc(0, new UIntPtr((uint)nBytes));
         }
 
         public AllocHLocalSafeHandle(IntPtr ptr, bool ownsHandle)
             : base(ownsHandle)
         {
-            this.handle = ptr;
+            handle = ptr;
         }
 
         public AllocHLocalSafeHandle()
             : base(true)
         {
-            this.handle = IntPtr.Zero;
+            handle = IntPtr.Zero;
         }
 
 
@@ -474,22 +533,26 @@ namespace pylorak.Windows.WFP
     public sealed partial class SidSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("advapi32.dll", SetLastError = false)]
-            internal static extern IntPtr FreeSid(IntPtr sid);
+            //[DllImport("advapi32.dll", SetLastError = false)]
+            //internal static extern IntPtr FreeSid(IntPtr sid);
+
+            [LibraryImport("advapi32.dll", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial IntPtr FreeSid(IntPtr sid);
+
         }
 
         public SidSafeHandle(IntPtr ptr, bool ownsHandle)
             : base(ownsHandle)
         {
-            this.handle = ptr;
+            handle = ptr;
         }
 
         public SidSafeHandle()
             : base(true)
         {
-            this.handle = IntPtr.Zero;
+            handle = IntPtr.Zero;
         }
 
 

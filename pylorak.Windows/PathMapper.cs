@@ -342,7 +342,7 @@ namespace pylorak.Windows
             ret = ReplaceLeading(ret, @"GLOBALROOT\", string.Empty);
             ret = ReplaceLeading(ret, @"\Device\Mup\", @"\\");
 
-            if (NetworkPath.IsNetworkPath(ret))
+            if (NetworkPath.IsNetworkPath(ret.ToString()))
             {   // UNC path (like \\server\share\directory\file), or mounted network drive
 
                 if (!NetworkPath.IsUncPath(ret))
