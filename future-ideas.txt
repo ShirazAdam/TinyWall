@@ -1,12 +1,12 @@
 Future development ideas (in no particular order):
 - Find solution for isolating Windows Update
 - Dark-theme GUI support
-- GUI modernization (Windows App SDK?)
-- Make changelog easier to access
-- Merge the two changelogs
+- GUI modernisation (Windows App SDK?)
+- Make change log easier to access
+- Merge the two change logs
 - Option wheteher to allow inbound connection in default rule
 - Better hosts handling
-- Unified dialog boxes
+- Unified dialogue boxes
 - Detect other firewall software
 - WHOIS query to Connections' remote addresses
 - Add block reason to Connections window
@@ -20,5 +20,5 @@ Future development ideas (in no particular order):
 - App profile submission system
 - IP blocklists
 - SQLite database
-- Action Center integration
+- Action Centre integration
 - Updater to detected database format breakage
