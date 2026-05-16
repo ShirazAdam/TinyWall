@@ -453,19 +453,6 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void btnDonate_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                var psi = new ProcessStartInfo(@"https://tinywall.pados.hu/donate.php") { UseShellExecute = true };
-                Process.Start(psi);
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
         private void btnImport_Click(object sender, EventArgs e)
         {
             ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*", Resources.Messages.TinyWallSettingsFileFilter, Resources.Messages.AllFilesFileFilter);
@@ -504,10 +491,10 @@ namespace pylorak.TinyWall
             //DataCollection.StartProfile(ProfileLevel.Global, DataCollection.CurrentId);
 #endif
             if (TmpConfig.Controller.SettingsFormWindowSize.Width != 0)
-                this.Size = TmpConfig.Controller.SettingsFormWindowSize;
+                Size = TmpConfig.Controller.SettingsFormWindowSize;
             if (TmpConfig.Controller.SettingsFormWindowLoc.X != 0)
             {
-                this.Location = TmpConfig.Controller.SettingsFormWindowLoc;
+                Location = TmpConfig.Controller.SettingsFormWindowLoc;
                 Utils.FixupFormPosition(this);
             }
 
@@ -606,13 +593,14 @@ namespace pylorak.TinyWall
 
         private void SettingsForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            TmpConfig.Controller.SettingsFormWindowSize = this.Size;
-            TmpConfig.Controller.SettingsFormWindowLoc = this.Location;
-            ActiveConfig.Controller.SettingsFormWindowSize = this.Size;
-            ActiveConfig.Controller.SettingsFormWindowLoc = this.Location;
+            TmpConfig.Controller.SettingsFormWindowSize = Size;
+            TmpConfig.Controller.SettingsFormWindowLoc = Location;
+            ActiveConfig.Controller.SettingsFormWindowSize = Size;
+            ActiveConfig.Controller.SettingsFormWindowLoc = Location;
 
             TmpConfig.Controller.SettingsFormAppListColumnWidths.Clear();
             ActiveConfig.Controller.SettingsFormAppListColumnWidths.Clear();
+
             foreach (ColumnHeader col in listApplications.Columns)
             {
                 TmpConfig.Controller.SettingsFormAppListColumnWidths.Add((string)col.Tag, col.Width);
@@ -645,11 +633,6 @@ namespace pylorak.TinyWall
         {
             var psi = new ProcessStartInfo(@"https://github.com/ShirazAdam/tinywall") { UseShellExecute = true };
             Process.Start(psi);
-        }
-
-        private void label12_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
