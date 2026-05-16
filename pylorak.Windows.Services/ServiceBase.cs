@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace pylorak.Windows.Services
 {
@@ -676,9 +677,7 @@ namespace pylorak.Windows.Services
 
         private static void ShowMessageBox(string message, string title)
         {
-            const int MB_OK = 0;
-            const int MB_ICONERROR = 0x00000010;
-            _ = NativeMethods.MessageBox(IntPtr.Zero, message, title, MB_OK | MB_ICONERROR);
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

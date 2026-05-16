@@ -5,9 +5,6 @@ namespace pylorak.Windows.Services
 {
     internal static class NativeMethods
     {
-        [DllImport("user32", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
-
         [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern IntPtr RegisterServiceCtrlHandlerEx(string serviceName, ServiceCtrlHandlerExDelegate callback, IntPtr userData);
 
@@ -38,16 +35,6 @@ namespace pylorak.Windows.Services
             IntPtr intPtrQueryConfig,
             uint cbBufSize,
             out uint pcbBytesNeeded);
-
-        /*
-        [DllImport("advapi32.dll", SetLastError = true)]
-        public static extern int QueryServiceConfig2(
-            IntPtr hService,
-            ServiceConfig2InfoLevel dwInfoLevel,
-            IntPtr lpBuffer,
-            int cbBufSize,
-            out int pcbBytesNeeded);
-         */
 
         [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
