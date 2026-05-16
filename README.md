@@ -8,7 +8,7 @@
 
 # TinyWall
 
-A free, lightweight and non-intrusive firewall.
+A free, lightweight and non-intrusive firewall. The original project suffered from a lack of updates and support. The original project still suffers from performance problems where right-clicking on the tray icon can take anywhere between 2 - 12 seconds to the show the context menu. Some of the forms also freeze due to the events running on the UI thread. This fork aims to experiment and continue the development of TinyWall, keeping it up-to-date and compatible with the latest Windows versions, while also adding new features and improvements.
 
 You're welcome to hack and slash at it. Enjoy!
 
