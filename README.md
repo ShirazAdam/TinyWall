@@ -8,7 +8,11 @@
 
 # TinyWall
 
-A free, lightweight and non-intrusive firewall.
+TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no noisy pop-ups, no bundled drivers, and no unnecessary background clutter.
+
+The application provides a tray-based control centre for managing firewall modes, application exceptions, service and process rules, connection activity, blocklists, and firewall log entries. It helps users allow trusted applications, block unwanted network access, and review network activity without needing to edit Windows Firewall rules manually.
+
+TinyWall focuses on being practical and low-overhead. It uses Windows networking and security features rather than replacing them, and aims to keep the user interface responsive while doing heavier discovery and rule-management work in the background.
 
 You're welcome to hack and slash at it. Enjoy!
 
