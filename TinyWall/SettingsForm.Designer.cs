@@ -80,15 +80,9 @@
             this.btnExport = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.lblLinkAttributions = new System.Windows.Forms.LinkLabel();
-            this.btnDonate = new System.Windows.Forms.PictureBox();
             this.lblLinkLicense = new System.Windows.Forms.LinkLabel();
-            this.label10 = new System.Windows.Forms.Label();
-            this.lblAboutHomepageLink = new System.Windows.Forms.LinkLabel();
-            this.label6 = new System.Windows.Forms.Label();
             this.lblVersion = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
             this.btnUpdate = new System.Windows.Forms.Button();
-            this.btnWeb = new System.Windows.Forms.Button();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
             this.tabPage3.SuspendLayout();
@@ -99,7 +93,6 @@
             this.tabControl1.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.btnDonate)).BeginInit();
             this.SuspendLayout();
             // 
             // btnCancel
@@ -435,7 +428,6 @@
             this.tabPage4.Controls.Add(this.btnExport);
             this.tabPage4.Controls.Add(this.groupBox2);
             this.tabPage4.Controls.Add(this.btnUpdate);
-            this.tabPage4.Controls.Add(this.btnWeb);
             resources.ApplyResources(this.tabPage4, "tabPage4");
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -464,13 +456,8 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.lblLinkAttributions);
-            this.groupBox2.Controls.Add(this.btnDonate);
             this.groupBox2.Controls.Add(this.lblLinkLicense);
-            this.groupBox2.Controls.Add(this.label10);
-            this.groupBox2.Controls.Add(this.lblAboutHomepageLink);
-            this.groupBox2.Controls.Add(this.label6);
             this.groupBox2.Controls.Add(this.lblVersion);
-            this.groupBox2.Controls.Add(this.label12);
             resources.ApplyResources(this.groupBox2, "groupBox2");
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.TabStop = false;
@@ -482,18 +469,6 @@
             this.lblLinkAttributions.TabStop = true;
             this.lblLinkAttributions.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LblLinkAttributions_LinkClicked);
             // 
-            // btnDonate
-            // 
-            resources.ApplyResources(this.btnDonate, "btnDonate");
-            this.btnDonate.AccessibleRole = System.Windows.Forms.AccessibleRole.PushButton;
-            this.btnDonate.BackColor = System.Drawing.Color.Transparent;
-            this.btnDonate.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnDonate.Name = "btnDonate";
-            this.btnDonate.TabStop = false;
-            this.btnDonate.Click += new System.EventHandler(this.BtnDonate_Click);
-            this.btnDonate.MouseEnter += new System.EventHandler(this.BtnDonate_MouseEnter);
-            this.btnDonate.MouseLeave += new System.EventHandler(this.BtnDonate_MouseLeave);
-            // 
             // lblLinkLicense
             // 
             resources.ApplyResources(this.lblLinkLicense, "lblLinkLicense");
@@ -501,46 +476,10 @@
             this.lblLinkLicense.TabStop = true;
             this.lblLinkLicense.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LblLinkLicense_LinkClicked);
             // 
-            // label10
-            // 
-            resources.ApplyResources(this.label10, "label10");
-            this.label10.Name = "label10";
-            // 
-            // lblAboutHomepageLink
-            // 
-            resources.ApplyResources(this.lblAboutHomepageLink, "lblAboutHomepageLink");
-            this.lblAboutHomepageLink.Name = "lblAboutHomepageLink";
-            this.lblAboutHomepageLink.TabStop = true;
-            this.lblAboutHomepageLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LblAboutHomepageLink_LinkClicked);
-            // 
-            // label6
-            // 
-            resources.ApplyResources(this.label6, "label6");
-            this.label6.Name = "label6";
-            // 
             // lblVersion
             // 
             resources.ApplyResources(this.lblVersion, "lblVersion");
             this.lblVersion.Name = "lblVersion";
-            // 
-            // label12
-            // 
-            resources.ApplyResources(this.label12, "label12");
-            this.label12.Name = "label12";
-            // 
-            // btnUpdate
-            // 
-            resources.ApplyResources(this.btnUpdate, "btnUpdate");
-            this.btnUpdate.Name = "btnUpdate";
-            this.btnUpdate.UseVisualStyleBackColor = true;
-            this.btnUpdate.Click += new System.EventHandler(this.BtnUpdate_Click);
-            // 
-            // btnWeb
-            // 
-            resources.ApplyResources(this.btnWeb, "btnWeb");
-            this.btnWeb.Name = "btnWeb";
-            this.btnWeb.UseVisualStyleBackColor = true;
-            this.btnWeb.Click += new System.EventHandler(this.BtnWeb_Click);
             // 
             // sfd
             // 
@@ -575,7 +514,6 @@
             this.tabPage4.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.btnDonate)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -613,20 +551,14 @@
         private System.Windows.Forms.Button btnSubmitAssoc;
         private System.Windows.Forms.SaveFileDialog sfd;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.Button btnWeb;
         private System.Windows.Forms.Label lblVersion;
-        private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Button btnUpdate;
         private System.Windows.Forms.CheckBox chkBlockMalwarePorts;
         private System.Windows.Forms.Button btnAppAutoDetect;
         private System.Windows.Forms.ImageList IconList;
         private System.Windows.Forms.CheckBox chkAutoUpdateCheck;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.LinkLabel lblAboutHomepageLink;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label10;
         private System.Windows.Forms.LinkLabel lblLinkLicense;
-        private System.Windows.Forms.PictureBox btnDonate;
         private System.Windows.Forms.Button btnImport;
         private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.OpenFileDialog ofd;

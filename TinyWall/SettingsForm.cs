@@ -41,8 +41,6 @@ namespace pylorak.TinyWall
             btnImport.Image = GlobalInstances.ImportBtnIcon;
             btnExport.Image = GlobalInstances.ExportBtnIcon;
             btnUpdate.Image = GlobalInstances.UpdateBtnIcon;
-            btnWeb.Image = GlobalInstances.WebBtnIcon;
-            btnDonate.BackgroundImage = Icons.donate;
 
             listApplications.AllowDrop = true;
             listApplications.DragEnter += ListApplications_DragEnter;
@@ -382,12 +380,6 @@ namespace pylorak.TinyWall
             Activate();
         }
 
-        private void BtnWeb_Click(object sender, EventArgs e)
-        {
-            var psi = new ProcessStartInfo(@"https://tinywall.pados.hu") { UseShellExecute = true };
-            Process.Start(psi);
-        }
-
         private void ListApplications_DoubleClick(object sender, EventArgs e)
         {
             if (listApplications.SelectedIndices.Count == 0)
@@ -396,24 +388,21 @@ namespace pylorak.TinyWall
             BtnAppModify_Click(this, EventArgs.Empty);
         }
 
-        private void BtnUpdate_Click(object sender, EventArgs e)
-        {
-            Updater.StartUpdate();
-        }
-
         private async void BtnAppAutoDetect_Click(object sender, EventArgs e)
         {
-            using var aff = new AppFinderForm();
+            try
+            {
+                using var aff = new AppFinderForm();
 
-            if (aff.ShowDialog(this) != DialogResult.OK) return;
+                if (aff.ShowDialog(this) != DialogResult.OK) return;
 
-            TmpConfig.Service.ActiveProfile.AddExceptions(aff.SelectedExceptions);
-            await RebuildExceptionsList();
-        }
-
-        private void LblAboutHomepageLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            BtnWeb_Click(sender, EventArgs.Empty);
+                TmpConfig.Service.ActiveProfile.AddExceptions(aff.SelectedExceptions);
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void LblLinkLicense_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -422,7 +411,7 @@ namespace pylorak.TinyWall
             {
                 var psi = new ProcessStartInfo(Path.Combine(
                     Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(),
-                    "License.rtf"))
+                    "Licence.rtf"))
                 {
                     UseShellExecute = true
                 };
@@ -434,12 +423,30 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void BtnDonate_Click(object sender, EventArgs e)
+        private async void BtnImport_Click(object sender, EventArgs e)
         {
             try
             {
-                var psi = new ProcessStartInfo(@"https://tinywall.pados.hu/donate.php") { UseShellExecute = true };
-                Process.Start(psi);
+                ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*",
+                    Messages.TinyWallSettingsFileFilter, Messages.AllFilesFileFilter);
+
+                if (ofd.ShowDialog(this) != DialogResult.OK) return;
+
+                try
+                {
+                    TmpConfig = SerialisationHelper.DeserialiseFromFile(ofd.FileName, new ConfigContainer(), true);
+                }
+                catch
+                {
+                    // Fail import.
+                    MessageBox.Show(this, Messages.ConfigurationImportError, Messages.TinyWall, MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return;
+                }
+
+                await InitSettingsUi();
+                MessageBox.Show(this, Messages.ConfigurationHasBeenImported, Messages.TinyWall, MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
             catch
             {
@@ -447,111 +454,105 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void BtnDonate_MouseEnter(object sender, EventArgs e) => btnDonate.BorderStyle = BorderStyle.FixedSingle;
-
-        private void BtnDonate_MouseLeave(object sender, EventArgs e) => btnDonate.BorderStyle = BorderStyle.None;
-
-        private async void BtnImport_Click(object sender, EventArgs e)
+        private async void BtnExport_Click(object sender, EventArgs e)
         {
-            ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*",
-                Messages.TinyWallSettingsFileFilter, Messages.AllFilesFileFilter);
-
-            if (ofd.ShowDialog(this) != DialogResult.OK) return;
-
             try
             {
-                TmpConfig = SerialisationHelper.DeserialiseFromFile(ofd.FileName, new ConfigContainer(), true);
+                ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*",
+                    Messages.TinyWallSettingsFileFilter, Messages.AllFilesFileFilter);
+                sfd.DefaultExt = "tws";
+
+                if (sfd.ShowDialog(this) != DialogResult.OK) return;
+
+                await Task.Run(() => SerialisationHelper.SerialiseToFile(TmpConfig, sfd.FileName));
+
+                MessageBox.Show(this, Messages.ConfigurationHasBeenExported, Messages.TinyWallSettingsFileFilter,
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch
             {
-                // Fail import.
-                MessageBox.Show(this, Messages.ConfigurationImportError, Messages.TinyWall, MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
+                // ignored
             }
-
-            await InitSettingsUi();
-            MessageBox.Show(this, Messages.ConfigurationHasBeenImported, Messages.TinyWall, MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-        }
-
-        private async void BtnExport_Click(object sender, EventArgs e)
-        {
-            ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*",
-                Messages.TinyWallSettingsFileFilter, Messages.AllFilesFileFilter);
-            sfd.DefaultExt = "tws";
-
-            if (sfd.ShowDialog(this) != DialogResult.OK) return;
-
-            await Task.Run(() => SerialisationHelper.SerialiseToFile(TmpConfig, sfd.FileName));
-            MessageBox.Show(this, Messages.ConfigurationHasBeenExported, Messages.TinyWallSettingsFileFilter,
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private async void SettingsForm_Load(object sender, EventArgs e)
         {
-            if (TmpConfig.Controller.SettingsFormWindowSize.Width != 0)
-                Size = TmpConfig.Controller.SettingsFormWindowSize;
-            if (TmpConfig.Controller.SettingsFormWindowLoc.X != 0)
+            try
             {
-                Location = TmpConfig.Controller.SettingsFormWindowLoc;
-                Utils.FixupFormPosition(this);
-            }
+                if (TmpConfig.Controller.SettingsFormWindowSize.Width != 0)
+                    Size = TmpConfig.Controller.SettingsFormWindowSize;
+                if (TmpConfig.Controller.SettingsFormWindowLoc.X != 0)
+                {
+                    Location = TmpConfig.Controller.SettingsFormWindowLoc;
+                    Utils.FixupFormPosition(this);
+                }
 
-            foreach (ColumnHeader col in listApplications.Columns)
-                if (ActiveConfig.Controller.SettingsFormAppListColumnWidths.TryGetValue((string)col.Tag, out var width))
-                    col.Width = width;
+                foreach (ColumnHeader col in listApplications.Columns)
+                    if (ActiveConfig.Controller.SettingsFormAppListColumnWidths.TryGetValue((string)col.Tag, out var width))
+                        col.Width = width;
 
-            Utils.SetDoubleBuffering(listApplications, true);
-            listApplications.ListViewItemSorter = new ListViewItemComparer(0, IconList);
-            tabControl1.SelectedIndex = TmpConfig.Controller.SettingsTabIndex;
+                Utils.SetDoubleBuffering(listApplications, true);
+                listApplications.ListViewItemSorter = new ListViewItemComparer(0, IconList);
+                tabControl1.SelectedIndex = TmpConfig.Controller.SettingsTabIndex;
 
-            comboLanguages.Items.Add(new IdWithName("auto", "Automatic"));
-            comboLanguages.Items.Add(new IdWithName("bg", "български"));
-            comboLanguages.Items.Add(new IdWithName("cs", "Čeština"));
-            comboLanguages.Items.Add(new IdWithName("de", "Deutsch"));
-            comboLanguages.Items.Add(new IdWithName("en", "English"));
-            comboLanguages.Items.Add(new IdWithName("es", "Español"));
-            comboLanguages.Items.Add(new IdWithName("fr", "Français"));
-            comboLanguages.Items.Add(new IdWithName("it", "Italiano"));
-            comboLanguages.Items.Add(new IdWithName("hu", "Magyar"));
-            comboLanguages.Items.Add(new IdWithName("nl", "Nederlands"));
-            comboLanguages.Items.Add(new IdWithName("pl", "Polski"));
-            comboLanguages.Items.Add(new IdWithName("pt-BR", "Português Brasileiro"));
-            comboLanguages.Items.Add(new IdWithName("ru", "Русский"));
-            comboLanguages.Items.Add(new IdWithName("tr", "Türkçe"));
-            comboLanguages.Items.Add(new IdWithName("ja", "日本語"));
-            comboLanguages.Items.Add(new IdWithName("ko", "한국어"));
-            comboLanguages.Items.Add(new IdWithName("zh", "汉语"));
+                comboLanguages.Items.Add(new IdWithName("auto", "Automatic"));
+                comboLanguages.Items.Add(new IdWithName("bg", "български"));
+                comboLanguages.Items.Add(new IdWithName("cs", "Čeština"));
+                comboLanguages.Items.Add(new IdWithName("de", "Deutsch"));
+                comboLanguages.Items.Add(new IdWithName("en", "English"));
+                comboLanguages.Items.Add(new IdWithName("es", "Español"));
+                comboLanguages.Items.Add(new IdWithName("fr", "Français"));
+                comboLanguages.Items.Add(new IdWithName("it", "Italiano"));
+                comboLanguages.Items.Add(new IdWithName("hu", "Magyar"));
+                comboLanguages.Items.Add(new IdWithName("nl", "Nederlands"));
+                comboLanguages.Items.Add(new IdWithName("pl", "Polski"));
+                comboLanguages.Items.Add(new IdWithName("pt-BR", "Português Brasileiro"));
+                comboLanguages.Items.Add(new IdWithName("ru", "Русский"));
+                comboLanguages.Items.Add(new IdWithName("tr", "Türkçe"));
+                comboLanguages.Items.Add(new IdWithName("ja", "日本語"));
+                comboLanguages.Items.Add(new IdWithName("ko", "한국어"));
+                comboLanguages.Items.Add(new IdWithName("zh", "汉语"));
 
-            IconList.Images.Add("deleted", Icons.delete);
-            IconList.Images.Add("network-drive", Icons.network_drive_small);
-            IconList.Images.Add("window", Icons.window);
-            IconList.Images.Add("store", Icons.store);
-            IconList.Images.Add("system", Icons.windows_small);
+                IconList.Images.Add("deleted", Icons.delete);
+                IconList.Images.Add("network-drive", Icons.network_drive_small);
+                IconList.Images.Add("window", Icons.window);
+                IconList.Images.Add("store", Icons.store);
+                IconList.Images.Add("system", Icons.windows_small);
 
-            lblVersion.Text = string.Format(CultureInfo.CurrentCulture, @"{0} {1}", lblVersion.Text,
-                Application.ProductVersion);
+                lblVersion.Text = string.Format(CultureInfo.CurrentCulture, @"{0} {1}", lblVersion.Text,
+                    Application.ProductVersion);
 
-            await InitSettingsUi();
+                await InitSettingsUi();
 
 #if !DEBUG
-			// TODO: Make submissions work
-			btnSubmitAssoc.Visible = false;
+                // TODO: Make submissions work
+                btnSubmitAssoc.Visible = false;
 #endif
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void TxtExceptionListFilter_TextChanged(object sender, EventArgs e) => ApplyExceptionFilter();
 
         private async void ListApplications_ColumnClick(object sender, ColumnClickEventArgs e)
         {
-            var oldSorter = (ListViewItemComparer)listApplications.ListViewItemSorter;
-            ListViewItemComparer newSorter = new(e.Column, IconList);
-            if (oldSorter != null && oldSorter.Column == newSorter.Column)
-                newSorter.Ascending = !oldSorter.Ascending;
+            try
+            {
+                var oldSorter = (ListViewItemComparer)listApplications.ListViewItemSorter;
+                ListViewItemComparer newSorter = new(e.Column, IconList);
+                if (oldSorter != null && oldSorter.Column == newSorter.Column)
+                    newSorter.Ascending = !oldSorter.Ascending;
 
-            listApplications.ListViewItemSorter = newSorter;
-            await RebuildExceptionsList();
+                listApplications.ListViewItemSorter = newSorter;
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void ChkEnableBlocklists_CheckedChanged(object sender, EventArgs e)
