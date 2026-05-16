@@ -17,7 +17,7 @@ You're welcome to hack and slash at it. Enjoy!
 ### Necessary tools
 
 - [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com/vs/)
-- [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+- [.NET Framework 4.8.1](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
 - [Microsoft Visual Studio 2022/2026 Installer Project Extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
 
 ### To build the application
@@ -41,4 +41,4 @@ Please feel free to contribute to the project. Fork the repository, make your ch
 
 - Task Dialogue wrapper (code in directory `pylorak.Windows\TaskDialog`) written by KevinGre ([link](https://www.codeproject.com/Articles/17026/TaskDialog-for-WinForms)) and placed under Public Domain.
 
-- All other code in the repository is under the GNU GPLv3 Licence. See `LICENCE.txt` for more information.
+- See `LICENCE.txt` for more information.
