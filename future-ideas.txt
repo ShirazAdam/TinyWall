@@ -21,4 +21,4 @@ Future development ideas (in no particular order):
 - IP blocklists
 - SQLite database
 - Action Centre integration
-- Updater to detected database format breakage
+- Updater to detect database format breakage
