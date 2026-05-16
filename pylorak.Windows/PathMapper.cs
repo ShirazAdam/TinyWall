@@ -1,15 +1,14 @@
+using Microsoft.Win32;
+using pylorak.Utilities;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading;
-using Microsoft.Win32;
-
-using pylorak.Utilities;
 
 namespace pylorak.Windows
 {
@@ -20,7 +19,7 @@ namespace pylorak.Windows
         Win32
     }
 
-    public sealed partial class PathMapper : Disposable
+    public sealed class PathMapper : Disposable
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -28,12 +27,11 @@ namespace pylorak.Windows
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern int QueryDosDevice(string lpDeviceName, [Out] StringBuilder lpTargetPath, int ucchMax);
 
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
 
-            [DllImport("kernel32", SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
+            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static unsafe extern bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -260,7 +258,7 @@ namespace pylorak.Windows
                         // RebuildCacheImpl_2 - Cannot discover devices mounted to mount points
                         var tmpCache = RebuildCacheImpl_1();
                         try { tmpCache = RebuildCacheImpl_2(tmpCache); } catch { }
-                        Cache = [.. tmpCache];
+                        Cache = tmpCache.ToArray();
                     }
                     catch
                     {
@@ -308,7 +306,7 @@ namespace pylorak.Windows
             if (path is null)
                 return string.Empty;
 
-            return ConvertPathIgnoreErrors(path, target);
+            return ConvertPathIgnoreErrors(path.AsSpan(), target);
         }
 
         private static readonly string REGISTRY_CONST = "Registry";
@@ -373,7 +371,7 @@ namespace pylorak.Windows
                 return target switch
                 {
                     PathFormat.Win32 => ret.ToString(),
-                    PathFormat.NativeNt => SpanUtils.Concat(@"\Device\Mup\", ret.Slice(2)),
+                    PathFormat.NativeNt => SpanUtils.Concat(@"\Device\Mup\".AsSpan(), ret.Slice(2)),
                     _ => throw new NotSupportedException(),
                 };
             }
@@ -431,13 +429,13 @@ namespace pylorak.Windows
                         throw new NotSupportedException();
                 }
             }
-            else if (ret.StartsWith("Volume{", StringComparison.OrdinalIgnoreCase))
+            else if (ret.StartsWith("Volume{".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {   // Volume GUID path, like \\?\Volume{26a21bda-a627-11d7-9931-806e6f6e6963}\Windows\explorer.exe
 
                 if (target == PathFormat.Volume)
                     return path.ToString();
 
-                ret = SpanUtils.Concat(@"\\?\", ret).AsSpan();
+                ret = SpanUtils.Concat(@"\\?\".AsSpan(), ret).AsSpan();
                 foreach (var cacheEntry in Cache)
                 {
                     for (int j = 0; j < cacheEntry.Volumes.Count; ++j)
@@ -495,14 +493,14 @@ namespace pylorak.Windows
             }
         }
 
-        private unsafe static ReadOnlySpan<char> ReplaceLeading(ReadOnlySpan<char> text, string needle, string replacement)
+        private static unsafe ReadOnlySpan<char> ReplaceLeading(ReadOnlySpan<char> text, string needle, string replacement)
         {
-            if (text.StartsWith(needle, StringComparison.OrdinalIgnoreCase))
+            if (text.StartsWith(needle.AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 text = text.Slice(needle.Length);
                 if (!string.IsNullOrEmpty(replacement))
                 {
-                    text = SpanUtils.Concat(replacement, text).AsSpan();
+                    text = SpanUtils.Concat(replacement.AsSpan(), text).AsSpan();
                 }
             }
 

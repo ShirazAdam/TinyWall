@@ -183,6 +183,7 @@ namespace pylorak.TinyWall
 
     internal static class UpdateChecker
     {
+        private static readonly HttpClient HttpClient = new();
         private const int UPDATER_VERSION = 6;
         private const string URL_UPDATE_DESCRIPTOR = @"https://tinywall.pados.hu/updates/UpdVer{0}/update.json";
 
@@ -198,8 +199,8 @@ namespace pylorak.TinyWall
                     httpClient.DefaultRequestHeaders.Add("TW-Version", Application.ProductVersion);
                     using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    using var sourceStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                    using var destinationStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using var sourceStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    await using var destinationStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None);
                     await sourceStream.CopyToAsync(destinationStream, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -215,9 +216,8 @@ namespace pylorak.TinyWall
 
         internal static async Task DownloadUpdateAsync(Uri updateUrl, string targetFile, CancellationToken cancellationToken = default)
         {
-            using var httpClient = new HttpClient();
-            using var downloadStream = await httpClient.GetStreamAsync(updateUrl, cancellationToken).ConfigureAwait(false);
-            using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
+            await using var downloadStream = await HttpClient.GetStreamAsync(updateUrl, cancellationToken).ConfigureAwait(false);
+            await using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
             await downloadStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
         }
 

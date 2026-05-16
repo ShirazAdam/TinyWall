@@ -1,8 +1,8 @@
-﻿using pylorak.Windows;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -11,7 +11,7 @@ namespace pylorak.TinyWall
 {
     internal partial class ProcessesForm : Form
     {
-        internal readonly List<ProcessInfo> Selection = new();
+        internal readonly List<ProcessInfo> Selection = [];
 
         private readonly Size _iconSize = new((int)Math.Round(16 * Utils.DpiScalingFactor),
             (int)Math.Round(16 * Utils.DpiScalingFactor));
@@ -63,18 +63,25 @@ namespace pylorak.TinyWall
 
         private async void ProcessesForm_Load(object sender, EventArgs ev)
         {
-            Icon = Resources.Icons.firewall;
-            if (ActiveConfig.Controller.ProcessesFormWindowSize.Width != 0)
-                Size = ActiveConfig.Controller.ProcessesFormWindowSize;
-            if (ActiveConfig.Controller.ProcessesFormWindowLoc.X != 0)
+            try
             {
-                Location = ActiveConfig.Controller.ProcessesFormWindowLoc;
-                Utils.FixupFormPosition(this);
+                Icon = Resources.Icons.firewall;
+                if (ActiveConfig.Controller.ProcessesFormWindowSize.Width != 0)
+                    Size = ActiveConfig.Controller.ProcessesFormWindowSize;
+                if (ActiveConfig.Controller.ProcessesFormWindowLoc.X != 0)
+                {
+                    Location = ActiveConfig.Controller.ProcessesFormWindowLoc;
+                    Utils.FixupFormPosition(this);
+                }
+
+                WindowState = ActiveConfig.Controller.ProcessesFormWindowState;
+
+                await UpdateListAsync();
             }
-
-            WindowState = ActiveConfig.Controller.ProcessesFormWindowState;
-
-            await UpdateListAsync();
+            catch
+            {
+                // ignored
+            }
         }
 
         private async Task UpdateListAsync()
@@ -103,24 +110,15 @@ namespace pylorak.TinyWall
                     li.Tag = entry.Process;
                     itemColl.Add(li);
 
-                    if (entry.Process.Package.HasValue)
+                    if (entry.PathMetadata.ImageKey is not null)
                     {
-                        li.ImageKey = @"store";
-                    }
-                    else if (entry.Process.Path == "System")
-                    {
-                        li.ImageKey = @"system";
-                    }
-                    else if (entry.IsNetworkPath)
-                    {
-                        li.ImageKey = @"network-drive";
-                    }
-                    else if (entry.CanUsePathIcon)
-                    {
-                        if (!IconList.Images.ContainsKey(entry.Process.Path))
-                            IconList.Images.Add(entry.Process.Path,
-                                Utils.GetIconContained(entry.Process.Path, _iconSize.Width, _iconSize.Height));
-                        li.ImageKey = entry.Process.Path;
+                        if ((entry.PathMetadata.IconPng is not null) && !IconList.Images.ContainsKey(entry.PathMetadata.ImageKey))
+                        {
+                            using var iconStream = new MemoryStream(entry.PathMetadata.IconPng);
+                            IconList.Images.Add(entry.PathMetadata.ImageKey, Image.FromStream(iconStream));
+                        }
+
+                        li.ImageKey = entry.PathMetadata.ImageKey;
                     }
                 }
 
@@ -173,15 +171,9 @@ namespace pylorak.TinyWall
                     if (skip)
                         continue;
 
-                    var isNetworkPath = NetworkPath.IsNetworkPath(processInfo.Path);
-                    var canUsePathIcon = !processInfo.Package.HasValue
-                        && processInfo.Path != "System"
-                        && !isNetworkPath
-                        && System.IO.Path.IsPathRooted(processInfo.Path)
-                        && System.IO.File.Exists(processInfo.Path);
-
                     var displayName = processInfo.Package.HasValue ? processInfo.Package.Value.Name : p.ProcessName;
-                    entries.Add(new ProcessListEntry(processInfo, displayName, isNetworkPath, canUsePathIcon));
+                    var pathMetadata = PathMetadataCache.Get(processInfo.Path, processInfo.Package.HasValue, 16, 16);
+                    entries.Add(new ProcessListEntry(processInfo, displayName, pathMetadata));
                 }
                 catch
                 {
@@ -192,7 +184,7 @@ namespace pylorak.TinyWall
             return entries;
         }
 
-        private sealed record ProcessListEntry(ProcessInfo Process, string DisplayName, bool IsNetworkPath, bool CanUsePathIcon);
+        private sealed record ProcessListEntry(ProcessInfo Process, string DisplayName, PathMetadata PathMetadata);
 
         private void listView_ColumnClick(object sender, ColumnClickEventArgs e)
         {

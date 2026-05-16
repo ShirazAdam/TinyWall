@@ -9,23 +9,15 @@ using System.Text;
 
 namespace pylorak.Windows
 {
-    public readonly struct ProcessSnapshotEntry
+    public readonly struct ProcessSnapshotEntry(string path, long creationTime, uint pid, uint parentPid)
     {
-        public readonly string ImagePath;
-        public readonly long CreationTime;
-        public readonly uint ProcessId;
-        public readonly uint ParentProcessId;
-
-        public ProcessSnapshotEntry(string path, long creationTime, uint pid, uint parentPid)
-        {
-            ImagePath = path;
-            CreationTime = creationTime;
-            ProcessId = pid;
-            ParentProcessId = parentPid;
-        }
+        public readonly string ImagePath = path;
+        public readonly long CreationTime = creationTime;
+        public readonly uint ProcessId = pid;
+        public readonly uint ParentProcessId = parentPid;
     }
 
-    public static partial class ProcessManager
+    public static class ProcessManager
     {
         [SuppressUnmanagedCodeSecurity]
         protected static class NativeMethods
@@ -36,9 +28,9 @@ namespace pylorak.Windows
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             internal static extern bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] StringBuilder lpExeName, ref int size);
 
-            [DllImport("kernel32", SetLastError = true)]
+            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static unsafe extern bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] char* lpExeName, ref int size);
+            internal static extern unsafe bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] char* lpExeName, ref int size);
 
             [DllImport("ntdll")]
             internal static extern int NtQueryInformationProcess(SafeObjectHandle hProcess, int processInformationClass, [Out] out PROCESS_BASIC_INFORMATION processInformation, int processInformationLength, out int returnLength);
@@ -254,26 +246,26 @@ namespace pylorak.Windows
 
         public static string GetProcessPath(SafeObjectHandle hProcess, ref StringBuilder? buffer)
         {
-            // This method needs Windows Vista or newer OS
-            System.Diagnostics.Debug.Assert(Environment.OSVersion.Version.Major >= 6);
+            // This method needs Windows 10 or newer OS
+            Debug.Assert(Environment.OSVersion.Version.Major >= 10);
 
             if (hProcess.IsInvalid)
                 return string.Empty;
 
             // First, try a smaller buffer on the stack.
-            // This is more eficient both memory and performance-wise, and covers most cases.
+            // This is more efficient both memory and performance-wise, and covers most cases.
             const int STACK_BUFF_BYTES = 1024;
             const int STACK_BUFF_CHARS = STACK_BUFF_BYTES / 2;
             int numChars = STACK_BUFF_CHARS;
             unsafe
             {
-                var stack_buffer = stackalloc char[STACK_BUFF_CHARS];
-                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.NativeFormat, stack_buffer, ref numChars))
+                var stackBuffer = stackalloc char[STACK_BUFF_CHARS];
+                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.NativeFormat, stackBuffer, ref numChars))
                 {
                     if (numChars == 0)
                         return string.Empty;
 
-                    return PathMapper.Instance.ConvertPathIgnoreErrors(new ReadOnlySpan<char>(stack_buffer, numChars), PathFormat.Win32);
+                    return PathMapper.Instance.ConvertPathIgnoreErrors(new ReadOnlySpan<char>(stackBuffer, numChars), PathFormat.Win32);
                 }
             }
 

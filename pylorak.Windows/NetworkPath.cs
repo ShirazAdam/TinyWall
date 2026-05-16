@@ -4,14 +4,14 @@ using System.Security;
 
 namespace pylorak.Windows
 {
-    public static partial class NetworkPath
+    public static class NetworkPath
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
         {
-            [DllImport("shlwapi.dll")]
+            [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static unsafe extern bool PathIsNetworkPath(char* pszPath);
+            internal static extern unsafe bool PathIsNetworkPath(char* pszPath);
 
             #region WNetGetUniversalName
             internal const int UNIVERSAL_NAME_INFO_LEVEL = 0x00000001;
@@ -31,7 +31,7 @@ namespace pylorak.Windows
 
         public static bool IsUncPath(string path)
         {
-            return IsUncPath(path);
+            return IsUncPath(path.AsSpan());
         }
 
         public static bool IsUncPath(ReadOnlySpan<char> path)
@@ -80,7 +80,7 @@ namespace pylorak.Windows
 
         public static bool IsNetworkPath(string path)
         {
-            return IsNetworkPath(path);
+            return IsNetworkPath(path.AsSpan());
         }
 
         public static bool IsNetworkPath(ReadOnlySpan<char> path)

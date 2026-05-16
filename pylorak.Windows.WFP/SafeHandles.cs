@@ -1,12 +1,11 @@
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.InteropServices;
-
 using System.Security;
-using Microsoft.Win32.SafeHandles;
 
 namespace pylorak.Windows.WFP
 {
-    public sealed partial class FwpmEngineSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed class FwpmEngineSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods
@@ -30,7 +29,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed partial class FwpmMemorySafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed class FwpmMemorySafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         internal static class NativeMethods
@@ -55,7 +54,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed partial class FwpmFilterSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed class FwpmFilterSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods
@@ -96,7 +95,7 @@ namespace pylorak.Windows.WFP
         }
     }
 
-    public sealed partial class FwpmNetEventSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed class FwpmNetEventSubscriptionSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
         private static class NativeMethods

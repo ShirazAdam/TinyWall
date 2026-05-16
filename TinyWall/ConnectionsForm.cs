@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -257,38 +256,8 @@ namespace pylorak.TinyWall
 
         private static ConnectionListEntry CreateConnectionListEntry(ProcessInfo process, string protocol, IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, string state, DateTime timestamp, RuleDirection direction)
         {
-            string? imageKey = null;
-            byte[]? iconPng = null;
-
-            if (process.Package.HasValue)
-            {
-                imageKey = @"store";
-            }
-            else if (process.Path == "System")
-            {
-                imageKey = @"system";
-            }
-            else if (NetworkPath.IsNetworkPath(process.Path))
-            {
-                imageKey = @"network-drive";
-            }
-            else if (System.IO.Path.IsPathRooted(process.Path) && System.IO.File.Exists(process.Path))
-            {
-                try
-                {
-                    using var bitmap = Utils.GetIconContained(process.Path, 16, 16);
-                    using var iconStream = new MemoryStream();
-                    bitmap.Save(iconStream, ImageFormat.Png);
-                    iconPng = iconStream.ToArray();
-                    imageKey = process.Path;
-                }
-                catch
-                {
-                    // Keep the item without a path-specific icon if shell icon extraction fails.
-                }
-            }
-
-            return new ConnectionListEntry(process, protocol, localEndPoint, remoteEndPoint, state, timestamp, direction, imageKey, iconPng);
+            var pathMetadata = PathMetadataCache.Get(process.Path, process.Package.HasValue, 16, 16);
+            return new ConnectionListEntry(process, protocol, localEndPoint, remoteEndPoint, state, timestamp, direction, pathMetadata.ImageKey, pathMetadata.IconPng);
         }
 
         private sealed record ConnectionListEntry(ProcessInfo Process, string Protocol, IPEndPoint LocalEndPoint, IPEndPoint RemoteEndPoint, string State, DateTime Timestamp, RuleDirection Direction, string? ImageKey, byte[]? IconPng);
