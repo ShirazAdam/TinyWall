@@ -40,7 +40,6 @@ namespace pylorak.TinyWall
             btnSubmitAssoc.Image = GlobalInstances.SubmitBtnIcon;
             btnImport.Image = GlobalInstances.ImportBtnIcon;
             btnExport.Image = GlobalInstances.ExportBtnIcon;
-            btnUpdate.Image = GlobalInstances.UpdateBtnIcon;
 
             listApplications.AllowDrop = true;
             listApplications.DragEnter += ListApplications_DragEnter;
@@ -54,22 +53,29 @@ namespace pylorak.TinyWall
 
         private async void ListApplications_DragDrop(object sender, DragEventArgs e)
         {
-            List<FirewallExceptionV3> list = new();
+            try
+            {
+                List<FirewallExceptionV3> list = new();
 
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            foreach (var file in files)
-                try
-                {
-                    list.AddRange(
-                        GlobalInstances.AppDatabase!.GetExceptionsForApp(new ExecutableSubject(file), true, out _));
-                }
-                catch
-                {
-                    // ignored
-                }
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                foreach (var file in files)
+                    try
+                    {
+                        list.AddRange(
+                            GlobalInstances.AppDatabase!.GetExceptionsForApp(new ExecutableSubject(file), true, out _));
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
 
-            TmpConfig.Service.ActiveProfile.AddExceptions(list);
-            await RebuildExceptionsList();
+                TmpConfig.Service.ActiveProfile.AddExceptions(list);
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void ListApplications_DragEnter(object sender, DragEventArgs e) => e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.All : DragDropEffects.None;
@@ -323,45 +329,66 @@ namespace pylorak.TinyWall
 
         private async void BtnAppRemoveAll_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show(this, Messages.AreYouSureYouWantToRemoveAllExceptions, Messages.TinyWall,
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
-                return;
+            try
+            {
+                if (MessageBox.Show(this, Messages.AreYouSureYouWantToRemoveAllExceptions, Messages.TinyWall,
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
+                    return;
 
-            TmpConfig.Service.ActiveProfile.AppExceptions.Clear();
-            await RebuildExceptionsList();
+                TmpConfig.Service.ActiveProfile.AppExceptions.Clear();
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private async void BtnAppModify_Click(object sender, EventArgs e)
         {
-            var li = _filteredExceptionItems[listApplications.SelectedIndices[0]];
-            var oldEx = (FirewallExceptionV3)li.Tag;
-            var newEx = Utils.DeepClone(oldEx);
-            newEx.RegenerateId();
-
-            using (var f = new ApplicationExceptionForm(newEx))
+            try
             {
-                if (f.ShowDialog(this) == DialogResult.OK)
-                {
-                    // Remove old rule
-                    TmpConfig.Service.ActiveProfile.AppExceptions.Remove(oldEx);
-                    // Add new rule
-                    TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
-                    await RebuildExceptionsList();
-                }
-            }
+                var li = _filteredExceptionItems[listApplications.SelectedIndices[0]];
+                var oldEx = (FirewallExceptionV3)li.Tag;
+                var newEx = Utils.DeepClone(oldEx);
+                newEx.RegenerateId();
 
-            listApplications.Focus();
+                using (var f = new ApplicationExceptionForm(newEx))
+                {
+                    if (f.ShowDialog(this) == DialogResult.OK)
+                    {
+                        // Remove old rule
+                        TmpConfig.Service.ActiveProfile.AppExceptions.Remove(oldEx);
+                        // Add new rule
+                        TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
+                        await RebuildExceptionsList();
+                    }
+                }
+
+                listApplications.Focus();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private async void BtnAppAdd_Click(object sender, EventArgs e)
         {
-            //using var f = new ApplicationExceptionForm(FirewallExceptionV3.Default);
-            using var f = new ApplicationExceptionForm();
+            try
+            {
+                //using var f = new ApplicationExceptionForm(FirewallExceptionV3.Default);
+                using var f = new ApplicationExceptionForm();
 
-            if (f.ShowDialog(this) != DialogResult.OK) return;
+                if (f.ShowDialog(this) != DialogResult.OK) return;
 
-            TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
-            await RebuildExceptionsList();
+                TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         private void ChkEnablePassword_CheckedChanged(object sender, EventArgs e)

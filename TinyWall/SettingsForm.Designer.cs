@@ -82,7 +82,6 @@
             this.lblLinkAttributions = new System.Windows.Forms.LinkLabel();
             this.lblLinkLicense = new System.Windows.Forms.LinkLabel();
             this.lblVersion = new System.Windows.Forms.Label();
-            this.btnUpdate = new System.Windows.Forms.Button();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
             this.tabPage3.SuspendLayout();
@@ -427,7 +426,6 @@
             this.tabPage4.Controls.Add(this.btnImport);
             this.tabPage4.Controls.Add(this.btnExport);
             this.tabPage4.Controls.Add(this.groupBox2);
-            this.tabPage4.Controls.Add(this.btnUpdate);
             resources.ApplyResources(this.tabPage4, "tabPage4");
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -552,7 +550,6 @@
         private System.Windows.Forms.SaveFileDialog sfd;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.Label lblVersion;
-        private System.Windows.Forms.Button btnUpdate;
         private System.Windows.Forms.CheckBox chkBlockMalwarePorts;
         private System.Windows.Forms.Button btnAppAutoDetect;
         private System.Windows.Forms.ImageList IconList;
