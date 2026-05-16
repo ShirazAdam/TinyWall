@@ -51,48 +51,84 @@ namespace pylorak.TinyWall
             }
         }
 
-        private Task UpdateListAsync()
+        private async Task UpdateListAsync()
         {
             lblPleaseWait.Visible = true;
             Enabled = false;
 
+            var showListen = chkShowListen.Checked;
+            var showActive = chkShowActive.Checked;
+            var showBlocked = chkShowBlocked.Checked;
+            var searchText = _searchText;
+            var now = DateTime.Now;
             var fwLogRequest = GlobalInstances.Controller.BeginReadFwLog();
 
-            _itemColl = new();
+            try
+            {
+                var entries = await Task.Run(() => BuildConnectionEntries(showListen, showActive, showBlocked, fwLogRequest, now));
+                var items = new List<ListViewItem>(entries.Count);
+
+                foreach (var entry in entries)
+                {
+                    ConstructListItem(items, entry.Process, entry.Protocol, entry.LocalEndPoint, entry.RemoteEndPoint, entry.State, entry.Timestamp, entry.Direction);
+                }
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    items = [.. items.Where(item => item.SubItems[0].Text.Contains(searchText, StringComparison.CurrentCultureIgnoreCase))];
+
+                _itemColl = items;
+
+                list.BeginUpdate();
+                try
+                {
+                    list.Items.Clear();
+                    list.Items.AddRange([.. _itemColl]);
+                }
+                finally
+                {
+                    list.EndUpdate();
+                }
+            }
+            finally
+            {
+                lblPleaseWait.Visible = false;
+                Enabled = true;
+            }
+        }
+
+        private List<ConnectionListEntry> BuildConnectionEntries(bool showListen, bool showActive, bool showBlocked, TwRequest fwLogRequest, DateTime now)
+        {
+            var entries = new List<ConnectionListEntry>();
             var packageList = new UwpPackageList();
             var procCache = new Dictionary<uint, string>();
             var servicePids = new ServicePidMap();
 
-            // Retrieve IP tables while waiting for log entries
-
-            var now = DateTime.Now;
+            // Retrieve IP tables while waiting for log entries.
             TcpTable tcpTable = NetStat.GetExtendedTcp4Table(false);
 
             foreach (TcpRow tcpRow in tcpTable)
             {
-                if ((!chkShowListen.Checked || (tcpRow.State != TcpState.Listen))
-                    && (!chkShowActive.Checked || (tcpRow.State == TcpState.Listen))) continue;
+                if ((!showListen || (tcpRow.State != TcpState.Listen))
+                    && (!showActive || (tcpRow.State == TcpState.Listen))) continue;
 
                 var path = GetPathFromPidCached(procCache, tcpRow.ProcessId);
-
                 var pi = ProcessInfo.Create(tcpRow.ProcessId, path, packageList, servicePids);
-                ConstructListItem(_itemColl, pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid);
+                entries.Add(new ConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
             }
 
             tcpTable = NetStat.GetExtendedTcp6Table(false);
 
             foreach (TcpRow tcpRow in tcpTable)
             {
-                if ((!chkShowListen.Checked || (tcpRow.State != TcpState.Listen))
-                    && (!chkShowActive.Checked || (tcpRow.State == TcpState.Listen))) continue;
+                if ((!showListen || (tcpRow.State != TcpState.Listen))
+                    && (!showActive || (tcpRow.State == TcpState.Listen))) continue;
 
                 var path = GetPathFromPidCached(procCache, tcpRow.ProcessId);
-
                 var pi = ProcessInfo.Create(tcpRow.ProcessId, path, packageList, servicePids);
-                ConstructListItem(_itemColl, pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid);
+                entries.Add(new ConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
             }
 
-            if (chkShowListen.Checked)
+            if (showListen)
             {
                 var dummyEp = new IPEndPoint(0, 0);
                 var udpTable = NetStat.GetExtendedUdp4Table(false);
@@ -100,9 +136,8 @@ namespace pylorak.TinyWall
                 foreach (UdpRow udpRow in udpTable)
                 {
                     var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
-
                     var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
-                    ConstructListItem(_itemColl, pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid);
+                    entries.Add(new ConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
                 }
 
                 udpTable = NetStat.GetExtendedUdp6Table(false);
@@ -110,122 +145,115 @@ namespace pylorak.TinyWall
                 foreach (UdpRow udpRow in udpTable)
                 {
                     var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
-
                     var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
-                    ConstructListItem(_itemColl, pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid);
+                    entries.Add(new ConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
                 }
             }
 
-            // Finished reading tables, continues with log processing
+            // Finished reading tables, continue with log processing.
             var fwLog = Controller.EndReadFwLog(fwLogRequest.Response);
 
-            // Show log entries if requested by user
-            if (chkShowBlocked.Checked)
+            if (showBlocked)
             {
-                // Try to resolve PIDs heuristically
-                var processPathInfoMap = new Dictionary<string, List<ProcessSnapshotEntry>>();
-                foreach (var p in ProcessManager.CreateToolhelp32SnapshotExtended())
+                AddBlockedLogEntries(entries, fwLog, packageList, servicePids, now);
+            }
+
+            return entries;
+        }
+
+        private static void AddBlockedLogEntries(List<ConnectionListEntry> entries, FirewallLogEntry[] fwLog, UwpPackageList packageList, ServicePidMap servicePids, DateTime now)
+        {
+            var processPathInfoMap = new Dictionary<string, List<ProcessSnapshotEntry>>();
+            foreach (var p in ProcessManager.CreateToolhelp32SnapshotExtended())
+            {
+                if (string.IsNullOrWhiteSpace(p.ImagePath))
+                    continue;
+
+                var key = p.ImagePath.ToLowerInvariant();
+                if (!processPathInfoMap.ContainsKey(key))
+                    processPathInfoMap.Add(key, new List<ProcessSnapshotEntry>());
+                processPathInfoMap[key].Add(p);
+            }
+
+            foreach (var e in fwLog)
+            {
+                if (e.AppPath is null) continue;
+
+                var key = e.AppPath.ToLowerInvariant();
+                if (!processPathInfoMap.ContainsKey(key))
+                    continue;
+
+                var p = processPathInfoMap[key];
+                if ((p.Count == 1) && (p[0].CreationTime < e.Timestamp.ToFileTime()))
+                    e.ProcessId = p[0].ProcessId;
+            }
+
+            var filteredLog = new List<FirewallLogEntry>();
+            var refSpan = TimeSpan.FromMinutes(5);
+            foreach (var newEntry in fwLog)
+            {
+                // Ignore log entries older than refSpan
+                TimeSpan span = now - newEntry.Timestamp;
+                if (span > refSpan)
+                    continue;
+
+                switch (newEntry.Event)
                 {
-                    if (string.IsNullOrWhiteSpace(p.ImagePath))
-                        continue;
+                    case EventLogEvent.ALLOWED_LISTEN:
+                    case EventLogEvent.ALLOWED_CONNECTION:
+                    case EventLogEvent.ALLOWED_LOCAL_BIND:
+                    case EventLogEvent.ALLOWED:
+                        newEntry.Event = EventLogEvent.ALLOWED;
+                        break;
+                    case EventLogEvent.BLOCKED_LISTEN:
+                    case EventLogEvent.BLOCKED_CONNECTION:
+                    case EventLogEvent.BLOCKED_LOCAL_BIND:
+                    case EventLogEvent.BLOCKED_PACKET:
+                    case EventLogEvent.BLOCKED:
+                        var matchFound = false;
+                        newEntry.Event = EventLogEvent.BLOCKED;
 
-                    var key = p.ImagePath.ToLowerInvariant();
-                    if (!processPathInfoMap.ContainsKey(key))
-                        processPathInfoMap.Add(key, new List<ProcessSnapshotEntry>());
-                    processPathInfoMap[key].Add(p);
-                }
+                        foreach (var oldEntry in filteredLog.Where(oldEntry => oldEntry.Equals(newEntry, false)))
+                        {
+                            matchFound = true;
+                            oldEntry.Timestamp = newEntry.Timestamp;
+                            break;
+                        }
 
-                foreach (var e in fwLog)
-                {
-                    if (e.AppPath is null) continue;
-
-                    var key = e.AppPath.ToLowerInvariant();
-                    if (!processPathInfoMap.ContainsKey(key))
-                        continue;
-
-                    var p = processPathInfoMap[key];
-                    if ((p.Count == 1) && (p[0].CreationTime < e.Timestamp.ToFileTime()))
-                        e.ProcessId = p[0].ProcessId;
-                }
-
-                var filteredLog = new List<FirewallLogEntry>();
-                var refSpan = TimeSpan.FromMinutes(5);
-                foreach (var newEntry in fwLog)
-                {
-                    // Ignore log entries older than refSpan
-                    TimeSpan span = now - newEntry.Timestamp;
-                    if (span > refSpan)
-                        continue;
-
-                    switch (newEntry.Event)
-                    {
-                        case EventLogEvent.ALLOWED_LISTEN:
-                        case EventLogEvent.ALLOWED_CONNECTION:
-                        case EventLogEvent.ALLOWED_LOCAL_BIND:
-                        case EventLogEvent.ALLOWED:
-                            {
-                                newEntry.Event = EventLogEvent.ALLOWED;
-                                break;
-                            }
-                        case EventLogEvent.BLOCKED_LISTEN:
-                        case EventLogEvent.BLOCKED_CONNECTION:
-                        case EventLogEvent.BLOCKED_LOCAL_BIND:
-                        case EventLogEvent.BLOCKED_PACKET:
-                        case EventLogEvent.BLOCKED:
-                            {
-                                var matchFound = false;
-                                newEntry.Event = EventLogEvent.BLOCKED;
-
-                                foreach (var oldEntry in filteredLog.Where(oldEntry => oldEntry.Equals(newEntry, false)))
-                                {
-                                    matchFound = true;
-                                    oldEntry.Timestamp = newEntry.Timestamp;
-                                    break;
-                                }
-
-                                if (!matchFound)
-                                    filteredLog.Add(newEntry);
-                                break;
-                            }
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
-
-                foreach (var entry in filteredLog)
-                {
-                    // Correct path capitalisation
-                    // TODO: Do this in the service, and minimize overhead. Right now if GetExactPath() fails,
-                    // for example due to missing file system privileges, capitalisation will not be corrected.
-                    // The service has much more privileges, so doing this in the service would allow more paths
-                    // to be corrected.
-                    entry.AppPath = Utils.GetExactPath(entry.AppPath);
-
-                    var pi = ProcessInfo.Create(entry.ProcessId, entry.AppPath ?? string.Empty, entry.PackageId, packageList, servicePids);
-
-                    if (entry is { LocalIp: not null, RemoteIp: not null })
-                        ConstructListItem(_itemColl, pi, entry.Protocol.ToString(),
-                            new IPEndPoint(IPAddress.Parse(entry.LocalIp), entry.LocalPort),
-                            new IPEndPoint(IPAddress.Parse(entry.RemoteIp), entry.RemotePort), "Blocked",
-                            entry.Timestamp, entry.Direction);
+                        if (!matchFound)
+                            filteredLog.Add(newEntry);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
-            // Add items to list
-            list.BeginUpdate();
-            list.Items.Clear();
+            foreach (var entry in filteredLog)
+            {
+                // Correct path capitalisation.
+                // TODO: Do this in the service, and minimise overhead. Right now if GetExactPath() fails,
+                // for example due to missing file system privileges, capitalisation will not be corrected.
+                // The service has much more privileges, so doing this in the service would allow more paths
+                // to be corrected.
+                entry.AppPath = Utils.GetExactPath(entry.AppPath);
 
-            if (!string.IsNullOrWhiteSpace(_searchText))
-                _itemColl = [.. _itemColl.Where(item => item.SubItems[0].Text.ToLower().Contains(_searchText))];
+                var pi = ProcessInfo.Create(entry.ProcessId, entry.AppPath ?? string.Empty, entry.PackageId, packageList, servicePids);
 
-            list.Items.AddRange([.. _itemColl]);
-            list.EndUpdate();
-
-            lblPleaseWait.Visible = false;
-            Enabled = true;
-
-            return Task.CompletedTask;
+                if (entry is { LocalIp: not null, RemoteIp: not null })
+                {
+                    entries.Add(new ConnectionListEntry(
+                        pi,
+                        entry.Protocol.ToString(),
+                        new IPEndPoint(IPAddress.Parse(entry.LocalIp), entry.LocalPort),
+                        new IPEndPoint(IPAddress.Parse(entry.RemoteIp), entry.RemotePort),
+                        "Blocked",
+                        entry.Timestamp,
+                        entry.Direction));
+                }
+            }
         }
+
+        private sealed record ConnectionListEntry(ProcessInfo Process, string Protocol, IPEndPoint LocalEndPoint, IPEndPoint RemoteEndPoint, string State, DateTime Timestamp, RuleDirection Direction);
 
         private void ConstructListItem(List<ListViewItem> itemColl, ProcessInfo e, string protocol, IPEndPoint localEp, IPEndPoint remoteEp, string state, DateTime ts, RuleDirection dir)
         {
