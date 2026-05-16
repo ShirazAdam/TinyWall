@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -402,10 +403,16 @@ namespace pylorak.TinyWall
                         if (!proc.CloseMainWindow())
                             proc.Kill();
 
-                        if (!proc.WaitForExit(5000))
-                            throw new ApplicationException();
-                        else
+                        using var waitCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                        try
+                        {
+                            await proc.WaitForExitAsync(waitCancellation.Token);
                             await UpdateListAsync();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw new ApplicationException();
+                        }
                     }
                     catch (InvalidOperationException)
                     {
@@ -451,14 +458,14 @@ namespace pylorak.TinyWall
             }
         }
 
-        private void mnuVirusTotal_Click(object sender, EventArgs e)
+        private async void mnuVirusTotal_Click(object sender, EventArgs e)
         {
             try
             {
                 ListViewItem li = list.SelectedItems[0];
 
                 const string URL_TEMPLATE = @"https://www.virustotal.com/latest-scan/{0}";
-                var hash = Hasher.HashFile(((ProcessInfo)li.Tag).Path);
+                var hash = await Task.Run(() => Hasher.HashFile(((ProcessInfo)li.Tag).Path));
                 var url = string.Format(CultureInfo.InvariantCulture, URL_TEMPLATE, hash);
                 Utils.StartProcess(url, string.Empty, false);
             }
