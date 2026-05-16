@@ -77,7 +77,7 @@ namespace pylorak.TinyWall
             await UpdateListAsync();
         }
 
-        private Task UpdateListAsync()
+        private async Task UpdateListAsync()
         {
             lblPleaseWait.Visible = true;
             Enabled = false;
@@ -88,14 +88,72 @@ namespace pylorak.TinyWall
                     col.Width = width;
             }
 
-            List<ListViewItem> itemColl = new List<ListViewItem>();
+            var searchItem = _searchItem;
+
+            try
+            {
+                var processes = await Task.Run(() => BuildProcessEntries(searchItem));
+                var itemColl = new List<ListViewItem>(processes.Count);
+
+                foreach (var entry in processes)
+                {
+                    var li = new ListViewItem(entry.DisplayName);
+                    li.SubItems.Add(string.Join(", ", entry.Process.Services.ToArray()));
+                    li.SubItems.Add(entry.Process.Path);
+                    li.Tag = entry.Process;
+                    itemColl.Add(li);
+
+                    if (entry.Process.Package.HasValue)
+                    {
+                        li.ImageKey = @"store";
+                    }
+                    else if (entry.Process.Path == "System")
+                    {
+                        li.ImageKey = @"system";
+                    }
+                    else if (entry.IsNetworkPath)
+                    {
+                        li.ImageKey = @"network-drive";
+                    }
+                    else if (entry.CanUsePathIcon)
+                    {
+                        if (!IconList.Images.ContainsKey(entry.Process.Path))
+                            IconList.Images.Add(entry.Process.Path,
+                                Utils.GetIconContained(entry.Process.Path, _iconSize.Width, _iconSize.Height));
+                        li.ImageKey = entry.Process.Path;
+                    }
+                }
+
+                Utils.SetDoubleBuffering(listView, true);
+                listView.BeginUpdate();
+                try
+                {
+                    listView.Items.Clear();
+                    listView.ListViewItemSorter = new ListViewItemComparer(0);
+                    listView.Items.AddRange([.. itemColl]);
+                }
+                finally
+                {
+                    listView.EndUpdate();
+                }
+            }
+            finally
+            {
+                lblPleaseWait.Visible = false;
+                Enabled = true;
+            }
+        }
+
+        private static List<ProcessListEntry> BuildProcessEntries(string searchItem)
+        {
+            var entries = new List<ProcessListEntry>();
             var packageList = new UwpPackageList();
-            ServicePidMap servicePids = new ServicePidMap();
+            var servicePids = new ServicePidMap();
 
             Process[] procs = Process.GetProcesses();
 
-            if (!string.IsNullOrWhiteSpace(_searchItem))
-                procs = [.. procs.Where(p => p.ProcessName.ToLower().Contains(_searchItem.ToLower()))];
+            if (!string.IsNullOrWhiteSpace(searchItem))
+                procs = [.. procs.Where(p => p.ProcessName.Contains(searchItem, StringComparison.CurrentCultureIgnoreCase))];
 
             foreach (var t in procs)
             {
@@ -103,45 +161,27 @@ namespace pylorak.TinyWall
                 try
                 {
                     var pid = unchecked((uint)p.Id);
-                    var e = ProcessInfo.Create(pid, packageList, servicePids);
+                    var processInfo = ProcessInfo.Create(pid, packageList, servicePids);
 
-                    if (string.IsNullOrEmpty(e.Path))
+                    if (string.IsNullOrEmpty(processInfo.Path))
                         continue;
 
-                    // Scan list of already added items to prevent duplicates
-                    bool skip = itemColl.Select(t1 => (ProcessInfo)t1.Tag).Any(opi =>
-                        (e.Package == opi.Package) && (e.Path == opi.Path) && (e.Services.SetEquals(opi.Services)));
+                    // Scan list of already added items to prevent duplicates.
+                    bool skip = entries.Select(t1 => t1.Process).Any(opi =>
+                        (processInfo.Package == opi.Package) && (processInfo.Path == opi.Path) && (processInfo.Services.SetEquals(opi.Services)));
 
                     if (skip)
                         continue;
 
-                    // Add list item
-                    ListViewItem li = new ListViewItem(e.Package.HasValue ? e.Package.Value.Name : p.ProcessName);
-                    li.SubItems.Add(string.Join(", ", e.Services.ToArray()));
-                    li.SubItems.Add(e.Path);
-                    li.Tag = e;
-                    itemColl.Add(li);
+                    var isNetworkPath = NetworkPath.IsNetworkPath(processInfo.Path);
+                    var canUsePathIcon = !processInfo.Package.HasValue
+                        && processInfo.Path != "System"
+                        && !isNetworkPath
+                        && System.IO.Path.IsPathRooted(processInfo.Path)
+                        && System.IO.File.Exists(processInfo.Path);
 
-                    // Add icon
-                    if (e.Package.HasValue)
-                    {
-                        li.ImageKey = @"store";
-                    }
-                    else if (e.Path == "System")
-                    {
-                        li.ImageKey = @"system";
-                    }
-                    else if (NetworkPath.IsNetworkPath(e.Path))
-                    {
-                        li.ImageKey = @"network-drive";
-                    }
-                    else if (System.IO.Path.IsPathRooted(e.Path) && System.IO.File.Exists(e.Path))
-                    {
-                        if (!IconList.Images.ContainsKey(e.Path))
-                            IconList.Images.Add(e.Path,
-                                Utils.GetIconContained(e.Path, _iconSize.Width, _iconSize.Height));
-                        li.ImageKey = e.Path;
-                    }
+                    var displayName = processInfo.Package.HasValue ? processInfo.Package.Value.Name : p.ProcessName;
+                    entries.Add(new ProcessListEntry(processInfo, displayName, isNetworkPath, canUsePathIcon));
                 }
                 catch
                 {
@@ -149,30 +189,10 @@ namespace pylorak.TinyWall
                 }
             }
 
-            Utils.SetDoubleBuffering(listView, true);
-            listView.BeginUpdate();
-            listView.Items.Clear();
-            listView.ListViewItemSorter = new ListViewItemComparer(0);
-
-            //if (!string.IsNullOrWhiteSpace(_searchItem))
-            //    itemColl = itemColl.Where(item =>
-            //        {
-            //            var subItem = item.SubItems;
-
-            //            return (subItem[0].Text.ToLower().Contains(_searchItem) ||
-            //                    subItem[1].Text.ToLower().Contains(_searchItem) ||
-            //                    subItem[2].Text.ToLower().Contains(_searchItem));
-            //        })
-            //        .ToList();
-
-            listView.Items.AddRange([.. itemColl]);
-            listView.EndUpdate();
-
-            lblPleaseWait.Visible = false;
-            Enabled = true;
-
-            return Task.CompletedTask;
+            return entries;
         }
+
+        private sealed record ProcessListEntry(ProcessInfo Process, string DisplayName, bool IsNetworkPath, bool CanUsePathIcon);
 
         private void listView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
