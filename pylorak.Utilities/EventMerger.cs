@@ -5,17 +5,17 @@ namespace pylorak.Utilities
 {
     public sealed class EventMerger : Disposable
     {
-        private readonly int MaxEventLatencyMs;
-        private readonly Timer DelayTimer;
-        private readonly object Locker = new();
+        private readonly int _maxEventLatencyMs;
+        private readonly Timer _delayTimer;
+        private readonly Lock _locker = new();
 
         public event EventHandler? Event;
-        private bool TimerActive;
+        private bool _timerActive;
 
         public EventMerger(int maxLatencyMs)
         {
-            MaxEventLatencyMs = maxLatencyMs;
-            DelayTimer = new Timer(DelayExpired);
+            _maxEventLatencyMs = maxLatencyMs;
+            _delayTimer = new Timer(DelayExpired);
         }
 
         public void Pulse()
@@ -23,21 +23,20 @@ namespace pylorak.Utilities
             if (IsDisposed)
                 throw new ObjectDisposedException(GetType().FullName);
 
-            lock (Locker)
+            lock (_locker)
             {
-                if (!TimerActive)
-                {
-                    TimerActive = true;
-                    DelayTimer.Change(MaxEventLatencyMs, Timeout.Infinite);
-                }
+                if (_timerActive) return;
+
+                _timerActive = true;
+                _delayTimer.Change(_maxEventLatencyMs, Timeout.Infinite);
             }
         }
 
         private void DelayExpired(object args)
         {
-            lock (Locker)
+            lock (_locker)
             {
-                TimerActive = false;
+                _timerActive = false;
             }
 
             ThreadPool.QueueUserWorkItem(o => Event?.Invoke(this, EventArgs.Empty));
@@ -50,10 +49,10 @@ namespace pylorak.Utilities
 
             if (disposing)
             {
-                DelayTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                _delayTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
                 using var wh = new ManualResetEvent(false);
-                DelayTimer.Dispose(wh);
+                _delayTimer.Dispose(wh);
                 wh.WaitOne();
             }
 

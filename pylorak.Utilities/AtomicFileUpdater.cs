@@ -1,26 +1,21 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace pylorak.Utilities
 {
-    public sealed class AtomicFileUpdater : Disposable
+    public sealed class AtomicFileUpdater(string targetFile) : Disposable
     {
-        public AtomicFileUpdater(string targetFile)
-        {
-            // File.Replace needs the target and temporary files to be on the same volume.
-            // To ensure this, we create our temporary file in the same folder as our target.
-            TargetFilePath = targetFile;
-            TemporaryFilePath = RandomFileInSameDir(targetFile);
-        }
+        // File.Replace needs the target and temporary files to be on the same volume.
+        // To ensure this, we create our temporary file in the same folder as our target.
 
         private static string RandomFileInSameDir(string file)
         {
-            string targetDir = Path.GetDirectoryName(file);
+            var targetDir = Path.GetDirectoryName(file)!;
             return Path.Combine(targetDir, Path.GetRandomFileName());
         }
 
-        public string TemporaryFilePath { get; }
-        public string TargetFilePath { get; }
+        public string TemporaryFilePath { get; } = RandomFileInSameDir(targetFile);
+
+        public string TargetFilePath { get; } = targetFile;
 
         public void Commit()
         {
@@ -38,7 +33,10 @@ namespace pylorak.Utilities
                 {
                     File.Delete(backup);
                 }
-                catch { }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 
@@ -53,7 +51,10 @@ namespace pylorak.Utilities
                 {
                     File.Delete(TemporaryFilePath);
                 }
-                catch { }
+                catch
+                {
+                    // ignored
+                }
             }
 
             base.Dispose(disposing);

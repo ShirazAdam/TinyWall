@@ -40,21 +40,19 @@ namespace pylorak.TinyWall
         {
             InitializeComponent();
             Utils.SetRightToLeft(this);
-            this.IconList.ImageSize = _iconSize;
-            this.Icon = Resources.Icons.firewall;
-            this.btnOK.Image = GlobalInstances.ApplyBtnIcon;
-            this.btnCancel.Image = GlobalInstances.CancelBtnIcon;
-            this.btnAppAutoDetect.Image = GlobalInstances.UninstallBtnIcon;
-            this.btnAppAdd.Image = GlobalInstances.AddBtnIcon;
-            this.btnAppModify.Image = GlobalInstances.ModifyBtnIcon;
-            this.btnAppRemove.Image = GlobalInstances.RemoveBtnIcon;
-            this.btnAppRemoveAll.Image = GlobalInstances.RemoveBtnIcon;
-            this.btnSubmitAssoc.Image = GlobalInstances.SubmitBtnIcon;
-            this.btnImport.Image = GlobalInstances.ImportBtnIcon;
-            this.btnExport.Image = GlobalInstances.ExportBtnIcon;
-            this.btnUpdate.Image = GlobalInstances.UpdateBtnIcon;
-            this.btnWeb.Image = GlobalInstances.WebBtnIcon;
-            this.btnDonate.BackgroundImage = Resources.Icons.donate;
+            IconList.ImageSize = _iconSize;
+            Icon = Resources.Icons.firewall;
+            btnOK.Image = GlobalInstances.ApplyBtnIcon;
+            btnCancel.Image = GlobalInstances.CancelBtnIcon;
+            btnAppAutoDetect.Image = GlobalInstances.UninstallBtnIcon;
+            btnAppAdd.Image = GlobalInstances.AddBtnIcon;
+            btnAppModify.Image = GlobalInstances.ModifyBtnIcon;
+            btnAppRemove.Image = GlobalInstances.RemoveBtnIcon;
+            btnAppRemoveAll.Image = GlobalInstances.RemoveBtnIcon;
+            btnSubmitAssoc.Image = GlobalInstances.SubmitBtnIcon;
+            btnImport.Image = GlobalInstances.ImportBtnIcon;
+            btnExport.Image = GlobalInstances.ExportBtnIcon;
+            btnUpdate.Image = GlobalInstances.UpdateBtnIcon;
 
             listApplications.AllowDrop = true;
             listApplications.DragEnter += ListApplications_DragEnter;
@@ -415,12 +413,6 @@ namespace pylorak.TinyWall
             Activate();
         }
 
-        private void btnWeb_Click(object sender, EventArgs e)
-        {
-            var psi = new ProcessStartInfo(@"https://tinywall.pados.hu") { UseShellExecute = true };
-            Process.Start(psi);
-        }
-
         private void listApplications_DoubleClick(object sender, EventArgs e)
         {
             if (listApplications.SelectedIndices.Count == 0)
@@ -444,16 +436,12 @@ namespace pylorak.TinyWall
             RebuildExceptionsList();
         }
 
-        private void lblAboutHomepageLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            btnWeb_Click(sender, EventArgs.Empty);
-        }
 
         private void lblLinkLicense_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             try
             {
-                var psi = new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(), "License.rtf"))
+                var psi = new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(), "Licence.rtf"))
                 {
                     UseShellExecute = true
                 };
@@ -476,16 +464,6 @@ namespace pylorak.TinyWall
             {
                 // ignored
             }
-        }
-
-        private void btnDonate_MouseEnter(object sender, EventArgs e)
-        {
-            btnDonate.BorderStyle = BorderStyle.FixedSingle;
-        }
-
-        private void btnDonate_MouseLeave(object sender, EventArgs e)
-        {
-            btnDonate.BorderStyle = BorderStyle.None;
         }
 
         private void btnImport_Click(object sender, EventArgs e)
@@ -667,6 +645,11 @@ namespace pylorak.TinyWall
         {
             var psi = new ProcessStartInfo(@"https://github.com/ShirazAdam/tinywall") { UseShellExecute = true };
             Process.Start(psi);
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

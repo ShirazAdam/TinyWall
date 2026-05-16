@@ -1,20 +1,20 @@
 using System;
 using System.Runtime.InteropServices;
 
-using System.Security.Principal;
-
 namespace pylorak.Windows.WFP
 {
     public static partial class PInvokeHelper
     {
         public static T[] PtrToStructureArray<T>(IntPtr start, uint numElem, uint stride) where T : unmanaged
         {
-            T[] ret = new T[numElem];
-            long ptr = start.ToInt64();
-            for (int i = 0; i < numElem; i++, ptr += stride)
+            var ret = new T[numElem];
+            var ptr = start.ToInt64();
+
+            for (var i = 0; i < numElem; i++, ptr += stride)
             {
-                ret[i] = PInvokeHelper.PtrToStructure<T>(new IntPtr(ptr));
+                ret[i] = PtrToStructure<T>(new IntPtr(ptr));
             }
+
             return ret;
         }
 
@@ -90,7 +90,7 @@ namespace pylorak.Windows.WFP
 
         [DllImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool ConvertSidToStringSid(IntPtr Sid, out AllocHLocalSafeHandle StringSid);
+        private static extern bool ConvertSidToStringSid(IntPtr sid, out AllocHLocalSafeHandle stringSid);
 
         internal static string? ConvertSidToStringSid(IntPtr pSid)
         {
@@ -98,6 +98,7 @@ namespace pylorak.Windows.WFP
                 return null;
 
             string strSid = Marshal.PtrToStringUni(ptrStrSid.DangerousGetHandle());
+
             ptrStrSid.Dispose();
             return strSid;
         }
