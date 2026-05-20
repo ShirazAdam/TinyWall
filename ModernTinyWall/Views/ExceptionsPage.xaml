@@ -1,0 +1,1 @@
+<Page x:Class="ModernTinyWall.Views.ExceptionsPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Grid Padding="24"><TextBlock Text="Application exceptions" FontSize="28" FontWeight="SemiBold" /></Grid></Page>

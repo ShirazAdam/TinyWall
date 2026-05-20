@@ -1,0 +1,16 @@
+<Page
+    x:Class="ModernTinyWall.Views.OverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Padding="24" RowSpacing="16">
+        <StackPanel Spacing="12">
+            <TextBlock Text="TinyWall overview" FontSize="28" FontWeight="SemiBold" />
+            <TextBlock Text="ModernTinyWall is the WinUI 3 migration shell for TinyWall. It will provide the same firewall control, connections, process, service, package and exception workflows while the existing WinForms application remains available during migration." TextWrapping="Wrap" />
+            <InfoBar
+                IsOpen="True"
+                Severity="Informational"
+                Title="Migration in progress"
+                Message="The initial shell preserves the major navigation areas. Functional migration starts with the Connections page." />
+        </StackPanel>
+    </Grid>
+</Page>

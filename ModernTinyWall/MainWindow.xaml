@@ -1,0 +1,27 @@
+<Window
+    x:Class="ModernTinyWall.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="ModernTinyWall">
+
+    <NavigationView
+        x:Name="ShellNavigation"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="False"
+        PaneTitle="ModernTinyWall"
+        SelectionChanged="ShellNavigation_SelectionChanged">
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" />
+            <NavigationViewItem Content="Connections" Icon="ViewAll" Tag="Connections" />
+            <NavigationViewItem Content="Processes" Icon="Library" Tag="Processes" />
+            <NavigationViewItem Content="Services" Icon="Setting" Tag="Services" />
+            <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" />
+            <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" />
+        </NavigationView.MenuItems>
+        <NavigationView.FooterMenuItems>
+            <NavigationViewItem Content="About" Icon="Help" Tag="About" />
+        </NavigationView.FooterMenuItems>
+
+        <Frame x:Name="ContentFrame" />
+    </NavigationView>
+</Window>

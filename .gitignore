@@ -37,3 +37,6 @@
 /ImmenseWall/obj/Debug
 /ImmenseWall/bin/Debug
 artifacts/
+/ModernTinyWall/bin/
+/ModernTinyWall/obj/
+*.DotSettings

@@ -1,0 +1,81 @@
+<Page
+    x:Class="ModernTinyWall.Views.ConnectionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels="using:ModernTinyWall.ViewModels">
+
+    <Grid Padding="24" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="SearchBox" PlaceholderText="Search connections" TextChanged="SearchBox_TextChanged" />
+            <CheckBox Grid.Column="1" x:Name="ShowActiveCheckBox" Content="Active" IsChecked="True" />
+            <CheckBox Grid.Column="2" x:Name="ShowListeningCheckBox" Content="Listening" IsChecked="True" />
+            <CheckBox Grid.Column="3" x:Name="ShowBlockedCheckBox" Content="Blocked" IsChecked="True" />
+            <Button Grid.Column="4" Content="Refresh" Click="RefreshButton_Click" />
+        </Grid>
+
+        <ListView Grid.Row="1" x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}">
+            <ListView.Header>
+                <Grid ColumnSpacing="12" Padding="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Application" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1" Text="Protocol" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="2" Text="Local port" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="3" Text="Local address" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="4" Text="Remote port" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="5" Text="Remote address" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="6" Text="State" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="7" Text="Direction" FontWeight="SemiBold" />
+                </Grid>
+            </ListView.Header>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="viewModels:ConnectionRowViewModel">
+                    <Grid ColumnSpacing="12" Padding="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind Application}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind Protocol}" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind LocalPort}" />
+                        <TextBlock Grid.Column="3" Text="{x:Bind LocalAddress}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="4" Text="{x:Bind RemotePort}" />
+                        <TextBlock Grid.Column="5" Text="{x:Bind RemoteAddress}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="6" Text="{x:Bind State}" />
+                        <TextBlock Grid.Column="7" Text="{x:Bind Direction}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <TextBlock Grid.Row="2" Text="Connections migration target: preserves the WinForms column order and top search/filter layout." />
+    </Grid>
+</Page>

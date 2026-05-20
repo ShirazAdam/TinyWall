@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -19,17 +20,25 @@ namespace pylorak.Windows
         Win32
     }
 
-    public sealed class PathMapper : Disposable
+    public sealed partial class PathMapper : Disposable
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            public static extern int QueryDosDevice(string lpDeviceName, [Out] StringBuilder lpTargetPath, int ucchMax);
+            //[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            //public static extern int QueryDosDevice(string lpDeviceName, [Out] StringBuilder lpTargetPath, int ucchMax);
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16, SetLastError = true, EntryPoint = "QueryDosDeviceW")]
+            public static partial int QueryDosDevice(string lpDeviceName, [MarshalUsing(CountElementName = "ucchMax")] out char[] lpTargetPath, int ucchMax);
+
+            //[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            //[return: MarshalAs(UnmanagedType.Bool)]
+            //public static extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
+
+            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
+            public static partial bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
+
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static unsafe extern bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
@@ -38,39 +47,31 @@ namespace pylorak.Windows
             public static extern bool GetVolumeNameForVolumeMountPoint(string lpszVolumeMountPoint, [Out] StringBuilder lpszVolumeName, int cchBufferLength);
         }
 
-        public class DriveCache
+        public class DriveCache(string kernelDevice, List<string> volumes, List<string> drives)
         {
-            public string Device;
-            public List<string> Volumes;
-            public List<string> Drives;
-
-            public DriveCache(string kernelDevice, List<string> volumes, List<string> drives)
-            {
-                Device = kernelDevice;
-                Volumes = volumes;
-                Drives = drives;
-            }
+            public string Device = kernelDevice;
+            public List<string> Volumes = volumes;
+            public List<string> Drives = drives;
         }
 
-        private readonly ManualResetEvent CacheReadyEvent = new(false);
-        private readonly string SystemRoot = Environment.GetFolderPath(Environment.SpecialFolder.System);
-        private readonly object locker = new();
+        private readonly ManualResetEvent _cacheReadyEvent = new(false);
+        private readonly string _systemRoot = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        private readonly Lock _locker = new();
 
-        private bool CacheRebuilding;
-        private DateTime LastUpdateTime = DateTime.MinValue;
+        private bool _cacheRebuilding;
+        private DateTime _lastUpdateTime = DateTime.MinValue;
 
         private static volatile PathMapper? _instance;
-        private static readonly object _singletonLock = new();
+        private static readonly Lock SingletonLock = new();
         public static PathMapper Instance
         {
             get
             {
                 if (_instance != null) return _instance;
 
-                lock (_singletonLock)
+                lock (SingletonLock)
                 {
-                    if (_instance == null)
-                        _instance = new PathMapper();
+                    _instance ??= new PathMapper();
                 }
 
                 return _instance;
@@ -93,25 +94,25 @@ namespace pylorak.Windows
             {
                 if (AutoUpdate || (_cache is null))
                 {
-                    if ((DateTime.Now - LastUpdateTime).TotalSeconds > 5)
+                    if ((DateTime.Now - _lastUpdateTime).TotalSeconds > 5)
                         RebuildCache();
                 }
 
-                CacheReadyEvent.WaitOne();
-                lock (locker)
+                _cacheReadyEvent.WaitOne();
+                lock (_locker)
                 {
-                    return _cache ?? throw new InvalidOperationException("There was an error buildung the drive map cache.");
+                    return _cache ?? throw new InvalidOperationException("There was an error building the drive map cache.");
                 }
             }
 
             private set
             {
-                lock (locker)
+                lock (_locker)
                 {
                     _cache = value;
-                    LastUpdateTime = DateTime.Now;
-                    CacheReadyEvent.Set();
-                    CacheRebuilding = false;
+                    _lastUpdateTime = DateTime.Now;
+                    _cacheReadyEvent.Set();
+                    _cacheRebuilding = false;
                 }
             }
         }
@@ -130,15 +131,16 @@ namespace pylorak.Windows
                     || (vol[1] != '\\')
                     || (vol[2] != '?')
                     || (vol[3] != '\\')
-                    || (vol[vol.Length - 1] != '\\'))
+                    || (vol[^1] != '\\'))
                 {
                     continue;
                 }
 
-                var cacheEntry = new DriveCache(string.Empty, new List<string>() { vol }, new List<string>());
+                var cacheEntry = new DriveCache(string.Empty, [vol], []);
 
                 string qddInput = vol.Substring(4, vol.Length - 5); // Also remove trailing backslash
-                int charCount = NativeMethods.QueryDosDevice(qddInput, sb, sb.Capacity);
+                int charCount = NativeMethods.QueryDosDevice(qddInput, out var myTargetPath, sb.Capacity);
+                sb.Append(myTargetPath);
                 if (charCount > 0)
                 {
                     sb.Append('\\');
@@ -196,7 +198,7 @@ namespace pylorak.Windows
                             }
                         }
                         if (!existingEntryFound)
-                            newCache.Add(new DriveCache(target, new List<string>() { volumePath }, new List<string>()));
+                            newCache.Add(new DriveCache(target, [volumePath], []));
                     }
 
                     // Found a drive letter?
@@ -206,6 +208,7 @@ namespace pylorak.Windows
                         char* namePtr = (char*)name.buffer.ToPointer();
                         isDriveLetter = (name.length == 4) && char.IsLetter(namePtr[0]) && (namePtr[1] == ':');
                     }
+
                     if (isDriveLetter)
                     {
                         var target = ObjectManager.QueryLinkTarget(ref linkTargetBuff, name, dir) + @"\";
@@ -236,19 +239,19 @@ namespace pylorak.Windows
         public void RebuildCache(bool blocking = false)
         {
             bool queueWork = false;
-            lock (locker)
+            lock (_locker)
             {
-                if (!CacheRebuilding)
+                if (!_cacheRebuilding)
                 {
-                    CacheRebuilding = true;
-                    CacheReadyEvent.Reset();
+                    _cacheRebuilding = true;
+                    _cacheReadyEvent.Reset();
                     queueWork = true;
                 }
             }
 
             if (queueWork)
             {
-                ThreadPool.QueueUserWorkItem(delegate (object arg)
+                ThreadPool.QueueUserWorkItem(delegate
                 {
                     try
                     {
@@ -257,7 +260,12 @@ namespace pylorak.Windows
                         // RebuildCacheImpl_1 - Cannot discover some types of drives, such as those created by ImDisk
                         // RebuildCacheImpl_2 - Cannot discover devices mounted to mount points
                         var tmpCache = RebuildCacheImpl_1();
-                        try { tmpCache = RebuildCacheImpl_2(tmpCache); } catch { }
+                        try { tmpCache = RebuildCacheImpl_2(tmpCache); }
+                        catch
+                        {
+                            // ignored
+                        }
+
                         Cache = tmpCache.ToArray();
                     }
                     catch
@@ -268,7 +276,7 @@ namespace pylorak.Windows
             }
 
             if (blocking)
-                CacheReadyEvent.WaitOne();
+                _cacheReadyEvent.WaitOne();
         }
 
         private static string GetMountPoint(ReadOnlySpan<char> path)
@@ -334,7 +342,7 @@ namespace pylorak.Windows
         public string ConvertPath(ReadOnlySpan<char> path, PathFormat target)
         {
             var ret = path;
-            ret = ReplaceLeading(ret, @"\SystemRoot", SystemRoot);
+            ret = ReplaceLeading(ret, @"\SystemRoot", _systemRoot);
             ret = ReplaceLeading(ret, @"\\?\", string.Empty);
             ret = ReplaceLeading(ret, @"\\.\", string.Empty);
             ret = ReplaceLeading(ret, @"\??\", string.Empty);
@@ -514,8 +522,8 @@ namespace pylorak.Windows
 
             if (disposing)
             {
-                CacheReadyEvent.WaitOne();
-                CacheReadyEvent.Close();
+                _cacheReadyEvent.WaitOne();
+                _cacheReadyEvent.Close();
             }
 
             _instance = null;

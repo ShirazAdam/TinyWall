@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+	<OutputType>WinExe</OutputType>
+	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+	<TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+	<RootNamespace>ModernTinyWall</RootNamespace>
+	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<Platforms>x86;x64;ARM64</Platforms>
+	<UseWinUI>true</UseWinUI>
+	<WindowsPackageType>None</WindowsPackageType>
+	<Nullable>enable</Nullable>
+	<LangVersion>14.0</LangVersion>
+	<NeutralLanguage>en-GB</NeutralLanguage>
+	<DefaultLanguage>en-GB</DefaultLanguage>
+	<EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250916003" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+	<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\pylorak.Utilities\pylorak.Utilities.csproj" />
+	<ProjectReference Include="..\pylorak.Windows\pylorak.Windows.csproj" />
+	<ProjectReference Include="..\pylorak.Windows.Services\pylorak.Windows.Services.csproj" />
+	<ProjectReference Include="..\pylorak.Windows.WFP\pylorak.Windows.WFP.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" />
+  </ItemGroup>
+</Project>

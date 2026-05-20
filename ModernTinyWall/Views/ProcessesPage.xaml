@@ -1,0 +1,44 @@
+<Page
+    x:Class="ModernTinyWall.Views.ProcessesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="24" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox PlaceholderText="Search processes" />
+            <Button Grid.Column="1" Content="Search" />
+            <Button Grid.Column="2" Content="Clear" />
+        </Grid>
+
+        <ListView Grid.Row="1">
+            <ListView.Header>
+                <Grid Padding="8" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="3*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Process" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1" Text="Services" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="2" Text="Path" FontWeight="SemiBold" />
+                </Grid>
+            </ListView.Header>
+        </ListView>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="OK" />
+            <Button Content="Cancel" />
+        </StackPanel>
+    </Grid>
+</Page>
