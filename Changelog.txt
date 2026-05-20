@@ -13,6 +13,7 @@ TinyWall Changelog
 - Fix possible crash during icon loading of external files
 - Fix missing WSL2 special exception
 - Fix raw socket allow rules may not get installed
+- Fix updated application database only reflected in GUI after a restart
 - Remove language-specific layout customizations
 - Update Korean localization (Jaehyung L.)
 

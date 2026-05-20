@@ -33,12 +33,17 @@ namespace pylorak.TinyWall
         }
     }
 
-    public class ServerState
+    public class ServerState : ISerializable<ServerState>
     {
         public bool HasPassword = false;
         public bool Locked = false;
         public UpdateDescriptor? Update = null;
         public FirewallMode Mode = FirewallMode.Unknown;
         public List<MessageType> ClientNotifs = new();
+
+        public JsonTypeInfo<ServerState> GetJsonTypeInfo()
+        {
+            return SourceGenerationContext.Default.ServerState;
+        }
     }
 }

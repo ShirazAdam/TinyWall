@@ -1426,8 +1426,8 @@ namespace pylorak.TinyWall
                             VisibleState.HasPassword = PasswordLock.HasPassword;
                             VisibleState.Locked = PasswordLock.Locked;
 
-                            var ret = args.CreateResponse(GlobalInstances.ServerChangeset, ActiveConfig.Service, VisibleState);
-                            VisibleState.ClientNotifs.Clear();  // TODO: VisibleState is a reference so it cleants notifs before client could receive them
+                            var ret = args.CreateResponse(GlobalInstances.ServerChangeset, ActiveConfig.Service, Utils.DeepClone(VisibleState));
+                            VisibleState.ClientNotifs.Clear();
                             return ret;
                         }
                         else

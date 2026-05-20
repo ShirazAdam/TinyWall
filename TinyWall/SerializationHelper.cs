@@ -54,6 +54,7 @@ namespace pylorak.TinyWall
     [JsonSerializable(typeof(ControllerSettings))]
     [JsonSerializable(typeof(UpdateDescriptor))]
     [JsonSerializable(typeof(ConfigContainer))]
+    [JsonSerializable(typeof(ServerState))]
     [JsonSerializable(typeof(DatabaseClasses.SubjectIdentity))]
     [JsonSerializable(typeof(DatabaseClasses.Application))]
     [JsonSerializable(typeof(DatabaseClasses.AppDatabase))]
