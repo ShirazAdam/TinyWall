@@ -559,24 +559,30 @@ namespace pylorak.TinyWall
                 bool validAddressFound = false;
                 foreach (var ipStr in r.RemoteAddresses.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
                 {
-                    if (ipStr.Equals(RuleDef.LOCALSUBNET_ID, StringComparison.Ordinal))
+                    try
                     {
-                        foreach (var filter in LocalSubnetFilterConditions)
-                            validAddressFound |= addCommonIpFilterCondition((IpFilterCondition)filter, conditions);
+                        if (ipStr.Equals(RuleDef.LOCALSUBNET_ID, StringComparison.Ordinal))
+                        {
+                            foreach (var filter in LocalSubnetFilterConditions)
+                                validAddressFound |= addCommonIpFilterCondition((IpFilterCondition)filter, conditions);
+                        }
+                        else if (ipStr.Equals("DefaultGateway", StringComparison.Ordinal))
+                        {
+                            foreach (var filter in GatewayFilterConditions)
+                                validAddressFound |= addCommonIpFilterCondition((IpFilterCondition)filter, conditions);
+                        }
+                        else if (ipStr.Equals("DNS", StringComparison.Ordinal))
+                        {
+                            foreach (var filter in DnsFilterConditions)
+                                validAddressFound |= addCommonIpFilterCondition((IpFilterCondition)filter, conditions);
+                        }
+                        else
+                        {
+                            validAddressFound |= addIpFilterCondition(IpAddrMask.Parse(ipStr), RemoteOrLocal.Remote, conditions);
+                        }
                     }
-                    else if (ipStr.Equals("DefaultGateway", StringComparison.Ordinal))
-                    {
-                        foreach (var filter in GatewayFilterConditions)
-                            validAddressFound |= addCommonIpFilterCondition((IpFilterCondition)filter, conditions);
-                    }
-                    else if (ipStr.Equals("DNS", StringComparison.Ordinal))
-                    {
-                        foreach (var filter in DnsFilterConditions)
-                            validAddressFound |= addCommonIpFilterCondition((IpFilterCondition)filter, conditions);
-                    }
-                    else
-                    {
-                        validAddressFound |= addIpFilterCondition(IpAddrMask.Parse(ipStr), RemoteOrLocal.Remote, conditions);
+                    catch {
+                        // Ignore failed IP condition and process next one
                     }
                 }
 
