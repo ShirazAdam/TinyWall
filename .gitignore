@@ -40,5 +40,5 @@ artifacts/
 /ModernTinyWall/bin/
 /ModernTinyWall/obj/
 *.DotSettings
-/TinyWall.Core/obj
-/TinyWall.Core/bin/x64/Debug
+/TinyWall.Core/obj/
+/TinyWall.Core/bin/

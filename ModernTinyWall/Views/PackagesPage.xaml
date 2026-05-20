@@ -1,1 +1,69 @@
-<Page x:Class="ModernTinyWall.Views.PackagesPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Grid Padding="24"><TextBlock Text="Packages" FontSize="28" FontWeight="SemiBold" /></Grid></Page>
+<Page
+    x:Class="ModernTinyWall.Views.PackagesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels="using:ModernTinyWall.ViewModels">
+
+    <Grid Padding="24" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="SearchBox" PlaceholderText="Search packages" TextChanged="SearchBox_TextChanged" />
+            <Button Grid.Column="1" Content="Search" Click="SearchButton_Click" />
+            <Button Grid.Column="2" Content="Clear" Click="ClearButton_Click" />
+        </Grid>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.Packages, Mode=OneWay}">
+            <ListView.Header>
+                <Grid Padding="8" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Name" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1" Text="Publisher" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="2" Text="SID" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="3" Text="Tampered" FontWeight="SemiBold" />
+                </Grid>
+            </ListView.Header>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="viewModels:PackageRowViewModel">
+                    <Grid Padding="8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind PublisherDisplay}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind Sid}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="3" Text="{x:Bind Tampered}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="OK" />
+            <Button Content="Cancel" />
+        </StackPanel>
+    </Grid>
+</Page>
