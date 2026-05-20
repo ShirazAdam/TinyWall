@@ -12,6 +12,7 @@ TinyWall Changelog
 - Fix possible crash during process snapshots if an executable has long file name component
 - Fix possible crash during icon loading of external files
 - Fix missing WSL2 special exception
+- Fix raw socket allow rules may not get installed
 - Remove language-specific layout customizations
 - Update Korean localization (Jaehyung L.)
 

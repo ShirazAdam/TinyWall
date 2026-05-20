@@ -753,7 +753,7 @@ namespace pylorak.TinyWall
                     if (!Utils.IsNullOrEmpty(subj.ServiceName))
                         conditions.Add(new ServiceNameFilterCondition(subj.ServiceName));
                     if (conditions.Count == 0)
-                        return;
+                        continue;
 
                     using var f = new Filter(
                         "Raw socket permit",
