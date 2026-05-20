@@ -9,25 +9,25 @@ using System.Threading.Tasks;
 
 namespace ModernTinyWall.ViewModels;
 
-internal sealed class ConnectionsPageViewModel : INotifyPropertyChanged
+internal sealed class ProcessesPageViewModel : INotifyPropertyChanged
 {
-    private readonly IConnectionsService _connectionsService;
+    private readonly IProcessesService _processesService;
     private bool _isRefreshing;
     private string _statusMessage = "Ready";
 
-    public ConnectionsPageViewModel()
-        : this(new ConnectionsService())
+    public ProcessesPageViewModel()
+        : this(new ProcessesService())
     {
     }
 
-    internal ConnectionsPageViewModel(IConnectionsService connectionsService)
+    internal ProcessesPageViewModel(IProcessesService processesService)
     {
-        _connectionsService = connectionsService;
+        _processesService = processesService;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<ConnectionRowViewModel> Connections { get; } = [];
+    public ObservableCollection<ProcessRowViewModel> Processes { get; } = [];
     public string SearchText { get; set; } = string.Empty;
 
     public bool IsRefreshing
@@ -42,29 +42,27 @@ internal sealed class ConnectionsPageViewModel : INotifyPropertyChanged
         private set => SetField(ref _statusMessage, value);
     }
 
-    public async Task RefreshAsync(bool showActive, bool showListening, bool showBlocked, string searchText)
+    public async Task RefreshAsync(string searchText)
     {
         SearchText = searchText;
         IsRefreshing = true;
-        StatusMessage = "Refreshing connections...";
+        StatusMessage = "Refreshing processes...";
 
         try
         {
-            var query = new ConnectionQuery(showActive, showListening, showBlocked, searchText);
-            var rows = await _connectionsService.GetConnectionsAsync(query);
-
-            Connections.Clear();
+            var rows = await _processesService.GetProcessesAsync(new ProcessQuery(searchText));
+            Processes.Clear();
             foreach (var row in rows)
             {
-                Connections.Add(ConnectionRowViewModel.FromModel(row));
+                Processes.Add(ProcessRowViewModel.FromModel(row));
             }
 
-            StatusMessage = $"{Connections.Count} connection{(Connections.Count == 1 ? string.Empty : "s")}";
+            StatusMessage = $"{Processes.Count} process{(Processes.Count == 1 ? string.Empty : "es")}";
         }
         catch (Exception ex)
         {
-            Connections.Clear();
-            StatusMessage = $"Could not refresh connections: {ex.Message}";
+            Processes.Clear();
+            StatusMessage = $"Could not refresh processes: {ex.Message}";
         }
         finally
         {
@@ -87,10 +85,10 @@ internal sealed class ConnectionsPageViewModel : INotifyPropertyChanged
     }
 }
 
-internal sealed record ConnectionRowViewModel(string Application, string Protocol, string LocalPort, string LocalAddress, string RemotePort, string RemoteAddress, string State, string Direction)
+internal sealed record ProcessRowViewModel(string ProcessName, string Services, string Path)
 {
-    public static ConnectionRowViewModel FromModel(ConnectionRow row)
+    public static ProcessRowViewModel FromModel(ProcessRow row)
     {
-        return new ConnectionRowViewModel(row.Application, row.Protocol, row.LocalPort, row.LocalAddress, row.RemotePort, row.RemoteAddress, row.State, row.Direction);
+        return new ProcessRowViewModel(row.ProcessName, row.Services, row.Path);
     }
 }

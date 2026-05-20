@@ -12,9 +12,10 @@
         SelectionChanged="ShellNavigation_SelectionChanged">
         <NavigationView.MenuItems>
             <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" />
+            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" />
             <NavigationViewItem Content="Connections" Icon="ViewAll" Tag="Connections" />
             <NavigationViewItem Content="Processes" Icon="Library" Tag="Processes" />
-            <NavigationViewItem Content="Services" Icon="Setting" Tag="Services" />
+            <NavigationViewItem Content="Services" Icon="Repair" Tag="Services" />
             <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" />
             <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" />
         </NavigationView.MenuItems>

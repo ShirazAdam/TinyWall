@@ -14,7 +14,6 @@
 	<DefaultLanguage>en-GB</DefaultLanguage>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
-
   <ItemGroup>
 	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250916003" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
@@ -22,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+	<ProjectReference Include="..\TinyWall.Core\TinyWall.Core.csproj" />
 	<ProjectReference Include="..\pylorak.Utilities\pylorak.Utilities.csproj" />
 	<ProjectReference Include="..\pylorak.Windows\pylorak.Windows.csproj" />
 	<ProjectReference Include="..\pylorak.Windows.Services\pylorak.Windows.Services.csproj" />
@@ -31,4 +31,5 @@
   <ItemGroup>
 	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" />
   </ItemGroup>
+
 </Project>

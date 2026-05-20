@@ -137,6 +137,9 @@ namespace pylorak.TinyWall.DatabaseClasses
                 }
 
                 // If we have found dependencies, ask the user what to do
+#if TINYWALL_CORE
+                _ = guiPrompt;
+#else
                 if ((exceptions.Count > 1) && guiPrompt)
                 {
 
@@ -195,6 +198,7 @@ namespace pylorak.TinyWall.DatabaseClasses
                             break;
                     }
                 }
+#endif
             }
             else
             {

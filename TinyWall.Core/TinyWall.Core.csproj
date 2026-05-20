@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+	<LangVersion>14.0</LangVersion>
+	<Nullable>enable</Nullable>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<EnableWindowsTargeting>true</EnableWindowsTargeting>
+	<RootNamespace>pylorak.TinyWall</RootNamespace>
+	<DefineConstants>$(DefineConstants);TINYWALL_CORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\pylorak.Utilities\pylorak.Utilities.csproj" />
+	<ProjectReference Include="..\pylorak.Windows\pylorak.Windows.csproj" />
+	<ProjectReference Include="..\pylorak.Windows.Services\pylorak.Windows.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
+	<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Compile Include="..\TinyWall\PolymorphicJsonConverter.cs" Link="PolymorphicJsonConverter.cs" />
+	<Compile Include="..\TinyWall\SerialisationHelper.cs" Link="SerialisationHelper.cs" />
+	<Compile Include="..\TinyWall\Hasher.cs" Link="Hasher.cs" />
+	<Compile Include="..\TinyWall\MessageType.cs" Link="MessageType.cs" />
+	<Compile Include="..\TinyWall\Protocol.cs" Link="Protocol.cs" />
+	<Compile Include="..\TinyWall\RuleAction.cs" Link="RuleAction.cs" />
+	<Compile Include="..\TinyWall\RuleDef.cs" Link="RuleDef.cs" />
+	<Compile Include="..\TinyWall\FirewallLogEntry.cs" Link="FirewallLogEntry.cs" />
+	<Compile Include="..\TinyWall\ExceptionPolicy.cs" Link="ExceptionPolicy.cs" />
+	<Compile Include="..\TinyWall\ExceptionSubject.cs" Link="ExceptionSubject.cs" />
+	<Compile Include="..\TinyWall\FirewallException.cs" Link="FirewallException.cs" />
+	<Compile Include="..\TinyWall\ServerConfiguration.cs" Link="ServerConfiguration.cs" />
+	<Compile Include="..\TinyWall\ServerState.cs" Link="ServerState.cs" />
+	<Compile Include="..\TinyWall\Settings.cs" Link="Settings.cs" />
+	<Compile Include="..\TinyWall\Controller.cs" Link="Controller.cs" />
+	<Compile Include="..\TinyWall\PipeClientEndpoint.cs" Link="PipeClientEndpoint.cs" />
+	<Compile Include="..\TinyWall\Message.cs" Link="Message.cs" />
+	<Compile Include="..\TinyWall\Request.cs" Link="Request.cs" />
+	<Compile Include="..\TinyWall\UwpPackageList.cs" Link="UwpPackageList.cs" />
+	<Compile Include="..\TinyWall\Parser\*.cs" LinkBase="Parser" />
+	<Compile Include="..\TinyWall\DatabaseClasses\*.cs" LinkBase="DatabaseClasses" />
+  </ItemGroup>
+</Project>

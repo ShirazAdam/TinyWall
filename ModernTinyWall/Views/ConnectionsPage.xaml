@@ -7,6 +7,7 @@
     <Grid Padding="24" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -27,7 +28,12 @@
             <Button Grid.Column="4" Content="Refresh" Click="RefreshButton_Click" />
         </Grid>
 
-        <ListView Grid.Row="1" x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <ListView Grid.Row="2" x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}">
             <ListView.Header>
                 <Grid ColumnSpacing="12" Padding="8">
                     <Grid.ColumnDefinitions>
@@ -76,6 +82,6 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <TextBlock Grid.Row="2" Text="Connections migration target: preserves the WinForms column order and top search/filter layout." />
+        <TextBlock Grid.Row="3" Text="Live active and listening connection data is available. Blocked firewall log integration will follow when shared TinyWall core services are extracted." />
     </Grid>
 </Page>

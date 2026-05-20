@@ -19,6 +19,9 @@ namespace pylorak.TinyWall.DatabaseClasses
         {
             get
             {
+#if TINYWALL_CORE
+                return Name;
+#else
                 try
                 {
                     string ret = Resources.Exceptions.ResourceManager.GetString(Name);
@@ -28,6 +31,7 @@ namespace pylorak.TinyWall.DatabaseClasses
                 {
                     return Name;
                 }
+#endif
             }
         }
 

@@ -1,10 +1,12 @@
 <Page
     x:Class="ModernTinyWall.Views.ProcessesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels="using:ModernTinyWall.ViewModels">
 
     <Grid Padding="24" RowSpacing="12">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -16,12 +18,17 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox PlaceholderText="Search processes" />
-            <Button Grid.Column="1" Content="Search" />
-            <Button Grid.Column="2" Content="Clear" />
+            <TextBox x:Name="SearchBox" PlaceholderText="Search processes" TextChanged="SearchBox_TextChanged" />
+            <Button Grid.Column="1" Content="Search" Click="SearchButton_Click" />
+            <Button Grid.Column="2" Content="Clear" Click="ClearButton_Click" />
         </Grid>
 
-        <ListView Grid.Row="1">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.Processes, Mode=OneWay}">
             <ListView.Header>
                 <Grid Padding="8" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
@@ -34,9 +41,23 @@
                     <TextBlock Grid.Column="2" Text="Path" FontWeight="SemiBold" />
                 </Grid>
             </ListView.Header>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="viewModels:ProcessRowViewModel">
+                    <Grid Padding="8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="3*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind ProcessName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind Services}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind Path}" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
         </ListView>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="OK" />
             <Button Content="Cancel" />
         </StackPanel>

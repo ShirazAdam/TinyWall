@@ -1,15 +1,27 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ModernTinyWall.Services;
 using ModernTinyWall.Views;
+using WinRT.Interop;
 
 namespace ModernTinyWall;
 
 public sealed partial class MainWindow : Window
 {
+    private readonly ITrayIconService _trayIconService = new TrayIconService();
+
     public MainWindow()
     {
         InitializeComponent();
+        _trayIconService.Initialise(WindowNative.GetWindowHandle(this));
+        _trayIconService.SetStatus("ModernTinyWall migration shell");
+        Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
+    }
+
+    private void MainWindow_Closed(object sender, WindowEventArgs args)
+    {
+        _trayIconService.Dispose();
     }
 
     private void ShellNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -19,6 +31,7 @@ public sealed partial class MainWindow : Window
 
         var pageType = tag switch
         {
+            "Settings" => typeof(SettingsPage),
             "Connections" => typeof(ConnectionsPage),
             "Processes" => typeof(ProcessesPage),
             "Services" => typeof(ServicesPage),
