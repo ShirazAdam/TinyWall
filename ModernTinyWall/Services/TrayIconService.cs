@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace ModernTinyWall.Services;
 
-internal sealed class TrayIconService : ITrayIconService
+internal sealed partial class TrayIconService : ITrayIconService
 {
     private const int NIM_ADD = 0x00000000;
     private const int NIM_MODIFY = 0x00000001;
@@ -83,21 +83,34 @@ internal sealed class TrayIconService : ITrayIconService
             uID = 1,
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP,
             uCallbackMessage = TrayCallbackMessage,
-            hIcon = _iconHandle,
-            szTip = _tooltip.Length > 127 ? _tooltip[..127] : _tooltip
+            hIcon = _iconHandle
         };
 
-        _ = Shell_NotifyIcon(message, ref data);
+        unsafe
+        {
+            CopyString(data.szTip, 128, _tooltip);
+            _ = Shell_NotifyIcon(message, &data);
+        }
     }
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern bool Shell_NotifyIcon(int dwMessage, ref NotifyIconData lpData);
+    private static unsafe void CopyString(char* destination, int destinationLength, string value)
+    {
+        var length = Math.Min(value.Length, destinationLength - 1);
+        for (var i = 0; i < length; i++)
+            destination[i] = value[i];
 
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+        destination[length] = '\0';
+    }
+
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool Shell_NotifyIcon(int dwMessage, NotifyIconData* lpData);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct NotifyIconData
+    private unsafe struct NotifyIconData
     {
         public uint cbSize;
         public IntPtr hWnd;
@@ -105,15 +118,12 @@ internal sealed class TrayIconService : ITrayIconService
         public uint uFlags;
         public uint uCallbackMessage;
         public IntPtr hIcon;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public string szTip;
+        public fixed char szTip[128];
         public uint dwState;
         public uint dwStateMask;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-        public string szInfo;
+        public fixed char szInfo[256];
         public uint uTimeoutOrVersion;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
-        public string szInfoTitle;
+        public fixed char szInfoTitle[64];
         public uint dwInfoFlags;
         public Guid guidItem;
         public IntPtr hBalloonIcon;

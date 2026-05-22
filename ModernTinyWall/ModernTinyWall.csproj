@@ -10,6 +10,7 @@
 	<WindowsPackageType>None</WindowsPackageType>
 	<Nullable>enable</Nullable>
 	<LangVersion>14.0</LangVersion>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<NeutralLanguage>en-GB</NeutralLanguage>
 	<DefaultLanguage>en-GB</DefaultLanguage>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
