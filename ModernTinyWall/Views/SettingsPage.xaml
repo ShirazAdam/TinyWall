@@ -50,6 +50,10 @@
         </ListView>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Change password" Click="ChangePasswordButton_Click" />
+            <Button Content="Import" Click="ImportButton_Click" />
+            <Button Content="Export" Click="ExportButton_Click" />
+            <Button Content="Check for updates" Click="UpdateButton_Click" />
             <Button Content="Apply" Click="ApplyButton_Click" />
             <Button Content="Cancel" Click="CancelButton_Click" />
         </StackPanel>

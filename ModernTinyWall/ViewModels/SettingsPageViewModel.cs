@@ -12,17 +12,19 @@ namespace ModernTinyWall.ViewModels;
 internal sealed class SettingsPageViewModel : INotifyPropertyChanged
 {
     private readonly ISettingsService _settingsService;
+    private readonly IMaintenanceService _maintenanceService;
     private bool _isLoading;
     private string _statusMessage = "Settings migration layout ready.";
 
     public SettingsPageViewModel()
-        : this(new SettingsService())
+        : this(new SettingsService(), new MaintenanceService())
     {
     }
 
-    internal SettingsPageViewModel(ISettingsService settingsService)
+    internal SettingsPageViewModel(ISettingsService settingsService, IMaintenanceService maintenanceService)
     {
         _settingsService = settingsService;
+        _maintenanceService = maintenanceService;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -69,7 +71,7 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
                 Sections.Add(section);
             }
 
-            StatusMessage = "Settings sections loaded. Live persistence will follow shared core extraction.";
+            StatusMessage = "Settings sections loaded.";
         }
         catch (Exception ex)
         {
@@ -102,6 +104,40 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
         {
             IsLoading = false;
         }
+    }
+
+    public async Task ChangePasswordAsync(string newPassword)
+    {
+        IsLoading = true;
+        StatusMessage = "Changing password...";
+
+        try
+        {
+            var result = await _maintenanceService.ChangePasswordAsync(newPassword);
+            StatusMessage = result.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public async Task CheckForUpdatesAsync()
+    {
+        var result = await _maintenanceService.CheckForUpdatesAsync();
+        StatusMessage = result.Message;
+    }
+
+    public async Task ImportSettingsAsync()
+    {
+        var result = await _maintenanceService.ImportSettingsAsync();
+        StatusMessage = result.Message;
+    }
+
+    public async Task ExportSettingsAsync()
+    {
+        var result = await _maintenanceService.ExportSettingsAsync();
+        StatusMessage = result.Message;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
