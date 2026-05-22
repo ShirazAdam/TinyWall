@@ -58,7 +58,7 @@ namespace pylorak.TinyWall
 
         public override string ToString()
         {
-            return Subject.ToString();
+            return Subject.ToString() ?? string.Empty;
         }
 
         public JsonTypeInfo<FirewallExceptionV3> GetJsonTypeInfo()

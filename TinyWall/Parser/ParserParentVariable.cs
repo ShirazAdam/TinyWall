@@ -12,7 +12,7 @@ namespace pylorak.TinyWall.Parser
         {
             try
             {
-                return Path.GetDirectoryName(str);
+                return Path.GetDirectoryName(str) ?? str;
             }
             catch
             {

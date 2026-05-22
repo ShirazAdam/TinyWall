@@ -197,7 +197,7 @@ namespace pylorak.TinyWall.DatabaseClasses
 
         public override string ToString()
         {
-            return Subject.ToString();
+            return Subject.ToString() ?? string.Empty;
         }
 
         public JsonTypeInfo<SubjectIdentity> GetJsonTypeInfo()

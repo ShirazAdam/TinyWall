@@ -18,9 +18,9 @@ namespace pylorak.TinyWall.Parser
                     "pf" or "pf64" => ProgramFilesx64(),
                     "pf32" => ProgramFilesx86(),
                     "sys32" => NativeSys32(),
-                    "twpath" => Path.GetDirectoryName(Utils.ExecutablePath),
+                    "twpath" => Path.GetDirectoryName(Utils.ExecutablePath) ?? str,
                     "LocalAppData" => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "windows" => Environment.GetEnvironmentVariable("windir"),
+                    "windows" => Environment.GetEnvironmentVariable("windir") ?? str,
                     _ => str,
                 };
             }
@@ -33,15 +33,15 @@ namespace pylorak.TinyWall.Parser
         private static string ProgramFilesx86()
         {
             if ((8 == IntPtr.Size) || (!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"))))
-                return Environment.GetEnvironmentVariable("ProgramFiles(x86)");
+                return Environment.GetEnvironmentVariable("ProgramFiles(x86)") ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             else
-                return Environment.GetEnvironmentVariable("ProgramFiles");
+                return Environment.GetEnvironmentVariable("ProgramFiles") ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         }
 
         private static string ProgramFilesx64()
         {
             if (VersionInfo.Is64BitOs)
-                return Environment.GetEnvironmentVariable("ProgramW6432");
+                return Environment.GetEnvironmentVariable("ProgramW6432") ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             else
                 return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         }
@@ -49,7 +49,7 @@ namespace pylorak.TinyWall.Parser
         private static string NativeSys32()
         {
             if (VersionInfo.Is64BitOs)
-                return Path.Combine(Environment.GetEnvironmentVariable("windir"), "System32");
+                return Path.Combine(Environment.GetEnvironmentVariable("windir") ?? Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32");
             else
                 return Environment.GetFolderPath(Environment.SpecialFolder.System);
         }

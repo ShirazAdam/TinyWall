@@ -121,7 +121,7 @@ namespace pylorak.TinyWall.DatabaseClasses
 
                 // Now that we have the app, try to instantiate firewall exceptions
                 // for all components.
-                string pathHint = System.IO.Path.GetDirectoryName(exeSubject.ExecutablePath);
+                string? pathHint = System.IO.Path.GetDirectoryName(exeSubject.ExecutablePath);
                 foreach (SubjectIdentity id in app.Components)
                 {
                     List<ExceptionSubject> foundSubjects = id.SearchForFile(pathHint);

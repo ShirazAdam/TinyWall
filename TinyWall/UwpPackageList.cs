@@ -21,10 +21,10 @@ namespace pylorak.TinyWall
         public readonly partial struct Package : IEquatable<Package>
         {
             [SuppressUnmanagedCodeSecurity]
-            private static class NativeMethods
+            private static partial class NativeMethods
             {
-                [DllImport("Userenv", CharSet = CharSet.Unicode)]
-                public static extern int DeriveAppContainerSidFromAppContainerName(string pszAppContainerName, out SafeSidHandle ppsidAppContainerSid);
+                [LibraryImport("Userenv", StringMarshalling = StringMarshalling.Utf16)]
+                public static partial int DeriveAppContainerSidFromAppContainerName(string pszAppContainerName, out SafeSidHandle ppsidAppContainerSid);
             }
 
             public readonly string Name;
