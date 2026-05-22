@@ -230,7 +230,7 @@ namespace ModernTinyWall.Windows
         {
             using var proc = Process.GetCurrentProcess();
             var pid = unchecked((uint)proc.Id);
-            return GetProcessPath(pid) ?? proc.MainModule.FileName;
+            return GetProcessPath(pid) ?? proc.MainModule?.FileName ?? string.Empty;
         }
         public static string GetProcessPath(uint processId)
         {

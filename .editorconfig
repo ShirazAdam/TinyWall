@@ -13,4 +13,10 @@ csharp_style_prefer_implicit_lambda = true:info
 csharp_style_prefer_simplified_property_accessor = true:info
 
 # Interop modernisation preferences
-dotnet_diagnostic.SYSLIB1054.severity = warning
+dotnet_diagnostic.SYSLIB1054.severity = none
+
+[ModernTinyWall.Windows/SafeHandles.cs]
+dotnet_diagnostic.CS8607.severity = none
+
+[ModernTinyWall.Windows.WFP/SafeHandles.cs]
+dotnet_diagnostic.CS8607.severity = none

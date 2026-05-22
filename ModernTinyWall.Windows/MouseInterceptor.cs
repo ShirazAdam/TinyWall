@@ -67,7 +67,10 @@ namespace ModernTinyWall.Windows
         public void Start()
         {
             using Process curProcess = Process.GetCurrentProcess();
-            using ProcessModule curModule = curProcess.MainModule;
+            using ProcessModule? curModule = curProcess.MainModule;
+            if (curModule?.ModuleName is null)
+                throw new InvalidOperationException("The current process module could not be resolved.");
+
             _hookID = NativeMethods.SetWindowsHookEx(NativeMethods.WH_MOUSE_LL, _proc, NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
         }
 

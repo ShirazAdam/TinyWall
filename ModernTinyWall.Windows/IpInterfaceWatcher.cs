@@ -113,12 +113,12 @@ namespace ModernTinyWall.Windows
             ChangeEventMerger.Event += ChangeEventMerger_Event;
         }
 
-        private void ChangeEventMerger_Event(object sender, EventArgs e)
+        private void ChangeEventMerger_Event(object? sender, EventArgs e)
         {
             InterfaceChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void DnsChangeNotifier_RegistryChanged(object sender, EventArgs args)
+        private void DnsChangeNotifier_RegistryChanged(object? sender, EventArgs args)
         {
             ChangeEventMerger.Pulse();
         }

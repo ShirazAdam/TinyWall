@@ -556,7 +556,7 @@ namespace ModernTinyWall.Windows.Services
                 {
                     // we increment the pointer first so we skip over the first argument. 
                     argsAsPtr++;
-                    args[index] = Marshal.PtrToStringUni((IntPtr)(*argsAsPtr));
+                    args[index] = Marshal.PtrToStringUni((IntPtr)(*argsAsPtr)) ?? string.Empty;
                 }
             }
 

@@ -32,7 +32,7 @@ namespace ModernTinyWall.Utilities
             }
         }
 
-        private void DelayExpired(object args)
+        private void DelayExpired(object? args)
         {
             lock (_locker)
             {

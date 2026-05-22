@@ -182,9 +182,9 @@ namespace ModernTinyWall.Windows.Services
             if (result == false)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            SERVICE_STATUS_PROCESS query_srv_status = Marshal.PtrToStructure<SERVICE_STATUS_PROCESS>(buff.DangerousGetHandle());
+            SERVICE_STATUS_PROCESS? query_srv_status = Marshal.PtrToStructure<SERVICE_STATUS_PROCESS>(buff.DangerousGetHandle());
 
-            return query_srv_status.dwCurrentState switch
+            return query_srv_status?.dwCurrentState switch
             {
                 ServiceState.Running or
                 ServiceState.PausePending or

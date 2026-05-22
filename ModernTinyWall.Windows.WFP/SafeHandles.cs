@@ -399,17 +399,17 @@ namespace ModernTinyWall.Windows.WFP
             return ret;
         }
 
-        public static SafeHGlobalHandle FromManagedStruct<T>(T obj)
+        public static SafeHGlobalHandle FromManagedStruct<T>(T obj) where T : notnull
         {
             var size = Marshal.SizeOf(typeof(T));
             var ret = Alloc(size, true);
-            ret.MarshalFromManagedStruct(obj);
+            ret.MarshalFromManagedStruct(obj, typeof(T));
             return ret;
         }
 
         public void MarshalFromStruct<T>(T obj, int offset = 0) where T : unmanaged
         {
-            if (NeedsMarshalDestroy)
+            if (MarshalDestroyType is not null)
                 Marshal.DestroyStructure(this.handle, MarshalDestroyType);
 
             int size = Marshal.SizeOf(typeof(T));
@@ -421,11 +421,13 @@ namespace ModernTinyWall.Windows.WFP
             MarshalDestroyType = null;
         }
 
-        public void MarshalFromManagedStruct<T>(T obj)
+#nullable disable
+        public void MarshalFromManagedStruct(object obj, Type structureType)
         {
-            Marshal.StructureToPtr(obj, this.handle, NeedsMarshalDestroy);
-            MarshalDestroyType = typeof(T);
+            Marshal.StructureToPtr(obj, this.handle, MarshalDestroyType is not null);
+            MarshalDestroyType = structureType;
         }
+#nullable restore
 
         public T ToStruct<T>() where T : unmanaged
         {
@@ -450,7 +452,7 @@ namespace ModernTinyWall.Windows.WFP
 
             if (!this.IsInvalid)
             {
-                if (NeedsMarshalDestroy)
+                if (MarshalDestroyType is not null)
                 {
                     Marshal.DestroyStructure(this.handle, MarshalDestroyType);
                     MarshalDestroyType = null;
@@ -473,7 +475,7 @@ namespace ModernTinyWall.Windows.WFP
 
         protected override bool ReleaseHandle()
         {
-            if (NeedsMarshalDestroy)
+            if (MarshalDestroyType is not null)
             {
                 Marshal.DestroyStructure(this.handle, MarshalDestroyType);
                 MarshalDestroyType = null;

@@ -132,7 +132,7 @@ namespace ModernTinyWall.Utilities
                     var logdir = Path.GetDirectoryName(LogFileBase);
                     var logfile = $"{LogFileBase} {threadName}.log";
 
-                    if (!Directory.Exists(logdir))
+                    if (!string.IsNullOrEmpty(logdir) && !Directory.Exists(logdir))
                         Directory.CreateDirectory(logdir);
 
                     // Only log if log file has not yet reached a certain size

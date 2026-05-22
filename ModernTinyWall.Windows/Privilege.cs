@@ -260,7 +260,7 @@ namespace Microsoft.Samples
 
                 if (luids.Contains(privilege))
                 {
-                    luid = (NativeMethods.LUID)luids[privilege];
+                    luid = (NativeMethods.LUID)luids[privilege]!;
 
                     privilegeLock.ReleaseReaderLock();
                 }

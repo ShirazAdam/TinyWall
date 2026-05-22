@@ -97,7 +97,7 @@ namespace ModernTinyWall.Windows.WFP
             if (!ConvertSidToStringSid(pSid, out AllocHLocalSafeHandle ptrStrSid))
                 return null;
 
-            string strSid = Marshal.PtrToStringUni(ptrStrSid.DangerousGetHandle());
+            string? strSid = Marshal.PtrToStringUni(ptrStrSid.DangerousGetHandle());
 
             ptrStrSid.Dispose();
             return strSid;

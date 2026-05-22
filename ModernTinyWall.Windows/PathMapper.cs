@@ -359,14 +359,17 @@ namespace ModernTinyWall.Windows
                     char driveLetter = char.ToUpperInvariant(ret[0]);
                     using (var networkKey = Registry.CurrentUser.OpenSubKey("Network", false))
                     {
-                        var subkeys = networkKey.GetSubKeyNames();
+                        var subkeys = networkKey?.GetSubKeyNames() ?? [];
                         foreach (var sk in subkeys)
                         {
                             if ((sk.Length == 1) && (char.ToUpperInvariant(sk[0]) == driveLetter))
                             {
-                                using var driveKey = networkKey.OpenSubKey(sk, false);
-                                ret = SpanUtils.CombinePath((driveKey.GetValue("RemotePath") as string).AsSpan(), ret.Slice(3)).AsSpan();
-                                break;
+                                using var driveKey = networkKey?.OpenSubKey(sk, false);
+                                if (driveKey?.GetValue("RemotePath") is string remotePath)
+                                {
+                                    ret = SpanUtils.CombinePath(remotePath.AsSpan(), ret.Slice(3)).AsSpan();
+                                    break;
+                                }
                             }
                         }
                     }

@@ -352,18 +352,6 @@
   <data name="txtExceptionListFilter.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;txtExceptionListFilter.Name" xml:space="preserve">
-    <value>txtExceptionListFilter</value>
-  </data>
-  <data name="&gt;&gt;txtExceptionListFilter.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;txtExceptionListFilter.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;txtExceptionListFilter.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="btnAppRemoveAll.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -387,18 +375,6 @@
   </data>
   <data name="btnAppRemoveAll.Text" xml:space="preserve">
     <value>Remove all</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemoveAll.Name" xml:space="preserve">
-    <value>btnAppRemoveAll</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemoveAll.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemoveAll.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemoveAll.ZOrder" xml:space="preserve">
-    <value>1</value>
   </data>
   <data name="btnAppAutoDetect.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -427,18 +403,6 @@
   <data name="btnAppAutoDetect.Text" xml:space="preserve">
     <value>Detect</value>
   </data>
-  <data name="&gt;&gt;btnAppAutoDetect.Name" xml:space="preserve">
-    <value>btnAppAutoDetect</value>
-  </data>
-  <data name="&gt;&gt;btnAppAutoDetect.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnAppAutoDetect.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;btnAppAutoDetect.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
   <data name="btnSubmitAssoc.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -466,18 +430,6 @@
   <data name="btnSubmitAssoc.Text" xml:space="preserve">
     <value>Submit</value>
   </data>
-  <data name="&gt;&gt;btnSubmitAssoc.Name" xml:space="preserve">
-    <value>btnSubmitAssoc</value>
-  </data>
-  <data name="&gt;&gt;btnSubmitAssoc.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnSubmitAssoc.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;btnSubmitAssoc.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
   <data name="label3.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Left, Right</value>
   </data>
@@ -495,18 +447,6 @@
   </data>
   <data name="label3.Text" xml:space="preserve">
     <value>Edit the list of applications that you'd like to grant network access. Only applications in this list will be able to communicate. Use the Detect button to let TinyWall detect some software, or add applications manually.</value>
-  </data>
-  <data name="&gt;&gt;label3.Name" xml:space="preserve">
-    <value>label3</value>
-  </data>
-  <data name="&gt;&gt;label3.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label3.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;label3.ZOrder" xml:space="preserve">
-    <value>4</value>
   </data>
   <data name="btnAppRemove.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -535,18 +475,6 @@
   <data name="btnAppRemove.Text" xml:space="preserve">
     <value>Remove</value>
   </data>
-  <data name="&gt;&gt;btnAppRemove.Name" xml:space="preserve">
-    <value>btnAppRemove</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemove.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemove.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;btnAppRemove.ZOrder" xml:space="preserve">
-    <value>5</value>
-  </data>
   <data name="btnAppModify.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -574,18 +502,6 @@
   <data name="btnAppModify.Text" xml:space="preserve">
     <value>Modify</value>
   </data>
-  <data name="&gt;&gt;btnAppModify.Name" xml:space="preserve">
-    <value>btnAppModify</value>
-  </data>
-  <data name="&gt;&gt;btnAppModify.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnAppModify.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;btnAppModify.ZOrder" xml:space="preserve">
-    <value>6</value>
-  </data>
   <data name="btnAppAdd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -609,18 +525,6 @@
   </data>
   <data name="btnAppAdd.Text" xml:space="preserve">
     <value>Add application</value>
-  </data>
-  <data name="&gt;&gt;btnAppAdd.Name" xml:space="preserve">
-    <value>btnAppAdd</value>
-  </data>
-  <data name="&gt;&gt;btnAppAdd.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnAppAdd.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;btnAppAdd.ZOrder" xml:space="preserve">
-    <value>7</value>
   </data>
   <data name="listApplications.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left, Right</value>
@@ -661,18 +565,6 @@
   <data name="listApplications.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
   </data>
-  <data name="&gt;&gt;listApplications.Name" xml:space="preserve">
-    <value>listApplications</value>
-  </data>
-  <data name="&gt;&gt;listApplications.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ListView, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;listApplications.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;listApplications.ZOrder" xml:space="preserve">
-    <value>8</value>
-  </data>
   <data name="label4.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -690,18 +582,6 @@
   </data>
   <data name="label4.Text" xml:space="preserve">
     <value>Filter:</value>
-  </data>
-  <data name="&gt;&gt;label4.Name" xml:space="preserve">
-    <value>label4</value>
-  </data>
-  <data name="&gt;&gt;label4.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label4.Parent" xml:space="preserve">
-    <value>tabPage3</value>
-  </data>
-  <data name="&gt;&gt;label4.ZOrder" xml:space="preserve">
-    <value>9</value>
   </data>
   <data name="&gt;&gt;label5.Name" xml:space="preserve">
     <value>label5</value>
@@ -811,18 +691,6 @@
   <data name="label5.Text" xml:space="preserve">
     <value>Select special tasks or applications that you'd like to enable on this machine. Note that disabling recommended exceptions can seriously limit the usability and security of your system.</value>
   </data>
-  <data name="&gt;&gt;label5.Name" xml:space="preserve">
-    <value>label5</value>
-  </data>
-  <data name="&gt;&gt;label5.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label5.Parent" xml:space="preserve">
-    <value>tabPage2</value>
-  </data>
-  <data name="&gt;&gt;label5.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="label2.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -840,18 +708,6 @@
   </data>
   <data name="label2.Text" xml:space="preserve">
     <value>Optional</value>
-  </data>
-  <data name="&gt;&gt;label2.Name" xml:space="preserve">
-    <value>label2</value>
-  </data>
-  <data name="&gt;&gt;label2.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label2.Parent" xml:space="preserve">
-    <value>tabPage2</value>
-  </data>
-  <data name="&gt;&gt;label2.ZOrder" xml:space="preserve">
-    <value>1</value>
   </data>
   <data name="label1.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -871,18 +727,6 @@
   <data name="label1.Text" xml:space="preserve">
     <value>Recommended</value>
   </data>
-  <data name="&gt;&gt;label1.Name" xml:space="preserve">
-    <value>label1</value>
-  </data>
-  <data name="&gt;&gt;label1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label1.Parent" xml:space="preserve">
-    <value>tabPage2</value>
-  </data>
-  <data name="&gt;&gt;label1.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
   <data name="listOptionalGlobalProfiles.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left</value>
   </data>
@@ -898,18 +742,6 @@
   <data name="listOptionalGlobalProfiles.TabIndex" type="System.Int32, mscorlib">
     <value>20</value>
   </data>
-  <data name="&gt;&gt;listOptionalGlobalProfiles.Name" xml:space="preserve">
-    <value>listOptionalGlobalProfiles</value>
-  </data>
-  <data name="&gt;&gt;listOptionalGlobalProfiles.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckedListBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;listOptionalGlobalProfiles.Parent" xml:space="preserve">
-    <value>tabPage2</value>
-  </data>
-  <data name="&gt;&gt;listOptionalGlobalProfiles.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
   <data name="listRecommendedGlobalProfiles.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left</value>
   </data>
@@ -924,18 +756,6 @@
   </data>
   <data name="listRecommendedGlobalProfiles.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
-  </data>
-  <data name="&gt;&gt;listRecommendedGlobalProfiles.Name" xml:space="preserve">
-    <value>listRecommendedGlobalProfiles</value>
-  </data>
-  <data name="&gt;&gt;listRecommendedGlobalProfiles.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckedListBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;listRecommendedGlobalProfiles.Parent" xml:space="preserve">
-    <value>tabPage2</value>
-  </data>
-  <data name="&gt;&gt;listRecommendedGlobalProfiles.ZOrder" xml:space="preserve">
-    <value>4</value>
   </data>
   <data name="&gt;&gt;tableLayoutPanel1.Name" xml:space="preserve">
     <value>tableLayoutPanel1</value>
@@ -1135,21 +955,6 @@
   <data name="tableLayoutPanel1.TabIndex" type="System.Int32, mscorlib">
     <value>86</value>
   </data>
-  <data name="&gt;&gt;tableLayoutPanel1.Name" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel1.Parent" xml:space="preserve">
-    <value>tabPage1</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel1.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
-  <data name="tableLayoutPanel1.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label11" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="chkHostsBlocklist" Row="3" RowSpan="1" Column="4" ColumnSpan="1" /&gt;&lt;Control Name="chkEnableBlocklists" Row="1" RowSpan="1" Column="3" ColumnSpan="2" /&gt;&lt;Control Name="chkBlockMalwarePorts" Row="2" RowSpan="1" Column="4" ColumnSpan="1" /&gt;&lt;Control Name="chkDisplayOffBlock" Row="4" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="chkLockHostsFile" Row="0" RowSpan="1" Column="3" ColumnSpan="2" /&gt;&lt;Control Name="comboLanguages" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="chkEnableHotkeys" Row="3" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="chkAutoUpdateCheck" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="chkAskForExceptionDetails" Row="2" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,Absolute,40,Absolute,27,AutoSize,0" /&gt;&lt;Rows Styles="Percent,20,Percent,20,Percent,20,Percent,20,Percent,20" /&gt;&lt;/TableLayoutSettings&gt;</value>
-  </data>
   <data name="label11.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1174,18 +979,6 @@
   <data name="label11.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>MiddleLeft</value>
   </data>
-  <data name="&gt;&gt;label11.Name" xml:space="preserve">
-    <value>label11</value>
-  </data>
-  <data name="&gt;&gt;label11.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label11.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;label11.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="chkHostsBlocklist.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1206,18 +999,6 @@
   </data>
   <data name="chkHostsBlocklist.Text" xml:space="preserve">
     <value>Domain-based malware and ad blocklist</value>
-  </data>
-  <data name="&gt;&gt;chkHostsBlocklist.Name" xml:space="preserve">
-    <value>chkHostsBlocklist</value>
-  </data>
-  <data name="&gt;&gt;chkHostsBlocklist.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkHostsBlocklist.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkHostsBlocklist.ZOrder" xml:space="preserve">
-    <value>1</value>
   </data>
   <data name="chkEnableBlocklists.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1240,18 +1021,6 @@
   <data name="chkEnableBlocklists.Text" xml:space="preserve">
     <value>Enable blocklists</value>
   </data>
-  <data name="&gt;&gt;chkEnableBlocklists.Name" xml:space="preserve">
-    <value>chkEnableBlocklists</value>
-  </data>
-  <data name="&gt;&gt;chkEnableBlocklists.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkEnableBlocklists.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkEnableBlocklists.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
   <data name="chkBlockMalwarePorts.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1272,18 +1041,6 @@
   </data>
   <data name="chkBlockMalwarePorts.Text" xml:space="preserve">
     <value>Port-based malware blocklist</value>
-  </data>
-  <data name="&gt;&gt;chkBlockMalwarePorts.Name" xml:space="preserve">
-    <value>chkBlockMalwarePorts</value>
-  </data>
-  <data name="&gt;&gt;chkBlockMalwarePorts.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkBlockMalwarePorts.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkBlockMalwarePorts.ZOrder" xml:space="preserve">
-    <value>3</value>
   </data>
   <data name="chkDisplayOffBlock.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1309,18 +1066,6 @@
   <data name="chkDisplayOffBlock.Text" xml:space="preserve">
     <value>Block internet during display power-save</value>
   </data>
-  <data name="&gt;&gt;chkDisplayOffBlock.Name" xml:space="preserve">
-    <value>chkDisplayOffBlock</value>
-  </data>
-  <data name="&gt;&gt;chkDisplayOffBlock.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkDisplayOffBlock.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkDisplayOffBlock.ZOrder" xml:space="preserve">
-    <value>4</value>
-  </data>
   <data name="chkLockHostsFile.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1342,18 +1087,6 @@
   <data name="chkLockHostsFile.Text" xml:space="preserve">
     <value>Prevent modifications to hosts file</value>
   </data>
-  <data name="&gt;&gt;chkLockHostsFile.Name" xml:space="preserve">
-    <value>chkLockHostsFile</value>
-  </data>
-  <data name="&gt;&gt;chkLockHostsFile.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkLockHostsFile.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkLockHostsFile.ZOrder" xml:space="preserve">
-    <value>5</value>
-  </data>
   <data name="comboLanguages.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
@@ -1368,18 +1101,6 @@
   </data>
   <data name="comboLanguages.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
-  </data>
-  <data name="&gt;&gt;comboLanguages.Name" xml:space="preserve">
-    <value>comboLanguages</value>
-  </data>
-  <data name="&gt;&gt;comboLanguages.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;comboLanguages.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;comboLanguages.ZOrder" xml:space="preserve">
-    <value>6</value>
   </data>
   <data name="chkEnableHotkeys.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1402,18 +1123,6 @@
   <data name="chkEnableHotkeys.Text" xml:space="preserve">
     <value>Enable global hotkeys</value>
   </data>
-  <data name="&gt;&gt;chkEnableHotkeys.Name" xml:space="preserve">
-    <value>chkEnableHotkeys</value>
-  </data>
-  <data name="&gt;&gt;chkEnableHotkeys.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkEnableHotkeys.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkEnableHotkeys.ZOrder" xml:space="preserve">
-    <value>7</value>
-  </data>
   <data name="chkAutoUpdateCheck.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1435,18 +1144,6 @@
   <data name="chkAutoUpdateCheck.Text" xml:space="preserve">
     <value>Automatically check for updates</value>
   </data>
-  <data name="&gt;&gt;chkAutoUpdateCheck.Name" xml:space="preserve">
-    <value>chkAutoUpdateCheck</value>
-  </data>
-  <data name="&gt;&gt;chkAutoUpdateCheck.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkAutoUpdateCheck.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkAutoUpdateCheck.ZOrder" xml:space="preserve">
-    <value>8</value>
-  </data>
   <data name="chkAskForExceptionDetails.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1467,18 +1164,6 @@
   </data>
   <data name="chkAskForExceptionDetails.Text" xml:space="preserve">
     <value>Prompt for exception details</value>
-  </data>
-  <data name="&gt;&gt;chkAskForExceptionDetails.Name" xml:space="preserve">
-    <value>chkAskForExceptionDetails</value>
-  </data>
-  <data name="&gt;&gt;chkAskForExceptionDetails.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkAskForExceptionDetails.Parent" xml:space="preserve">
-    <value>tableLayoutPanel1</value>
-  </data>
-  <data name="&gt;&gt;chkAskForExceptionDetails.ZOrder" xml:space="preserve">
-    <value>9</value>
   </data>
   <data name="&gt;&gt;label9.Name" xml:space="preserve">
     <value>label9</value>
@@ -1570,18 +1255,6 @@
   <data name="groupBox1.Text" xml:space="preserve">
     <value>Password protection</value>
   </data>
-  <data name="&gt;&gt;groupBox1.Name" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;groupBox1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;groupBox1.Parent" xml:space="preserve">
-    <value>tabPage1</value>
-  </data>
-  <data name="&gt;&gt;groupBox1.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="label9.Location" type="System.Drawing.Point, System.Drawing">
     <value>332, 92</value>
   </data>
@@ -1596,18 +1269,6 @@
   </data>
   <data name="label9.Text" xml:space="preserve">
     <value>To remove an enabled password protection, check "Change password" and leave the text fields empty.</value>
-  </data>
-  <data name="&gt;&gt;label9.Name" xml:space="preserve">
-    <value>label9</value>
-  </data>
-  <data name="&gt;&gt;label9.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label9.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;label9.ZOrder" xml:space="preserve">
-    <value>0</value>
   </data>
   <data name="label8.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1627,18 +1288,6 @@
   <data name="label8.Text" xml:space="preserve">
     <value>Retype:</value>
   </data>
-  <data name="&gt;&gt;label8.Name" xml:space="preserve">
-    <value>label8</value>
-  </data>
-  <data name="&gt;&gt;label8.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label8.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;label8.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="label7.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1657,18 +1306,6 @@
   <data name="label7.Text" xml:space="preserve">
     <value>Password:</value>
   </data>
-  <data name="&gt;&gt;label7.Name" xml:space="preserve">
-    <value>label7</value>
-  </data>
-  <data name="&gt;&gt;label7.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label7.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;label7.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
   <data name="chkChangePassword.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1686,18 +1323,6 @@
   </data>
   <data name="chkChangePassword.Text" xml:space="preserve">
     <value>Change password</value>
-  </data>
-  <data name="&gt;&gt;chkChangePassword.Name" xml:space="preserve">
-    <value>chkChangePassword</value>
-  </data>
-  <data name="&gt;&gt;chkChangePassword.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;chkChangePassword.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;chkChangePassword.ZOrder" xml:space="preserve">
-    <value>3</value>
   </data>
   <data name="txtPasswordAgain.Enabled" type="System.Boolean, mscorlib">
     <value>False</value>
@@ -1720,18 +1345,6 @@
   <data name="txtPasswordAgain.TabIndex" type="System.Int32, mscorlib">
     <value>110</value>
   </data>
-  <data name="&gt;&gt;txtPasswordAgain.Name" xml:space="preserve">
-    <value>txtPasswordAgain</value>
-  </data>
-  <data name="&gt;&gt;txtPasswordAgain.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;txtPasswordAgain.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;txtPasswordAgain.ZOrder" xml:space="preserve">
-    <value>4</value>
-  </data>
   <data name="txtPassword.Enabled" type="System.Boolean, mscorlib">
     <value>False</value>
   </data>
@@ -1752,18 +1365,6 @@
   </data>
   <data name="txtPassword.TabIndex" type="System.Int32, mscorlib">
     <value>100</value>
-  </data>
-  <data name="&gt;&gt;txtPassword.Name" xml:space="preserve">
-    <value>txtPassword</value>
-  </data>
-  <data name="&gt;&gt;txtPassword.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;txtPassword.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;txtPassword.ZOrder" xml:space="preserve">
-    <value>5</value>
   </data>
   <data name="tabControl1.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left, Right</value>
@@ -2047,18 +1648,6 @@
   <data name="lblLinkAttributions.Text" xml:space="preserve">
     <value>Attributions</value>
   </data>
-  <data name="&gt;&gt;lblLinkAttributions.Name" xml:space="preserve">
-    <value>lblLinkAttributions</value>
-  </data>
-  <data name="&gt;&gt;lblLinkAttributions.Type" xml:space="preserve">
-    <value>System.Windows.Forms.LinkLabel, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;lblLinkAttributions.Parent" xml:space="preserve">
-    <value>groupBox2</value>
-  </data>
-  <data name="&gt;&gt;lblLinkAttributions.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="lblLinkLicense.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2077,18 +1666,6 @@
   <data name="lblLinkLicense.Text" xml:space="preserve">
     <value>Licence</value>
   </data>
-  <data name="&gt;&gt;lblLinkLicense.Name" xml:space="preserve">
-    <value>lblLinkLicense</value>
-  </data>
-  <data name="&gt;&gt;lblLinkLicense.Type" xml:space="preserve">
-    <value>System.Windows.Forms.LinkLabel, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;lblLinkLicense.Parent" xml:space="preserve">
-    <value>groupBox2</value>
-  </data>
-  <data name="&gt;&gt;lblLinkLicense.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="lblVersion.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2106,18 +1683,6 @@
   </data>
   <data name="lblVersion.Text" xml:space="preserve">
     <value>TinyWall </value>
-  </data>
-  <data name="&gt;&gt;lblVersion.Name" xml:space="preserve">
-    <value>lblVersion</value>
-  </data>
-  <data name="&gt;&gt;lblVersion.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;lblVersion.Parent" xml:space="preserve">
-    <value>groupBox2</value>
-  </data>
-  <data name="&gt;&gt;lblVersion.ZOrder" xml:space="preserve">
-    <value>2</value>
   </data>
   <metadata name="sfd.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>

@@ -76,7 +76,7 @@ namespace ModernTinyWall.Windows
                 // Now get the string.  It's all in the same buffer, but
                 // the pointer is first, so offset the pointer by IntPtr.Size
                 // and pass to PtrToStringAnsi.
-                return Marshal.PtrToStringUni(new IntPtr(buffer.ToInt64() + IntPtr.Size));
+                return Marshal.PtrToStringUni(new IntPtr(buffer.ToInt64() + IntPtr.Size)) ?? string.Empty;
             }
             finally
             {

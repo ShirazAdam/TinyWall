@@ -4,6 +4,7 @@
 	<PlatformTarget>AnyCPU</PlatformTarget>
 	<LangVersion>14.0</LangVersion>
 	<Nullable>enable</Nullable>
+	<NoWarn>$(NoWarn);CS8607</NoWarn>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
