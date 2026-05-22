@@ -77,6 +77,44 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public async Task AddExceptionAsync(string subjectType, string name, string details, string policy)
+    {
+        IsRefreshing = true;
+        try
+        {
+            var result = await _exceptionsService.AddExceptionAsync(new ExceptionEditRequest(subjectType, name, details, policy));
+            StatusMessage = result.Message;
+            if (result.Success)
+                await RefreshAsync(SearchText);
+        }
+        finally
+        {
+            IsRefreshing = false;
+        }
+    }
+
+    public async Task ModifySelectedAsync(string subjectType, string name, string details, string policy)
+    {
+        if (SelectedException is null)
+        {
+            StatusMessage = "Select an exception to modify.";
+            return;
+        }
+
+        IsRefreshing = true;
+        try
+        {
+            var result = await _exceptionsService.UpdateExceptionAsync(SelectedException.Id, new ExceptionEditRequest(subjectType, name, details, policy));
+            StatusMessage = result.Message;
+            if (result.Success)
+                await RefreshAsync(SearchText);
+        }
+        finally
+        {
+            IsRefreshing = false;
+        }
+    }
+
     public async Task RemoveSelectedAsync()
     {
         if (SelectedException is null)

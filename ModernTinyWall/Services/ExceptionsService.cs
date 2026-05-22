@@ -16,6 +16,21 @@ internal sealed class ExceptionsService : IExceptionsService
         return Task.Run<IReadOnlyList<ExceptionRow>>(() => BuildExceptions(query, cancellationToken), cancellationToken);
     }
 
+    public Task<ExceptionMutationResult> AddExceptionAsync(ExceptionEditRequest request, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Add(CreateException(request)), "Exception added.", cancellationToken), cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> UpdateExceptionAsync(Guid exceptionId, ExceptionEditRequest request, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => MutateExceptions(config =>
+        {
+            var index = config.ActiveProfile.AppExceptions.FindIndex(ex => ex.Id == exceptionId);
+            if (index >= 0)
+                config.ActiveProfile.AppExceptions[index] = CreateException(request);
+        }, "Exception updated.", cancellationToken), cancellationToken);
+    }
+
     public Task<ExceptionMutationResult> RemoveExceptionAsync(Guid exceptionId, CancellationToken cancellationToken = default)
     {
         return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.RemoveAll(ex => ex.Id == exceptionId), "Exception removed.", cancellationToken), cancellationToken);
@@ -126,5 +141,25 @@ internal sealed class ExceptionsService : IExceptionsService
             MessageType.RESPONSE_ERROR => new ExceptionMutationResult(false, "The TinyWall service could not update application exceptions."),
             _ => new ExceptionMutationResult(false, $"Unexpected TinyWall service response: {updateResponse.Type}.")
         };
+    }
+
+    private static FirewallExceptionV3 CreateException(ExceptionEditRequest request)
+    {
+        ExceptionSubject subject = request.SubjectType switch
+        {
+            "Global" => GlobalSubject.Instance,
+            "Service" => new ServiceSubject(request.Details, request.Name),
+            "UWP app" => new AppContainerSubject(request.Details, request.Name, string.Empty, string.Empty),
+            _ => new ExecutableSubject(request.Details)
+        };
+
+        ExceptionPolicy policy = request.Policy switch
+        {
+            "Hard block" => HardBlockPolicy.Instance,
+            "TCP/UDP" => new TcpUdpPolicy(true),
+            _ => new UnrestrictedPolicy()
+        };
+
+        return new FirewallExceptionV3(subject, policy);
     }
 }
