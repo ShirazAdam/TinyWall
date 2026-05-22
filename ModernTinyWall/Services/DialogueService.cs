@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ModernTinyWall.Services;
 
-internal sealed class DialogService : IDialogService
+internal sealed class DialogueService : IDialogueService
 {
     public Task ShowMessageAsync(XamlRoot xamlRoot, string title, string message, string closeButtonText = "OK")
     {

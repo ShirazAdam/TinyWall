@@ -9,7 +9,7 @@ namespace ModernTinyWall.Views;
 
 public sealed partial class ExceptionsPage : Page
 {
-    private readonly IDialogService _dialogService = new DialogService();
+    private readonly IDialogueService _dialogueService = new DialogueService();
     internal ExceptionsPageViewModel ViewModel { get; } = new();
 
     public ExceptionsPage()
@@ -55,7 +55,7 @@ public sealed partial class ExceptionsPage : Page
     {
         if (ViewModel.SelectedException is null)
         {
-            await _dialogService.ShowMessageAsync(XamlRoot, "Modify exception", "Select an exception to modify.");
+            await _dialogueService.ShowMessageAsync(XamlRoot, "Modify exception", "Select an exception to modify.");
             return;
         }
 
@@ -68,17 +68,17 @@ public sealed partial class ExceptionsPage : Page
     {
         if (ViewModel.SelectedException is null)
         {
-            await _dialogService.ShowMessageAsync(XamlRoot, "Remove exception", "Select an exception to remove.");
+            await _dialogueService.ShowMessageAsync(XamlRoot, "Remove exception", "Select an exception to remove.");
             return;
         }
 
-        if (await _dialogService.ConfirmAsync(XamlRoot, "Remove exception", "Remove the selected application exception?", "Remove"))
+        if (await _dialogueService.ConfirmAsync(XamlRoot, "Remove exception", "Remove the selected application exception?", "Remove"))
             await ViewModel.RemoveSelectedAsync();
     }
 
     private async void RemoveAllButton_Click(object sender, RoutedEventArgs e)
     {
-        if (await _dialogService.ConfirmAsync(XamlRoot, "Remove all exceptions", "Remove all application exceptions?", "Remove all"))
+        if (await _dialogueService.ConfirmAsync(XamlRoot, "Remove all exceptions", "Remove all application exceptions?", "Remove all"))
             await ViewModel.RemoveAllAsync();
     }
 
