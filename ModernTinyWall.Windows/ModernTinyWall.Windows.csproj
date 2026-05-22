@@ -33,6 +33,5 @@
   </ItemGroup>
   <ItemGroup>
 	<ProjectReference Include="..\ModernTinyWall.Utilities\ModernTinyWall.Utilities.csproj" />
-	<ProjectReference Include="..\pylorak.Utilities\ModernTinyWall.Utilities.csproj" />
   </ItemGroup>
 </Project>

@@ -64,10 +64,6 @@
 	<PackageReference Include="System.ServiceProcess.ServiceController" Version="11.0.0-preview.4.26230.115" />
 	<PackageReference Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
 	<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
-	<ProjectReference Include="..\ModernTinyWall.Utilities\ModernTinyWall.Utilities.csproj" />
-	<ProjectReference Include="..\ModernTinyWall.Windows.Services\ModernTinyWall.Windows.Services.csproj" />
-	<ProjectReference Include="..\ModernTinyWall.Windows.WFP\ModernTinyWall.Windows.WFP.csproj" />
-	<ProjectReference Include="..\ModernTinyWall.Windows\ModernTinyWall.Windows.csproj" />
 
 	<Reference Include="Interop.NetFwTypeLib">
 	  <HintPath>Interop\Interop.NetFwTypeLib.dll</HintPath>

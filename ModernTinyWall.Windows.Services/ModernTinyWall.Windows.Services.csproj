@@ -24,6 +24,7 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\ModernTinyWall.Utilities\ModernTinyWall.Utilities.csproj" />
+	<ProjectReference Include="..\ModernTinyWall.Windows\ModernTinyWall.Windows.csproj" />
 	<PackageReference Include="System.ServiceProcess.ServiceController" Version="11.0.0-preview.4.26230.115" />
   </ItemGroup>
 

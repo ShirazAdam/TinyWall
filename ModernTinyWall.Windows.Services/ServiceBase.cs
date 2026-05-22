@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
 
 namespace ModernTinyWall.Windows.Services
 {
