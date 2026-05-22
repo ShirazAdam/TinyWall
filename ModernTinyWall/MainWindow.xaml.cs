@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
 using ModernTinyWall.Views;
 using System;
+using System.Threading.Tasks;
 using WinRT.Interop;
 
 namespace ModernTinyWall;
@@ -10,6 +11,7 @@ namespace ModernTinyWall;
 public sealed partial class MainWindow : Window
 {
     private readonly ITrayIconService _trayIconService = new TrayIconService();
+    private readonly IFirewallModeService _firewallModeService = new FirewallModeService();
 
     public MainWindow()
     {
@@ -27,7 +29,7 @@ public sealed partial class MainWindow : Window
         _trayIconService.Dispose();
     }
 
-    private void TrayIconService_CommandInvoked(object? sender, TrayCommand command)
+    private async void TrayIconService_CommandInvoked(object? sender, TrayCommand command)
     {
         switch (command.Id)
         {
@@ -41,11 +43,19 @@ public sealed partial class MainWindow : Window
                 NavigateTo(typeof(ConnectionsPage));
                 break;
             case "normal":
+                await SetFirewallModeAsync(Models.ModernFirewallMode.Normal);
+                break;
             case "allowOutgoing":
+                await SetFirewallModeAsync(Models.ModernFirewallMode.AllowOutgoing);
+                break;
             case "blockAll":
+                await SetFirewallModeAsync(Models.ModernFirewallMode.BlockAll);
+                break;
             case "disabled":
+                await SetFirewallModeAsync(Models.ModernFirewallMode.Disabled);
+                break;
             case "learning":
-                NavigateTo(typeof(OverviewPage));
+                await SetFirewallModeAsync(Models.ModernFirewallMode.Learning);
                 break;
             case "exit":
                 Close();
@@ -78,5 +88,12 @@ public sealed partial class MainWindow : Window
     {
         if (ContentFrame.CurrentSourcePageType != pageType)
             ContentFrame.Navigate(pageType);
+    }
+
+    private async Task SetFirewallModeAsync(Models.ModernFirewallMode mode)
+    {
+        var result = await _firewallModeService.SetModeAsync(mode);
+        _trayIconService.SetStatus(result.Message);
+        NavigateTo(typeof(OverviewPage));
     }
 }

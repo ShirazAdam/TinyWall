@@ -10,6 +10,7 @@ internal interface ITrayIconService : IDisposable
     void Initialise(IntPtr windowHandle);
     void SetStatus(string tooltip);
     IReadOnlyList<TrayCommand> GetCommands();
+    void InvokeCommand(string commandId);
 }
 
 internal sealed record TrayCommand(string Id, string DisplayName);

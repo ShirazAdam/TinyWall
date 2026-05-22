@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace ModernTinyWall.Services;
@@ -52,6 +53,13 @@ internal sealed class TrayIconService : ITrayIconService
             new TrayCommand("learning", "Learning"),
             new TrayCommand("exit", "Exit")
         ];
+    }
+
+    public void InvokeCommand(string commandId)
+    {
+        var command = GetCommands().FirstOrDefault(command => command.Id == commandId);
+        if (command is not null)
+            CommandInvoked?.Invoke(this, command);
     }
 
     public void Dispose()
