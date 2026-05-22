@@ -18,4 +18,14 @@ public sealed partial class SettingsPage : Page
     {
         await ViewModel.LoadAsync();
     }
+
+    private async void ApplyButton_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.ApplyAsync();
+    }
+
+    private async void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.LoadAsync();
+    }
 }

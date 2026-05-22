@@ -39,7 +39,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
                                         <TextBlock Grid.Column="1" Text="{x:Bind Description}" TextWrapping="Wrap" />
-                                        <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsEnabled, Mode=OneWay}" />
+                                        <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsEnabled, Mode=TwoWay}" IsEnabled="{x:Bind IsEditable}" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -50,8 +50,8 @@
         </ListView>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Apply" />
-            <Button Content="Cancel" />
+            <Button Content="Apply" Click="ApplyButton_Click" />
+            <Button Content="Cancel" Click="CancelButton_Click" />
         </StackPanel>
     </Grid>
 </Page>

@@ -82,6 +82,28 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public async Task ApplyAsync()
+    {
+        IsLoading = true;
+        StatusMessage = "Applying settings...";
+
+        try
+        {
+            var result = await _settingsService.ApplySettingsAsync(Sections);
+            StatusMessage = result.Message;
+            if (result.Success)
+                await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Could not apply settings: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

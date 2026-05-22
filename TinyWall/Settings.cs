@@ -108,7 +108,7 @@ namespace pylorak.TinyWall
 
         internal static string FilePath => Path.Combine(UserDataPath, "ControllerConfig");
 
-        internal void Save()
+        public void Save()
         {
             try
             {
@@ -120,7 +120,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        internal static ControllerSettings Load()
+        public static ControllerSettings Load()
         {
             try
             {
