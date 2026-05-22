@@ -8,10 +8,17 @@ namespace ModernTinyWall.Services;
 internal sealed class MaintenanceService : IMaintenanceService
 {
     private readonly Controller _controller = new("TinyWallController");
+    private readonly IUpdateService _updateService = new UpdateService();
 
     public Task<MaintenanceResult> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new MaintenanceResult(false, "The WinUI update workflow is not yet connected. Use the existing TinyWall updater until this workflow is fully migrated."));
+        return CheckForUpdatesCoreAsync(cancellationToken);
+    }
+
+    private async Task<MaintenanceResult> CheckForUpdatesCoreAsync(CancellationToken cancellationToken)
+    {
+        var result = await _updateService.CheckForUpdatesAsync(cancellationToken).ConfigureAwait(false);
+        return new MaintenanceResult(result.Success, result.Message);
     }
 
     public Task<MaintenanceResult> ImportSettingsAsync(CancellationToken cancellationToken = default)
