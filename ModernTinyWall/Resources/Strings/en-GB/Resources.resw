@@ -51,4 +51,37 @@
   <data name="RemoteAddress" xml:space="preserve">
 	<value>Remote address</value>
   </data>
+  <data name="Settings" xml:space="preserve">
+	<value>Settings</value>
+  </data>
+  <data name="ApplicationExceptions" xml:space="preserve">
+	<value>Application exceptions</value>
+  </data>
+  <data name="SearchApplicationExceptions" xml:space="preserve">
+	<value>Search application exceptions</value>
+  </data>
+  <data name="RemoveException" xml:space="preserve">
+	<value>Remove exception</value>
+  </data>
+  <data name="RemoveAllExceptions" xml:space="preserve">
+	<value>Remove all exceptions</value>
+  </data>
+  <data name="AddExceptionUnavailable" xml:space="preserve">
+	<value>The WinUI add-exception editor is not yet available. Use the existing TinyWall settings window for creating new exceptions until this workflow is fully migrated.</value>
+  </data>
+  <data name="ModifyExceptionUnavailable" xml:space="preserve">
+	<value>The WinUI modify-exception editor is not yet available. Use the existing TinyWall settings window for editing exceptions until this workflow is fully migrated.</value>
+  </data>
+  <data name="NormalProtection" xml:space="preserve">
+	<value>Normal protection</value>
+  </data>
+  <data name="AllowOutgoing" xml:space="preserve">
+	<value>Allow outgoing</value>
+  </data>
+  <data name="BlockAll" xml:space="preserve">
+	<value>Block all</value>
+  </data>
+  <data name="Learning" xml:space="preserve">
+	<value>Learning</value>
+  </data>
 </root>

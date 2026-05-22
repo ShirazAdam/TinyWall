@@ -11,3 +11,6 @@ dotnet_style_prefer_collection_expression = true:info
 csharp_style_prefer_unbound_generic_type_in_nameof = true:info
 csharp_style_prefer_implicit_lambda = true:info
 csharp_style_prefer_simplified_property_accessor = true:info
+
+# Interop modernisation preferences
+dotnet_diagnostic.SYSLIB1054.severity = warning

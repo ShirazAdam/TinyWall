@@ -66,8 +66,8 @@
         </ListView>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Add" />
-            <Button Content="Modify" />
+            <Button Content="Add" Click="AddButton_Click" />
+            <Button Content="Modify" Click="ModifyButton_Click" />
             <Button Content="Remove" Click="RemoveButton_Click" />
             <Button Content="Remove all" Click="RemoveAllButton_Click" />
         </StackPanel>
