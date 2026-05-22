@@ -1,8 +1,8 @@
-﻿using System;
-using pylorak.Windows;
+using System;
+using ModernTinyWall.Windows;
 using Microsoft.Win32;
 
-namespace pylorak.TinyWall.Parser
+namespace ModernTinyWall.TinyWall.Parser
 {
     public sealed class ParserRegistryVariable : ParserVariable
     {

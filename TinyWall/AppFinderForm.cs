@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal sealed partial class AppFinderForm : Form
     {

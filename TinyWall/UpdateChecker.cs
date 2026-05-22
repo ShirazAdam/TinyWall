@@ -1,5 +1,5 @@
-﻿using Microsoft.Samples;
-using pylorak.Windows;
+using Microsoft.Samples;
+using ModernTinyWall.Windows;
 using System;
 using System.Globalization;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
 
     internal class Updater

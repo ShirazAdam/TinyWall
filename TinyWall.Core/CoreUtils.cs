@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace pylorak.TinyWall;
+namespace ModernTinyWall.TinyWall;
 
 internal static class Utils
 {

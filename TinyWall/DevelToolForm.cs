@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Resources;
 using System.Text;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class DevelToolForm : Form
     {

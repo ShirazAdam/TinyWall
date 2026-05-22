@@ -23,10 +23,7 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\TinyWall.Core\TinyWall.Core.csproj" />
-	<ProjectReference Include="..\pylorak.Utilities\pylorak.Utilities.csproj" />
-	<ProjectReference Include="..\pylorak.Windows\pylorak.Windows.csproj" />
-	<ProjectReference Include="..\pylorak.Windows.Services\pylorak.Windows.Services.csproj" />
-	<ProjectReference Include="..\pylorak.Windows.WFP\pylorak.Windows.WFP.csproj" />
+	  <ProjectReference Include="..\ModernTinyWall.Windows.Services\ModernTinyWall.Windows.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

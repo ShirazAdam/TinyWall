@@ -1,8 +1,8 @@
-﻿using pylorak.Utilities;
+using ModernTinyWall.Utilities;
 using System;
 using System.IO;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal class HostsFileManager : Disposable
     {

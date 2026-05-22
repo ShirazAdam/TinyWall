@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using pylorak.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using ModernTinyWall.Utilities;
 using System;
 using System.IO;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     static class Program
     {
@@ -41,7 +41,7 @@ namespace pylorak.TinyWall
             tw.Start([]);
             tw.StartedEvent.WaitOne();
 #else
-            pylorak.Windows.Services.ServiceBase.Run(tw);
+            ModernTinyWall.Windows.Services.ServiceBase.Run(tw);
 #endif
         }
 
@@ -198,7 +198,7 @@ namespace pylorak.TinyWall
                     using (var srv = new TinyWallService())
                     {
 #if !DEBUG
-                        pylorak.Windows.PathMapper.Instance.AutoUpdate = false;
+                        ModernTinyWall.Windows.PathMapper.Instance.AutoUpdate = false;
 #endif
                         StartService(srv);
 #if DEBUG

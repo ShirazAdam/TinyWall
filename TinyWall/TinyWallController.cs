@@ -1,6 +1,6 @@
-﻿using Microsoft.Samples;
-using pylorak.Utilities;
-using pylorak.Windows;
+using Microsoft.Samples;
+using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal sealed class TinyWallController : ApplicationContext
     {

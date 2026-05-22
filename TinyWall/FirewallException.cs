@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     // The default value must have value Zero.
     public enum AppExceptionTimer

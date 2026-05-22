@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using pylorak.Windows;
-using pylorak.TinyWall.Parser;
+using ModernTinyWall.Windows;
+using ModernTinyWall.TinyWall.Parser;
 
-namespace pylorak.TinyWall.DatabaseClasses
+namespace ModernTinyWall.TinyWall.DatabaseClasses
 {
     [DataContract(Namespace = "TinyWall")]
     public sealed class SubjectIdentity : ISerializable<SubjectIdentity>

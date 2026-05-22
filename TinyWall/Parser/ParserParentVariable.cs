@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace pylorak.TinyWall.Parser
+namespace ModernTinyWall.TinyWall.Parser
 {
     public sealed class ParserParentVariable : ParserVariable
     {

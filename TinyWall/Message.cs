@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class TwMessageConverter : PolymorphicJsonConverter<TwMessage>
     {

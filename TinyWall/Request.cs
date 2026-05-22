@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class TwRequest
     {

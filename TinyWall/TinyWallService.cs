@@ -1,8 +1,8 @@
-﻿using pylorak.Utilities;
-using pylorak.Windows;
-using pylorak.Windows.Services;
-using pylorak.Windows.WFP;
-using pylorak.Windows.WFP.Interop;
+using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
+using ModernTinyWall.Windows.Services;
+using ModernTinyWall.Windows.WFP;
+using ModernTinyWall.Windows.WFP.Interop;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public sealed class TinyWallServer : IDisposable
     {

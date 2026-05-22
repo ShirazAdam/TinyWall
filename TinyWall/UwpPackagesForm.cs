@@ -1,4 +1,4 @@
-﻿using pylorak.Windows;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public partial class UwpPackagesForm : Form
     {

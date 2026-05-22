@@ -5,15 +5,9 @@
 	<Nullable>enable</Nullable>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
-	<RootNamespace>pylorak.TinyWall</RootNamespace>
+	<RootNamespace>ModernTinyWall.TinyWall</RootNamespace>
 	<DefineConstants>$(DefineConstants);TINYWALL_CORE</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup>
-	<ProjectReference Include="..\pylorak.Utilities\pylorak.Utilities.csproj" />
-	<ProjectReference Include="..\pylorak.Windows\pylorak.Windows.csproj" />
-	<ProjectReference Include="..\pylorak.Windows.Services\pylorak.Windows.Services.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
 	<PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
@@ -42,5 +36,9 @@
 	<Compile Include="..\TinyWall\UwpPackageList.cs" Link="UwpPackageList.cs" />
 	<Compile Include="..\TinyWall\Parser\*.cs" LinkBase="Parser" />
 	<Compile Include="..\TinyWall\DatabaseClasses\*.cs" LinkBase="DatabaseClasses" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModernTinyWall.Windows\ModernTinyWall.Windows.csproj" />
   </ItemGroup>
 </Project>

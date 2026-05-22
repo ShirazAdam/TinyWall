@@ -1,10 +1,10 @@
-using pylorak.Windows;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 
-namespace pylorak.TinyWall;
+namespace ModernTinyWall.TinyWall;
 
 internal sealed record PathMetadata(string? ImageKey, bool IsNetworkPath, bool CanUsePathIcon, byte[]? IconPng);
 

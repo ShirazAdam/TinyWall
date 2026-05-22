@@ -1,4 +1,4 @@
-﻿using Microsoft.Samples;
+using Microsoft.Samples;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall.DatabaseClasses
+namespace ModernTinyWall.TinyWall.DatabaseClasses
 {
     [DataContract(Namespace = "TinyWall")]
     class AppDatabase : ISerializable<AppDatabase>

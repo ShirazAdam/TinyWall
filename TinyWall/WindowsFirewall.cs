@@ -1,11 +1,11 @@
-﻿using NetFwTypeLib;
-using pylorak.Utilities;
+using NetFwTypeLib;
+using ModernTinyWall.Utilities;
 using System;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     class WindowsFirewall : Disposable
     {

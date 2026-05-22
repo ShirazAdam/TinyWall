@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall.DatabaseClasses
+namespace ModernTinyWall.TinyWall.DatabaseClasses
 {
     [DataContract(Namespace = "TinyWall")]
     public class Application : ISerializable<Application>

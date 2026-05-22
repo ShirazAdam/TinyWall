@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace pylorak.TinyWall.Parser
+namespace ModernTinyWall.TinyWall.Parser
 {
     public static class RecursiveParser
     {

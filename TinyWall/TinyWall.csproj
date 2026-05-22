@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
 	<PlatformTarget>AnyCPU</PlatformTarget>
@@ -11,7 +11,7 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<RootNamespace>pylorak.TinyWall</RootNamespace>
+	<RootNamespace>ModernTinyWall.TinyWall</RootNamespace>
 	<EnableNETAnalyzers>true</EnableNETAnalyzers>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
 	<!-- Used for WinRT access in .Net 4.8, not needed with .NET 5+ -->
@@ -42,15 +42,13 @@
 	<DebugType>full</DebugType>
   </PropertyGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
 
-	<Compile Include="../pylorak.Utilities/*.cs" LinkBase="pylorak.Utilities" />
-	<Compile Include="../pylorak.Windows/*.cs" LinkBase="pylorak.Windows" />
-	<Compile Include="../pylorak.Windows/NetStat/*.cs" LinkBase="pylorak.Windows.NetStat" />
-	<Compile Include="../pylorak.Windows/TaskDialogue/*.cs" LinkBase="pylorak.Windows.TaskDialogue" />
-	<Compile Include="../pylorak.Windows.Services/*.cs" LinkBase="pylorak.Windows.Services" />
-	<Compile Include="../pylorak.Windows.WFP/*.cs" LinkBase="pylorak.Windows.WFP" />
+	<Compile Include="../ModernTinyWall.Utilities/*.cs" LinkBase="ModernTinyWall.Utilities" />
+	<Compile Include="../ModernTinyWall.Windows/*.cs" LinkBase="ModernTinyWall.Windows" />
+	<Compile Include="../ModernTinyWall.Windows/NetStat/*.cs" LinkBase="ModernTinyWall.Windows.NetStat" />
+	<Compile Include="../ModernTinyWall.Windows/TaskDialogue/*.cs" LinkBase="ModernTinyWall.Windows.TaskDialogue" />
+	<Compile Include="../ModernTinyWall.Windows.Services/*.cs" LinkBase="ModernTinyWall.Windows.Services" />
+	<Compile Include="../ModernTinyWall.Windows.WFP/*.cs" LinkBase="ModernTinyWall.Windows.WFP" />
 	<Compile Remove="Installer\*.cs" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
@@ -66,6 +64,10 @@
 	<PackageReference Include="System.ServiceProcess.ServiceController" Version="11.0.0-preview.4.26230.115" />
 	<PackageReference Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
 	<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+	<ProjectReference Include="..\ModernTinyWall.Utilities\ModernTinyWall.Utilities.csproj" />
+	<ProjectReference Include="..\ModernTinyWall.Windows.Services\ModernTinyWall.Windows.Services.csproj" />
+	<ProjectReference Include="..\ModernTinyWall.Windows.WFP\ModernTinyWall.Windows.WFP.csproj" />
+	<ProjectReference Include="..\ModernTinyWall.Windows\ModernTinyWall.Windows.csproj" />
 
 	<Reference Include="Interop.NetFwTypeLib">
 	  <HintPath>Interop\Interop.NetFwTypeLib.dll</HintPath>

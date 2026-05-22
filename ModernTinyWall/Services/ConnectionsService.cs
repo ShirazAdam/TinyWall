@@ -1,5 +1,5 @@
-using pylorak.TinyWall;
-using pylorak.Windows.NetStat;
+using ModernTinyWall.TinyWall;
+using ModernTinyWall.Windows.NetStat;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

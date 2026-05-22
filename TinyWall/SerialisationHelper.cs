@@ -1,4 +1,4 @@
-﻿using pylorak.Utilities;
+using ModernTinyWall.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public interface ISerializable<T>
     {

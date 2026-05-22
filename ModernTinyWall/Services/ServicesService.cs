@@ -1,5 +1,5 @@
 using Microsoft.Win32;
-using pylorak.TinyWall;
+using ModernTinyWall.TinyWall;
 using System;
 using System.Collections.Generic;
 using System.IO;

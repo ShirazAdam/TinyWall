@@ -1,5 +1,5 @@
 using ModernTinyWall.Models;
-using pylorak.TinyWall;
+using ModernTinyWall.TinyWall;
 using System;
 using System.Collections.Generic;
 using System.Linq;

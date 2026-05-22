@@ -42,3 +42,11 @@ artifacts/
 *.DotSettings
 /TinyWall.Core/obj/
 /TinyWall.Core/bin/
+/ModernTinyWall.Utilities/bin/
+/ModernTinyWall.Utilities/obj/
+/ModernTinyWall.Windows/bin/
+/ModernTinyWall.Windows/obj/
+/ModernTinyWall.Windows.Services/bin/
+/ModernTinyWall.Windows.Services/obj/
+/ModernTinyWall.Windows.WFP/bin/
+/ModernTinyWall.Windows.WFP/obj/

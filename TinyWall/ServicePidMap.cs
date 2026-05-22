@@ -1,8 +1,8 @@
-﻿using pylorak.Windows.Services;
+using ModernTinyWall.Windows.Services;
 using System.Collections.Generic;
 using System.ServiceProcess;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class ServicePidMap
     {

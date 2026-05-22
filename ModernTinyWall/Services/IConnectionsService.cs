@@ -1,4 +1,4 @@
-using pylorak.TinyWall;
+using ModernTinyWall.TinyWall;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

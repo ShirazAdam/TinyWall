@@ -1,14 +1,14 @@
-﻿using pylorak.Windows;
-using pylorak.Windows.Services;
-using pylorak.Windows.WFP;
-using pylorak.Windows.WFP.Interop;
+using ModernTinyWall.Windows;
+using ModernTinyWall.Windows.Services;
+using ModernTinyWall.Windows.WFP;
+using ModernTinyWall.Windows.WFP.Interop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceProcess;
 using TaskScheduler;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal static class TinyWallDoctor
     {

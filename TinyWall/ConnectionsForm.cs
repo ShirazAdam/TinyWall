@@ -1,5 +1,5 @@
-﻿using pylorak.Windows;
-using pylorak.Windows.NetStat;
+using ModernTinyWall.Windows;
+using ModernTinyWall.Windows.NetStat;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class ConnectionsForm : Form
     {

@@ -1,10 +1,10 @@
-﻿using pylorak.Utilities;
+using ModernTinyWall.Utilities;
 using System;
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal delegate TwMessage PipeDataReceived(TwMessage req);
 
@@ -96,7 +96,7 @@ namespace pylorak.TinyWall
 
             string clientFilePath = Utils.GetPathOfProcess((uint)clientPid);
 
-            return clientFilePath.Equals(pylorak.Windows.ProcessManager.ExecutablePath, StringComparison.OrdinalIgnoreCase);
+            return clientFilePath.Equals(ModernTinyWall.Windows.ProcessManager.ExecutablePath, StringComparison.OrdinalIgnoreCase);
 #else
             return true;
 #endif

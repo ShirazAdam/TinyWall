@@ -1,12 +1,12 @@
-﻿using pylorak.TinyWall.Parser;
-using pylorak.Windows;
+using ModernTinyWall.TinyWall.Parser;
+using ModernTinyWall.Windows;
 using System;
 using System.Runtime.Serialization;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class ExceptionSubjectConverter : PolymorphicJsonConverter<ExceptionSubject>
     {

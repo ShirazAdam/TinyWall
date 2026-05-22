@@ -1,5 +1,5 @@
-using pylorak.TinyWall;
-using pylorak.Windows.Services;
+using ModernTinyWall.TinyWall;
+using ModernTinyWall.Windows.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

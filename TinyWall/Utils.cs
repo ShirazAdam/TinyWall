@@ -1,5 +1,5 @@
 using Microsoft.Samples;
-using pylorak.Windows;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal static class ExtensionMethods
     {

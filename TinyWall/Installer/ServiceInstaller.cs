@@ -1,10 +1,10 @@
-﻿using pylorak.Windows.Services;
+using ModernTinyWall.Windows.Services;
 using System;
 using System.Collections;
 using System.Configuration.Install;
 using System.ServiceProcess;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal class ServiceInstaller : Installer
     {

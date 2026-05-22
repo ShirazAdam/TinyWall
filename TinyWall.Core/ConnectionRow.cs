@@ -1,4 +1,4 @@
-namespace pylorak.TinyWall;
+namespace ModernTinyWall.TinyWall;
 
 public sealed record ConnectionRow(
     string Application,

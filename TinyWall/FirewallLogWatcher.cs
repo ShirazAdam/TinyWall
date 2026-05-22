@@ -1,12 +1,12 @@
 using Microsoft.Samples;
-using pylorak.Utilities;
-using pylorak.Windows;
+using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
 using System;
 using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal class FirewallLogWatcher : Disposable
     {
