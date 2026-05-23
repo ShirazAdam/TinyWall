@@ -16,6 +16,7 @@ internal sealed class SettingsService : ISettingsService
     private const string EnableBlocklistsKey = "service.blocklists.enableBlocklists";
     private const string EnableHostsBlocklistKey = "service.blocklists.enableHostsBlocklist";
     private const string EnablePortBlocklistKey = "service.blocklists.enablePortBlocklist";
+    private const string AllowLocalSubnetKey = "service.activeProfile.allowLocalSubnet";
     private const string AskForExceptionDetailsKey = "controller.askForExceptionDetails";
     private const string EnableGlobalHotkeysKey = "controller.globalHotkeys";
 
@@ -87,14 +88,16 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(LockHostsFileKey, "Lock hosts file", "Protect the hosts file from unwanted changes.", serviceConfig.LockHostsFile, true),
                     new SettingsItem(EnableBlocklistsKey, "Enable blocklists", "Enable configured hosts and port blocklists.", serviceConfig.Blocklists.EnableBlocklists, true),
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", serviceConfig.Blocklists.EnableHostsBlocklist, true),
-                    new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", serviceConfig.Blocklists.EnablePortBlocklist, true)
+                    new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", serviceConfig.Blocklists.EnablePortBlocklist, true),
+                    new SettingsItem(AllowLocalSubnetKey, "Allow local subnet", "Allow local subnet traffic for the active profile.", serviceConfig.ActiveProfile.AllowLocalSubnet, true)
                 ]),
             new SettingsSection(
                 "Application exceptions",
                 "Application, service, package and global exceptions migrated from the WinForms Applications tab.",
                 [
                     new SettingsItem("service.activeProfile.appExceptions", "Configured exceptions", $"{serviceConfig.ActiveProfile.AppExceptions.Count} exception{(serviceConfig.ActiveProfile.AppExceptions.Count == 1 ? string.Empty : "s")} configured.", serviceConfig.ActiveProfile.AppExceptions.Count > 0, false),
-                    new SettingsItem("service.activeProfile.specialExceptions", "Special profiles", $"{serviceConfig.ActiveProfile.SpecialExceptions.Count} special profile{(serviceConfig.ActiveProfile.SpecialExceptions.Count == 1 ? string.Empty : "s")} enabled.", serviceConfig.ActiveProfile.SpecialExceptions.Count > 0, false)
+                    new SettingsItem("service.activeProfile.specialExceptions", "Special profiles", $"{serviceConfig.ActiveProfile.SpecialExceptions.Count} special profile{(serviceConfig.ActiveProfile.SpecialExceptions.Count == 1 ? string.Empty : "s")} enabled.", serviceConfig.ActiveProfile.SpecialExceptions.Count > 0, false),
+                    new SettingsItem("service.activeProfile.specialExceptions.recommended", "Recommended profiles", "Recommended special profiles are surfaced in the legacy settings and preserved when importing or exporting settings.", serviceConfig.ActiveProfile.SpecialExceptions.Count > 0, false)
                 ]),
             new SettingsSection(
                 "Maintenance and about",
@@ -129,7 +132,8 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(LockHostsFileKey, "Lock hosts file", "Protect the hosts file from unwanted changes.", false, false),
                     new SettingsItem(EnableBlocklistsKey, "Enable blocklists", "Enable configured hosts and port blocklists.", false, false),
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", false, false),
-                    new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", false, false)
+                    new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", false, false),
+                    new SettingsItem(AllowLocalSubnetKey, "Allow local subnet", "Allow local subnet traffic for the active profile.", false, false)
                 ])
         ];
     }
@@ -157,6 +161,9 @@ internal sealed class SettingsService : ISettingsService
                     break;
                 case EnablePortBlocklistKey:
                     serviceConfig.Blocklists.EnablePortBlocklist = item.IsEnabled;
+                    break;
+                case AllowLocalSubnetKey:
+                    serviceConfig.ActiveProfile.AllowLocalSubnet = item.IsEnabled;
                     break;
             }
         }

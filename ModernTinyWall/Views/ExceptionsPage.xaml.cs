@@ -4,6 +4,7 @@ using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
 using System.Threading.Tasks;
+using WinRT.Interop;
 
 namespace ModernTinyWall.Views;
 
@@ -46,6 +47,35 @@ public sealed partial class ExceptionsPage : Page
 
     private async void AddButton_Click(object sender, RoutedEventArgs e)
     {
+        var sourceType = await ShowAddSourceDialogAsync();
+        if (sourceType == "Executable")
+        {
+            var executablePath = FilePickerService.PickOpenFile(WindowNative.GetWindowHandle(App.MainWindow), "Choose executable");
+            if (executablePath is not null)
+            {
+                await ViewModel.AddExecutableExceptionsAsync(executablePath);
+                return;
+            }
+        }
+        else if (sourceType == "Service")
+        {
+            var serviceRequest = await ShowServiceExceptionDialogAsync();
+            if (serviceRequest is not null)
+            {
+                await ViewModel.AddServiceExceptionAsync(serviceRequest.Value.ExecutablePath, serviceRequest.Value.ServiceName);
+                return;
+            }
+        }
+        else if (sourceType == "Package")
+        {
+            var packageRequest = await ShowPackageExceptionDialogAsync();
+            if (packageRequest is not null)
+            {
+                await ViewModel.AddPackageExceptionAsync(packageRequest.Value.PackageSid, packageRequest.Value.DisplayName, packageRequest.Value.PublisherId, packageRequest.Value.Publisher);
+                return;
+            }
+        }
+
         var request = await ShowExceptionEditorAsync("Add exception");
         if (request is not null)
             await ViewModel.AddExceptionAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy);
@@ -143,5 +173,99 @@ public sealed partial class ExceptionsPage : Page
             policyBox.SelectedItem as string ?? "Unrestricted");
     }
 
+    private async Task<string> ShowAddSourceDialogAsync()
+    {
+        var sourceType = new ComboBox
+        {
+            Header = "Source",
+            ItemsSource = new[] { "Executable", "Service", "Package", "Manual" },
+            SelectedItem = "Executable"
+        };
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Add exception",
+            Content = sourceType,
+            PrimaryButtonText = "Continue",
+            CloseButtonText = "Cancel"
+        };
+
+        return await ShowDialogAsync(dialog) == ContentDialogResult.Primary
+            ? sourceType.SelectedItem as string ?? "Manual"
+            : "Manual";
+    }
+
+    private async Task<ServiceExceptionRequest?> ShowServiceExceptionDialogAsync()
+    {
+        var serviceNameBox = new TextBox { Header = "Service name" };
+        var executablePathBox = new TextBox { Header = "Executable path" };
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(serviceNameBox);
+        panel.Children.Add(executablePathBox);
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Add service exception",
+            Content = panel,
+            PrimaryButtonText = "Add",
+            CloseButtonText = "Cancel"
+        };
+
+        if (await ShowDialogAsync(dialog) != ContentDialogResult.Primary)
+            return null;
+
+        return new ServiceExceptionRequest(executablePathBox.Text, serviceNameBox.Text);
+    }
+
+    private async Task<PackageExceptionRequest?> ShowPackageExceptionDialogAsync()
+    {
+        var packageSidBox = new TextBox { Header = "Package SID" };
+        var displayNameBox = new TextBox { Header = "Display name" };
+        var publisherIdBox = new TextBox { Header = "Publisher ID" };
+        var publisherBox = new TextBox { Header = "Publisher" };
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(packageSidBox);
+        panel.Children.Add(displayNameBox);
+        panel.Children.Add(publisherIdBox);
+        panel.Children.Add(publisherBox);
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Add package exception",
+            Content = panel,
+            PrimaryButtonText = "Add",
+            CloseButtonText = "Cancel"
+        };
+
+        if (await ShowDialogAsync(dialog) != ContentDialogResult.Primary)
+            return null;
+
+        return new PackageExceptionRequest(packageSidBox.Text, displayNameBox.Text, publisherIdBox.Text, publisherBox.Text);
+    }
+
+    private static Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
+    {
+        var completion = new TaskCompletionSource<ContentDialogResult>();
+        var operation = dialog.ShowAsync();
+        operation.Completed = (asyncInfo, _) =>
+        {
+            try
+            {
+                completion.TrySetResult(asyncInfo.GetResults());
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+        };
+
+        return completion.Task;
+    }
+
     private readonly record struct ExceptionEditorRequest(string SubjectType, string Name, string Details, string Policy);
+    private readonly record struct ServiceExceptionRequest(string ExecutablePath, string ServiceName);
+    private readonly record struct PackageExceptionRequest(string PackageSid, string DisplayName, string PublisherId, string Publisher);
 }

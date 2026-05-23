@@ -14,7 +14,7 @@
 	<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 	<Compile Include="..\TinyWall\PolymorphicJsonConverter.cs" Link="PolymorphicJsonConverter.cs" />
 	<Compile Include="..\TinyWall\SerialisationHelper.cs" Link="SerialisationHelper.cs" />
 	<Compile Include="..\TinyWall\Hasher.cs" Link="Hasher.cs" />

@@ -1,8 +1,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
 using System.Threading.Tasks;
+using WinRT.Interop;
 
 namespace ModernTinyWall.Views;
 
@@ -53,12 +55,16 @@ public sealed partial class SettingsPage : Page
 
     private async void ImportButton_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.ImportSettingsAsync();
+        var filePath = FilePickerService.PickOpenFile(WindowNative.GetWindowHandle(App.MainWindow), "Import TinyWall settings");
+        if (filePath is not null)
+            await ViewModel.ImportSettingsAsync(filePath);
     }
 
     private async void ExportButton_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.ExportSettingsAsync();
+        var filePath = FilePickerService.PickSaveFile(WindowNative.GetWindowHandle(App.MainWindow), "Export TinyWall settings", "TinyWall-settings.tws");
+        if (filePath is not null)
+            await ViewModel.ExportSettingsAsync(filePath);
     }
 
     private async void UpdateButton_Click(object sender, RoutedEventArgs e)

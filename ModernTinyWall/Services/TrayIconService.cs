@@ -46,11 +46,20 @@ internal sealed partial class TrayIconService : ITrayIconService
             new TrayCommand("overview", "Overview"),
             new TrayCommand("settings", "Settings"),
             new TrayCommand("connections", "Connections"),
+            new TrayCommand("processes", "Processes"),
+            new TrayCommand("services", "Services"),
+            new TrayCommand("packages", "UWP packages"),
+            new TrayCommand("exceptions", "Application exceptions"),
             new TrayCommand("normal", "Normal protection"),
             new TrayCommand("allowOutgoing", "Allow outgoing"),
             new TrayCommand("blockAll", "Block all"),
             new TrayCommand("disabled", "Disabled"),
             new TrayCommand("learning", "Learning"),
+            new TrayCommand("lock", "Lock"),
+            new TrayCommand("unlock", "Unlock"),
+            new TrayCommand("elevate", "Run elevated"),
+            new TrayCommand("allowLocalSubnet", "Allow local subnet"),
+            new TrayCommand("hostsBlocklist", "Enable hosts blocklist"),
             new TrayCommand("exit", "Exit")
         ];
     }

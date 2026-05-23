@@ -12,6 +12,7 @@ public sealed partial class MainWindow : Window
 {
     private readonly ITrayIconService _trayIconService = new TrayIconService();
     private readonly IFirewallModeService _firewallModeService = new FirewallModeService();
+    private readonly IControllerCommandService _controllerCommandService = new ControllerCommandService();
 
     public MainWindow()
     {
@@ -42,6 +43,18 @@ public sealed partial class MainWindow : Window
             case "connections":
                 NavigateTo(typeof(ConnectionsPage));
                 break;
+            case "processes":
+                NavigateTo(typeof(ProcessesPage));
+                break;
+            case "services":
+                NavigateTo(typeof(ServicesPage));
+                break;
+            case "packages":
+                NavigateTo(typeof(PackagesPage));
+                break;
+            case "exceptions":
+                NavigateTo(typeof(ExceptionsPage));
+                break;
             case "normal":
                 await SetFirewallModeAsync(Models.ModernFirewallMode.Normal);
                 break;
@@ -56,6 +69,21 @@ public sealed partial class MainWindow : Window
                 break;
             case "learning":
                 await SetFirewallModeAsync(Models.ModernFirewallMode.Learning);
+                break;
+            case "lock":
+                await SetCommandStatusAsync(_controllerCommandService.LockAsync());
+                break;
+            case "unlock":
+                await UnlockAsync();
+                break;
+            case "elevate":
+                await SetCommandStatusAsync(_controllerCommandService.ElevateAsync());
+                break;
+            case "allowLocalSubnet":
+                await SetCommandStatusAsync(_controllerCommandService.SetAllowLocalSubnetAsync(true));
+                break;
+            case "hostsBlocklist":
+                await SetCommandStatusAsync(_controllerCommandService.SetHostsBlocklistAsync(true));
                 break;
             case "exit":
                 Close();
@@ -95,5 +123,46 @@ public sealed partial class MainWindow : Window
         var result = await _firewallModeService.SetModeAsync(mode);
         _trayIconService.SetStatus(result.Message);
         NavigateTo(typeof(OverviewPage));
+    }
+
+    private async Task UnlockAsync()
+    {
+        var passwordBox = new PasswordBox { Header = "Password" };
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Unlock TinyWall",
+            Content = passwordBox,
+            PrimaryButtonText = "Unlock",
+            CloseButtonText = "Cancel"
+        };
+
+        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
+            await SetCommandStatusAsync(_controllerCommandService.UnlockAsync(passwordBox.Password));
+    }
+
+    private async Task SetCommandStatusAsync(Task<CommandResult> commandTask)
+    {
+        var result = await commandTask;
+        _trayIconService.SetStatus(result.Message);
+    }
+
+    private static Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
+    {
+        var completion = new TaskCompletionSource<ContentDialogResult>();
+        var operation = dialog.ShowAsync();
+        operation.Completed = (asyncInfo, _) =>
+        {
+            try
+            {
+                completion.TrySetResult(asyncInfo.GetResults());
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+        };
+
+        return completion.Task;
     }
 }

@@ -128,15 +128,17 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
         StatusMessage = result.Message;
     }
 
-    public async Task ImportSettingsAsync()
+    public async Task ImportSettingsAsync(string filePath)
     {
-        var result = await _maintenanceService.ImportSettingsAsync();
+        var result = await _maintenanceService.ImportSettingsAsync(filePath);
         StatusMessage = result.Message;
+        if (result.Success)
+            await LoadAsync();
     }
 
-    public async Task ExportSettingsAsync()
+    public async Task ExportSettingsAsync(string filePath)
     {
-        var result = await _maintenanceService.ExportSettingsAsync();
+        var result = await _maintenanceService.ExportSettingsAsync(filePath);
         StatusMessage = result.Message;
     }
 

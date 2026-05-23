@@ -1,1 +1,14 @@
-<Page x:Class="ModernTinyWall.Views.AboutPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Grid Padding="24"><TextBlock Text="Updates and about" FontSize="28" FontWeight="SemiBold" /></Grid></Page>
+<Page
+    x:Class="ModernTinyWall.Views.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Padding="24" Spacing="12">
+        <TextBlock Text="Updates and about" FontSize="28" FontWeight="SemiBold" />
+        <TextBlock Text="ModernTinyWall is the WinUI migration client for TinyWall." TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Licence" Click="LicenceButton_Click" />
+            <Button Content="Attributions" Click="AttributionsButton_Click" />
+            <Button Content="GitHub" Click="GitHubButton_Click" />
+        </StackPanel>
+    </StackPanel>
+</Page>

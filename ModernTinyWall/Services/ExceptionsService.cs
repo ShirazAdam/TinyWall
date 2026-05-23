@@ -21,6 +21,30 @@ internal sealed class ExceptionsService : IExceptionsService
         return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Add(CreateException(request)), "Exception added.", cancellationToken), cancellationToken);
     }
 
+    public Task<ExceptionMutationResult> AddExecutableExceptionsAsync(string executablePath, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => MutateExceptions(config =>
+        {
+            config.ActiveProfile.AddExceptions(AppExceptionFactory.CreateForExecutable(executablePath));
+        }, "Executable exceptions added.", cancellationToken), cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> AddServiceExceptionAsync(string executablePath, string serviceName, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => MutateExceptions(config =>
+        {
+            config.ActiveProfile.AddExceptions(AppExceptionFactory.CreateForService(executablePath, serviceName));
+        }, "Service exception added.", cancellationToken), cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> AddPackageExceptionAsync(string packageSid, string displayName, string publisherId, string publisher, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => MutateExceptions(config =>
+        {
+            config.ActiveProfile.AddExceptions(AppExceptionFactory.CreateForPackage(packageSid, displayName, publisherId, publisher));
+        }, "Package exception added.", cancellationToken), cancellationToken);
+    }
+
     public Task<ExceptionMutationResult> UpdateExceptionAsync(Guid exceptionId, ExceptionEditRequest request, CancellationToken cancellationToken = default)
     {
         return Task.Run(() => MutateExceptions(config =>

@@ -40,6 +40,25 @@ internal sealed class UpdateService : IUpdateService
         }
     }
 
+    public async Task<UpdateDownloadResult> DownloadUpdateAsync(string downloadUrl, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out var updateUri))
+                return new UpdateDownloadResult(false, "The update download URL is invalid.");
+
+            var targetFile = Path.Combine(Path.GetTempPath(), $"TinyWall-update-{Guid.NewGuid():N}.msi");
+            await using var downloadStream = await HttpClient.GetStreamAsync(updateUri, cancellationToken).ConfigureAwait(false);
+            await using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
+            await downloadStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
+            return new UpdateDownloadResult(true, $"Update downloaded to {targetFile}.", targetFile);
+        }
+        catch (Exception ex)
+        {
+            return new UpdateDownloadResult(false, $"Could not download update: {ex.Message}");
+        }
+    }
+
     private static async Task<UpdateDescriptor> GetDescriptorAsync(CancellationToken cancellationToken)
     {
         var url = string.Format(CultureInfo.InvariantCulture, UpdateDescriptorUrl, UpdaterVersion);

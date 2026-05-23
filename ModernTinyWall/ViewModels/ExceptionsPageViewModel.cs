@@ -20,6 +20,54 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     {
     }
 
+    public async Task AddServiceExceptionAsync(string executablePath, string serviceName)
+    {
+        IsRefreshing = true;
+        try
+        {
+            var result = await _exceptionsService.AddServiceExceptionAsync(executablePath, serviceName);
+            StatusMessage = result.Message;
+            if (result.Success)
+                await RefreshAsync(SearchText);
+        }
+        finally
+        {
+            IsRefreshing = false;
+        }
+    }
+
+    public async Task AddPackageExceptionAsync(string packageSid, string displayName, string publisherId, string publisher)
+    {
+        IsRefreshing = true;
+        try
+        {
+            var result = await _exceptionsService.AddPackageExceptionAsync(packageSid, displayName, publisherId, publisher);
+            StatusMessage = result.Message;
+            if (result.Success)
+                await RefreshAsync(SearchText);
+        }
+        finally
+        {
+            IsRefreshing = false;
+        }
+    }
+
+    public async Task AddExecutableExceptionsAsync(string executablePath)
+    {
+        IsRefreshing = true;
+        try
+        {
+            var result = await _exceptionsService.AddExecutableExceptionsAsync(executablePath);
+            StatusMessage = result.Message;
+            if (result.Success)
+                await RefreshAsync(SearchText);
+        }
+        finally
+        {
+            IsRefreshing = false;
+        }
+    }
+
     internal ExceptionsPageViewModel(IExceptionsService exceptionsService)
     {
         _exceptionsService = exceptionsService;

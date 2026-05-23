@@ -18,17 +18,71 @@ internal sealed class MaintenanceService : IMaintenanceService
     private async Task<MaintenanceResult> CheckForUpdatesCoreAsync(CancellationToken cancellationToken)
     {
         var result = await _updateService.CheckForUpdatesAsync(cancellationToken).ConfigureAwait(false);
+        if (result is { Success: true, UpdateAvailable: true, DownloadUrl: not null })
+        {
+            var download = await _updateService.DownloadUpdateAsync(result.DownloadUrl, cancellationToken).ConfigureAwait(false);
+            return new MaintenanceResult(download.Success, download.Success ? $"{result.Message} {download.Message}" : download.Message);
+        }
+
         return new MaintenanceResult(result.Success, result.Message);
     }
 
-    public Task<MaintenanceResult> ImportSettingsAsync(CancellationToken cancellationToken = default)
+    public Task<MaintenanceResult> ImportSettingsAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new MaintenanceResult(false, "The WinUI import workflow is not yet connected. Use the existing TinyWall settings window until this workflow is fully migrated."));
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                var imported = SerialisationHelper.DeserialiseFromFile(filePath, new ConfigContainer(), true);
+                var changeset = Guid.Empty;
+                var response = _controller.GetServerConfig(out _, out _, ref changeset);
+                if (response != MessageType.GET_SETTINGS)
+                    return new MaintenanceResult(false, "Could not load current TinyWall settings before import.");
+
+                var updateResponse = _controller.SetServerConfig(imported.Service, changeset);
+                if (updateResponse.Type != MessageType.PUT_SETTINGS)
+                    return new MaintenanceResult(false, updateResponse.Type switch
+                    {
+                        MessageType.RESPONSE_LOCKED => "TinyWall is locked. Unlock it before importing settings.",
+                        MessageType.COM_ERROR => "Could not contact the TinyWall service.",
+                        MessageType.RESPONSE_ERROR => "The TinyWall service could not import settings.",
+                        _ => $"Unexpected TinyWall service response: {updateResponse.Type}."
+                    });
+
+                imported.Controller.Save();
+                return new MaintenanceResult(true, "Settings imported.");
+            }
+            catch (Exception ex)
+            {
+                return new MaintenanceResult(false, $"Could not import settings: {ex.Message}");
+            }
+        }, cancellationToken);
     }
 
-    public Task<MaintenanceResult> ExportSettingsAsync(CancellationToken cancellationToken = default)
+    public Task<MaintenanceResult> ExportSettingsAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new MaintenanceResult(false, "The WinUI export workflow is not yet connected. Use the existing TinyWall settings window until this workflow is fully migrated."));
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                var changeset = Guid.Empty;
+                var response = _controller.GetServerConfig(out var serviceConfig, out _, ref changeset);
+                if (response != MessageType.GET_SETTINGS || serviceConfig is null)
+                    return new MaintenanceResult(false, "Could not load TinyWall settings from the service.");
+
+                var controllerSettings = ControllerSettings.Load();
+                SerialisationHelper.SerialiseToFile(new ConfigContainer(serviceConfig, controllerSettings), filePath);
+                return new MaintenanceResult(true, "Settings exported.");
+            }
+            catch (Exception ex)
+            {
+                return new MaintenanceResult(false, $"Could not export settings: {ex.Message}");
+            }
+        }, cancellationToken);
     }
 
     public Task<MaintenanceResult> ChangePasswordAsync(string newPassword, CancellationToken cancellationToken = default)
