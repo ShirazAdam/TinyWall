@@ -31,6 +31,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     private bool _isVisible;
     private string _tooltip = "ModernTinyWall";
     private readonly Dictionary<uint, string> _menuCommandMap = [];
+    private TrayStateSnapshot _snapshot = new("Traffic rate unavailable", "unknown", false, false, false);
 
     public event EventHandler<TrayCommand>? CommandInvoked;
 
@@ -40,6 +41,11 @@ internal sealed partial class TrayIconService : ITrayIconService
         _iconHandle = LoadFirewallIcon();
         UpdateIcon(NIM_ADD);
         _isVisible = true;
+    }
+
+    public void SetSnapshot(TrayStateSnapshot snapshot)
+    {
+        _snapshot = snapshot;
     }
 
     public bool HandleWindowMessage(uint message, IntPtr wParam, IntPtr lParam)
@@ -76,7 +82,12 @@ internal sealed partial class TrayIconService : ITrayIconService
         return LoadIcon(IntPtr.Zero, new IntPtr(32512));
     }
 
-    private void ShowContextMenu()
+    public bool IsTrayCallbackMessage(uint message, IntPtr lParam)
+    {
+        return message == TrayCallbackMessage && lParam.ToInt32() == WM_RBUTTONUP;
+    }
+
+    public void ShowContextMenu()
     {
         var menu = CreatePopupMenu();
         if (menu == IntPtr.Zero)
@@ -85,13 +96,13 @@ internal sealed partial class TrayIconService : ITrayIconService
         try
         {
             _menuCommandMap.Clear();
-            AppendMenuItem(menu, 100, "Traffic rate");
+            AppendMenuItem(menu, 100, _snapshot.TrafficText, enabled: false);
             AppendMenuSeparator(menu);
-            AppendMenuItem(menu, 200, "Mode: Normal protection", "normal");
-            AppendMenuItem(menu, 201, "Mode: Block all", "blockAll");
-            AppendMenuItem(menu, 202, "Mode: Allow outgoing", "allowOutgoing");
-            AppendMenuItem(menu, 203, "Mode: Disabled", "disabled");
-            AppendMenuItem(menu, 204, "Mode: Learning", "learning");
+            AppendMenuItem(menu, 200, "Mode: Normal protection", "normal", isChecked: _snapshot.ModeId == "normal");
+            AppendMenuItem(menu, 201, "Mode: Block all", "blockAll", isChecked: _snapshot.ModeId == "blockAll");
+            AppendMenuItem(menu, 202, "Mode: Allow outgoing", "allowOutgoing", isChecked: _snapshot.ModeId == "allowOutgoing");
+            AppendMenuItem(menu, 203, "Mode: Disabled", "disabled", isChecked: _snapshot.ModeId == "disabled");
+            AppendMenuItem(menu, 204, "Mode: Learning", "learning", isChecked: _snapshot.ModeId == "learning");
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 300, "Manage settings", "settings");
             AppendMenuItem(menu, 301, "Show connections", "connections");
@@ -100,12 +111,12 @@ internal sealed partial class TrayIconService : ITrayIconService
             AppendMenuItem(menu, 304, "Show UWP packages", "packages");
             AppendMenuItem(menu, 305, "Application exceptions", "exceptions");
             AppendMenuSeparator(menu);
-            AppendMenuItem(menu, 400, "Lock", "lock");
-            AppendMenuItem(menu, 401, "Unlock", "unlock");
+            AppendMenuItem(menu, 400, "Lock", "lock", enabled: !_snapshot.IsLocked);
+            AppendMenuItem(menu, 401, "Unlock", "unlock", enabled: _snapshot.IsLocked);
             AppendMenuItem(menu, 402, "Run elevated", "elevate");
             AppendMenuSeparator(menu);
-            AppendMenuItem(menu, 500, "Allow local subnet", "allowLocalSubnet");
-            AppendMenuItem(menu, 501, "Enable hosts blocklist", "hostsBlocklist");
+            AppendMenuItem(menu, 500, "Allow local subnet", "allowLocalSubnet", isChecked: _snapshot.AllowLocalSubnet);
+            AppendMenuItem(menu, 501, "Enable hosts blocklist", "hostsBlocklist", isChecked: _snapshot.HostsBlocklistEnabled);
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 900, "Exit", "exit");
 
@@ -123,10 +134,13 @@ internal sealed partial class TrayIconService : ITrayIconService
         }
     }
 
-    private void AppendMenuItem(IntPtr menu, uint id, string text, string? commandId = null)
+    private void AppendMenuItem(IntPtr menu, uint id, string text, string? commandId = null, bool isChecked = false, bool enabled = true)
     {
         const uint MF_STRING = 0x00000000;
-        _ = AppendMenu(menu, MF_STRING, id, text);
+        const uint MF_CHECKED = 0x00000008;
+        const uint MF_GRAYED = 0x00000001;
+        var flags = MF_STRING | (isChecked ? MF_CHECKED : 0) | (enabled ? 0 : MF_GRAYED);
+        _ = AppendMenu(menu, flags, id, text);
         if (commandId is not null)
             _menuCommandMap[id] = commandId;
     }
@@ -165,6 +179,7 @@ internal sealed partial class TrayIconService : ITrayIconService
             new TrayCommand("elevate", "Run elevated"),
             new TrayCommand("allowLocalSubnet", "Allow local subnet"),
             new TrayCommand("hostsBlocklist", "Enable hosts blocklist"),
+            new TrayCommand("whitelistWindow", "Whitelist by window"),
             new TrayCommand("exit", "Exit")
         ];
     }

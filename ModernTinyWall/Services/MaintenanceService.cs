@@ -1,5 +1,6 @@
 using ModernTinyWall.TinyWall;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +22,18 @@ internal sealed class MaintenanceService : IMaintenanceService
         if (result is { Success: true, UpdateAvailable: true, DownloadUrl: not null })
         {
             var download = await _updateService.DownloadUpdateAsync(result.DownloadUrl, cancellationToken).ConfigureAwait(false);
-            return new MaintenanceResult(download.Success, download.Success ? $"{result.Message} {download.Message}" : download.Message);
+            if (!download.Success || download.FilePath is null)
+                return new MaintenanceResult(false, download.Message);
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(download.FilePath) { UseShellExecute = true });
+                return new MaintenanceResult(true, $"{result.Message} Installer launched from {download.FilePath}.");
+            }
+            catch (Exception ex)
+            {
+                return new MaintenanceResult(false, $"Update downloaded, but the installer could not be launched: {ex.Message}");
+            }
         }
 
         return new MaintenanceResult(result.Success, result.Message);

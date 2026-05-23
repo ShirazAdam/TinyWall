@@ -180,7 +180,13 @@ internal sealed class ExceptionsService : IExceptionsService
         ExceptionPolicy policy = request.Policy switch
         {
             "Hard block" => HardBlockPolicy.Instance,
-            "TCP/UDP" => new TcpUdpPolicy(true),
+            "TCP/UDP" => new TcpUdpPolicy(true)
+            {
+                AllowedRemoteTcpConnectPorts = request.RemoteTcpPorts,
+                AllowedLocalTcpListenerPorts = request.LocalTcpPorts,
+                AllowedRemoteUdpConnectPorts = request.RemoteUdpPorts,
+                AllowedLocalUdpListenerPorts = request.LocalUdpPorts
+            },
             _ => new UnrestrictedPolicy()
         };
 

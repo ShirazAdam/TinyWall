@@ -23,4 +23,12 @@ internal sealed record ExceptionRow(Guid Id, string Name, string SubjectType, st
 
 internal sealed record ExceptionMutationResult(bool Success, string Message);
 
-internal sealed record ExceptionEditRequest(string SubjectType, string Name, string Details, string Policy);
+internal sealed record ExceptionEditRequest(
+    string SubjectType,
+    string Name,
+    string Details,
+    string Policy,
+    string RemoteTcpPorts = "",
+    string LocalTcpPorts = "",
+    string RemoteUdpPorts = "",
+    string LocalUdpPorts = "");

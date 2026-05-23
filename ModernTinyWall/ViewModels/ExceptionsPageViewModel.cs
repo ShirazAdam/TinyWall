@@ -125,12 +125,12 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task AddExceptionAsync(string subjectType, string name, string details, string policy)
+    public async Task AddExceptionAsync(string subjectType, string name, string details, string policy, string remoteTcpPorts = "", string localTcpPorts = "", string remoteUdpPorts = "", string localUdpPorts = "")
     {
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.AddExceptionAsync(new ExceptionEditRequest(subjectType, name, details, policy));
+            var result = await _exceptionsService.AddExceptionAsync(new ExceptionEditRequest(subjectType, name, details, policy, remoteTcpPorts, localTcpPorts, remoteUdpPorts, localUdpPorts));
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -141,7 +141,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task ModifySelectedAsync(string subjectType, string name, string details, string policy)
+    public async Task ModifySelectedAsync(string subjectType, string name, string details, string policy, string remoteTcpPorts = "", string localTcpPorts = "", string remoteUdpPorts = "", string localUdpPorts = "")
     {
         if (SelectedException is null)
         {
@@ -152,7 +152,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.UpdateExceptionAsync(SelectedException.Id, new ExceptionEditRequest(subjectType, name, details, policy));
+            var result = await _exceptionsService.UpdateExceptionAsync(SelectedException.Id, new ExceptionEditRequest(subjectType, name, details, policy, remoteTcpPorts, localTcpPorts, remoteUdpPorts, localUdpPorts));
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);

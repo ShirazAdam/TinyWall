@@ -78,7 +78,7 @@ public sealed partial class ExceptionsPage : Page
 
         var request = await ShowExceptionEditorAsync("Add exception");
         if (request is not null)
-            await ViewModel.AddExceptionAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy);
+            await ViewModel.AddExceptionAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy, request.Value.RemoteTcpPorts, request.Value.LocalTcpPorts, request.Value.RemoteUdpPorts, request.Value.LocalUdpPorts);
     }
 
     private async void ModifyButton_Click(object sender, RoutedEventArgs e)
@@ -91,7 +91,7 @@ public sealed partial class ExceptionsPage : Page
 
         var request = await ShowExceptionEditorAsync("Modify exception", ViewModel.SelectedException);
         if (request is not null)
-            await ViewModel.ModifySelectedAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy);
+            await ViewModel.ModifySelectedAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy, request.Value.RemoteTcpPorts, request.Value.LocalTcpPorts, request.Value.RemoteUdpPorts, request.Value.LocalUdpPorts);
     }
 
     private async void RemoveButton_Click(object sender, RoutedEventArgs e)
@@ -133,12 +133,20 @@ public sealed partial class ExceptionsPage : Page
             ItemsSource = new[] { "Unrestricted", "Hard block", "TCP/UDP" },
             SelectedItem = existing?.Policy.Contains("Hard block") == true ? "Hard block" : existing?.Policy.Contains("TCP") == true ? "TCP/UDP" : "Unrestricted"
         };
+        var remoteTcpBox = new TextBox { Header = "Remote TCP ports", PlaceholderText = "Example: 80,443" };
+        var localTcpBox = new TextBox { Header = "Local TCP listener ports", PlaceholderText = "Example: 8080" };
+        var remoteUdpBox = new TextBox { Header = "Remote UDP ports", PlaceholderText = "Example: 53" };
+        var localUdpBox = new TextBox { Header = "Local UDP listener ports", PlaceholderText = "Example: 5353" };
 
         var panel = new StackPanel { Spacing = 8 };
         panel.Children.Add(subjectType);
         panel.Children.Add(nameBox);
         panel.Children.Add(detailsBox);
         panel.Children.Add(policyBox);
+        panel.Children.Add(remoteTcpBox);
+        panel.Children.Add(localTcpBox);
+        panel.Children.Add(remoteUdpBox);
+        panel.Children.Add(localUdpBox);
 
         var dialog = new ContentDialog
         {
@@ -170,7 +178,11 @@ public sealed partial class ExceptionsPage : Page
             subjectType.SelectedItem as string ?? "Executable",
             nameBox.Text,
             detailsBox.Text,
-            policyBox.SelectedItem as string ?? "Unrestricted");
+            policyBox.SelectedItem as string ?? "Unrestricted",
+            remoteTcpBox.Text,
+            localTcpBox.Text,
+            remoteUdpBox.Text,
+            localUdpBox.Text);
     }
 
     private async Task<string> ShowAddSourceDialogAsync()
@@ -265,7 +277,7 @@ public sealed partial class ExceptionsPage : Page
         return completion.Task;
     }
 
-    private readonly record struct ExceptionEditorRequest(string SubjectType, string Name, string Details, string Policy);
+    private readonly record struct ExceptionEditorRequest(string SubjectType, string Name, string Details, string Policy, string RemoteTcpPorts, string LocalTcpPorts, string RemoteUdpPorts, string LocalUdpPorts);
     private readonly record struct ServiceExceptionRequest(string ExecutablePath, string ServiceName);
     private readonly record struct PackageExceptionRequest(string PackageSid, string DisplayName, string PublisherId, string Publisher);
 }

@@ -5,7 +5,7 @@ using ModernTinyWall.Utilities;
 
 namespace ModernTinyWall.Windows
 {
-    partial class TrafficRateMonitor : Disposable
+    public partial class TrafficRateMonitor : Disposable
     {
         private readonly IntPtr hQuery;
         private readonly IntPtr hTxCounter;

@@ -14,6 +14,7 @@ public sealed partial class MainWindow : Window
     private readonly ITrayIconService _trayIconService = new TrayIconService();
     private readonly IFirewallModeService _firewallModeService = new FirewallModeService();
     private readonly IControllerCommandService _controllerCommandService = new ControllerCommandService();
+    private readonly GlobalHotkeyService _globalHotkeyService = new();
     private readonly IntPtr _windowHandle;
     private readonly WindowProc _windowProc;
     private IntPtr _previousWindowProc;
@@ -26,6 +27,8 @@ public sealed partial class MainWindow : Window
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
         _trayIconService.Initialise(_windowHandle);
+        _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
+        _globalHotkeyService.Initialise(_windowHandle);
         _trayIconService.SetStatus("ModernTinyWall migration shell");
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
@@ -34,6 +37,8 @@ public sealed partial class MainWindow : Window
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
         _trayIconService.CommandInvoked -= TrayIconService_CommandInvoked;
+        _globalHotkeyService.HotkeyPressed -= GlobalHotkeyService_HotkeyPressed;
+        _globalHotkeyService.Dispose();
         _trayIconService.Dispose();
         if (_previousWindowProc != IntPtr.Zero)
             _ = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, _previousWindowProc);
@@ -41,10 +46,30 @@ public sealed partial class MainWindow : Window
 
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
     {
+        if (_trayIconService.IsTrayCallbackMessage(message, lParam))
+        {
+            _ = ShowTrayContextMenuAsync();
+            return IntPtr.Zero;
+        }
+
         if (_trayIconService.HandleWindowMessage(message, wParam, lParam))
             return IntPtr.Zero;
 
+        if (_globalHotkeyService.HandleWindowMessage(message, wParam))
+            return IntPtr.Zero;
+
         return CallWindowProc(_previousWindowProc, hWnd, message, wParam, lParam);
+    }
+
+    private void GlobalHotkeyService_HotkeyPressed(object? sender, string commandId)
+    {
+        TrayIconService_CommandInvoked(sender, new TrayCommand(commandId, commandId));
+    }
+
+    private async Task ShowTrayContextMenuAsync()
+    {
+        _trayIconService.SetSnapshot(await _controllerCommandService.GetTrayStateSnapshotAsync());
+        _trayIconService.ShowContextMenu();
     }
 
     private async void TrayIconService_CommandInvoked(object? sender, TrayCommand command)
@@ -97,10 +122,13 @@ public sealed partial class MainWindow : Window
                 await SetCommandStatusAsync(_controllerCommandService.ElevateAsync());
                 break;
             case "allowLocalSubnet":
-                await SetCommandStatusAsync(_controllerCommandService.SetAllowLocalSubnetAsync(true));
+                await SetCommandStatusAsync(_controllerCommandService.ToggleAllowLocalSubnetAsync());
                 break;
             case "hostsBlocklist":
-                await SetCommandStatusAsync(_controllerCommandService.SetHostsBlocklistAsync(true));
+                await SetCommandStatusAsync(_controllerCommandService.ToggleHostsBlocklistAsync());
+                break;
+            case "whitelistWindow":
+                await SetCommandStatusAsync(_controllerCommandService.WhitelistWindowUnderCursorAsync());
                 break;
             case "exit":
                 Close();

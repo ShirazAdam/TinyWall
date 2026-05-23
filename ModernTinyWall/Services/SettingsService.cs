@@ -17,6 +17,7 @@ internal sealed class SettingsService : ISettingsService
     private const string EnableHostsBlocklistKey = "service.blocklists.enableHostsBlocklist";
     private const string EnablePortBlocklistKey = "service.blocklists.enablePortBlocklist";
     private const string AllowLocalSubnetKey = "service.activeProfile.allowLocalSubnet";
+    private const string SpecialProfilePrefix = "service.activeProfile.specialExceptions.";
     private const string AskForExceptionDetailsKey = "controller.askForExceptionDetails";
     private const string EnableGlobalHotkeysKey = "controller.globalHotkeys";
 
@@ -96,8 +97,7 @@ internal sealed class SettingsService : ISettingsService
                 "Application, service, package and global exceptions migrated from the WinForms Applications tab.",
                 [
                     new SettingsItem("service.activeProfile.appExceptions", "Configured exceptions", $"{serviceConfig.ActiveProfile.AppExceptions.Count} exception{(serviceConfig.ActiveProfile.AppExceptions.Count == 1 ? string.Empty : "s")} configured.", serviceConfig.ActiveProfile.AppExceptions.Count > 0, false),
-                    new SettingsItem("service.activeProfile.specialExceptions", "Special profiles", $"{serviceConfig.ActiveProfile.SpecialExceptions.Count} special profile{(serviceConfig.ActiveProfile.SpecialExceptions.Count == 1 ? string.Empty : "s")} enabled.", serviceConfig.ActiveProfile.SpecialExceptions.Count > 0, false),
-                    new SettingsItem("service.activeProfile.specialExceptions.recommended", "Recommended profiles", "Recommended special profiles are surfaced in the legacy settings and preserved when importing or exporting settings.", serviceConfig.ActiveProfile.SpecialExceptions.Count > 0, false)
+                    ..CreateSpecialProfileItems(serviceConfig)
                 ]),
             new SettingsSection(
                 "Maintenance and about",
@@ -165,8 +165,39 @@ internal sealed class SettingsService : ISettingsService
                 case AllowLocalSubnetKey:
                     serviceConfig.ActiveProfile.AllowLocalSubnet = item.IsEnabled;
                     break;
+                default:
+                    if (item.Key.StartsWith(SpecialProfilePrefix, StringComparison.Ordinal))
+                    {
+                        var profileName = item.Key[SpecialProfilePrefix.Length..];
+                        if (item.IsEnabled && !serviceConfig.ActiveProfile.SpecialExceptions.Contains(profileName, StringComparer.OrdinalIgnoreCase))
+                            serviceConfig.ActiveProfile.SpecialExceptions.Add(profileName);
+                        else if (!item.IsEnabled)
+                            serviceConfig.ActiveProfile.SpecialExceptions.RemoveAll(name => string.Equals(name, profileName, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    break;
             }
         }
+    }
+
+    private static SettingsItem[] CreateSpecialProfileItems(ServerConfiguration serviceConfig)
+    {
+        if (serviceConfig.ActiveProfile.SpecialExceptions.Count == 0)
+        {
+            return
+            [
+                new SettingsItem("service.activeProfile.specialExceptions", "Special profiles", "No special profiles are enabled for the active profile.", false, false)
+            ];
+        }
+
+        return [.. serviceConfig.ActiveProfile.SpecialExceptions
+            .Order(StringComparer.CurrentCultureIgnoreCase)
+            .Select(profileName => new SettingsItem(
+                SpecialProfilePrefix + profileName,
+                profileName.Replace('_', ' '),
+                "Special profile enabled for the active firewall profile.",
+                true,
+                true))];
     }
 
     private static void ApplyControllerSettings(IEnumerable<SettingsItem> items)

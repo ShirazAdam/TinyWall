@@ -1,5 +1,4 @@
 using ModernTinyWall.TinyWall.DatabaseClasses;
-using System;
 using System.Collections.Generic;
 
 namespace ModernTinyWall.TinyWall;
@@ -18,6 +17,14 @@ public static class AppExceptionFactory
         {
             return [new FirewallExceptionV3(subject, new TcpUdpPolicy(true))];
         }
+    }
+
+    public static List<FirewallExceptionV3> CreateForProcessId(uint processId)
+    {
+        var path = ModernTinyWall.Windows.ProcessManager.GetProcessPath(processId);
+        return string.IsNullOrWhiteSpace(path)
+            ? []
+            : CreateForExecutable(path);
     }
 
     public static List<FirewallExceptionV3> CreateForService(string executablePath, string serviceName)
