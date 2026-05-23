@@ -28,6 +28,9 @@
 
   <ItemGroup>
 	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="..\TinyWall\Resources\img\**\*.*" LinkBase="Assets\TinyWall" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\License.rtf" Link="Licence.rtf" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Attributions.txt" Link="Attributions.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

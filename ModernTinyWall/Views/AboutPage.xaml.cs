@@ -14,7 +14,9 @@ public sealed partial class AboutPage : Page
 
     private void LicenceButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        OpenPath(Path.Combine(AppContext.BaseDirectory, "Licence.rtf"));
+        OpenFirstExistingPath(
+            Path.Combine(AppContext.BaseDirectory, "Licence.rtf"),
+            Path.Combine(AppContext.BaseDirectory, "License.rtf"));
     }
 
     private void AttributionsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
@@ -37,5 +39,20 @@ public sealed partial class AboutPage : Page
         {
             // Best-effort external link/file opening.
         }
+    }
+
+    private static void OpenFirstExistingPath(params string[] paths)
+    {
+        foreach (var path in paths)
+        {
+            if (File.Exists(path))
+            {
+                OpenPath(path);
+                return;
+            }
+        }
+
+        if (paths.Length > 0)
+            OpenPath(paths[0]);
     }
 }

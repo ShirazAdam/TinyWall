@@ -67,10 +67,10 @@
 	<value>Remove all exceptions</value>
   </data>
   <data name="AddExceptionUnavailable" xml:space="preserve">
-	<value>The WinUI add-exception editor is not yet available. Use the existing TinyWall settings window for creating new exceptions until this workflow is fully migrated.</value>
+	<value>The WinUI add-exception editor supports executable, service, package and manual exceptions.</value>
   </data>
   <data name="ModifyExceptionUnavailable" xml:space="preserve">
-	<value>The WinUI modify-exception editor is not yet available. Use the existing TinyWall settings window for editing exceptions until this workflow is fully migrated.</value>
+	<value>The WinUI modify-exception editor supports subject and policy updates.</value>
   </data>
   <data name="NormalProtection" xml:space="preserve">
 	<value>Normal protection</value>
@@ -83,5 +83,8 @@
   </data>
   <data name="Learning" xml:space="preserve">
 	<value>Learning</value>
+  </data>
+  <data name="LocalisationMigrationNote" xml:space="preserve">
+	<value>ModernTinyWall currently uses British English as the baseline. Legacy TinyWall translations remain available in WinForms resources and can be migrated to WinUI RESW files in a dedicated localisation pass.</value>
   </data>
 </root>
