@@ -85,8 +85,9 @@ internal sealed class ConnectionsService : IConnectionsService
                 if (entry is not { LocalIp: not null, RemoteIp: not null })
                     continue;
 
-                rows.Add(new ConnectionRow(
-                    GetBlockedApplication(entry),
+                    rows.Add(new ConnectionRow(
+                        GetBlockedApplication(entry),
+                        entry.AppPath ?? string.Empty,
                     entry.Protocol.ToString(),
                     entry.LocalPort.ToString().PadLeft(5),
                     entry.LocalIp,
@@ -143,9 +144,11 @@ internal sealed class ConnectionsService : IConnectionsService
 
     private static ConnectionRow CreateRow(uint processId, string protocol, IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, string state, string direction)
     {
-        var application = GetProcessName(processId);
+        var executablePath = GetProcessPath(processId);
+        var application = string.IsNullOrWhiteSpace(executablePath) ? GetProcessName(processId) : executablePath;
         return new ConnectionRow(
             application,
+            executablePath,
             protocol,
             localEndPoint.Port.ToString().PadLeft(5),
             localEndPoint.Address.ToString(),
@@ -190,6 +193,22 @@ internal sealed class ConnectionsService : IConnectionsService
         catch
         {
             return processId.ToString();
+        }
+    }
+
+    private static string GetProcessPath(uint processId)
+    {
+        if (processId == 0)
+            return string.Empty;
+
+        try
+        {
+            using var process = Process.GetProcessById(unchecked((int)processId));
+            return process.MainModule?.FileName ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
 }

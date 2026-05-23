@@ -87,10 +87,10 @@ internal sealed class ConnectionsPageViewModel : INotifyPropertyChanged
     }
 }
 
-internal sealed record ConnectionRowViewModel(string Application, string Protocol, string LocalPort, string LocalAddress, string RemotePort, string RemoteAddress, string State, string Direction)
+internal sealed record ConnectionRowViewModel(string Application, string ExecutablePath, string Protocol, string LocalPort, string LocalAddress, string RemotePort, string RemoteAddress, string State, string Direction)
 {
     public static ConnectionRowViewModel FromModel(ConnectionRow row)
     {
-        return new ConnectionRowViewModel(row.Application, row.Protocol, row.LocalPort, row.LocalAddress, row.RemotePort, row.RemoteAddress, row.State, row.Direction);
+        return new ConnectionRowViewModel(row.Application, row.ExecutablePath, row.Protocol, row.LocalPort, row.LocalAddress, row.RemotePort, row.RemoteAddress, row.State, row.Direction);
     }
 }

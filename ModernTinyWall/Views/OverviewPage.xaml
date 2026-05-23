@@ -29,7 +29,29 @@
                 <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.UploadRate, Mode=OneWay}" Foreground="#FF107C10" />
             </Grid>
             <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                <Canvas x:Name="NetworkActivityCanvas" Height="160" SizeChanged="NetworkActivityCanvas_SizeChanged" />
+                <Grid RowSpacing="4" ColumnSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="160" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="72" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid x:Name="BandwidthScaleGrid">
+                        <TextBlock x:Name="BandwidthScaleTopText" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="12" />
+                        <TextBlock x:Name="BandwidthScaleMiddleText" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                        <TextBlock Text="0 B/s" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="12" />
+                    </Grid>
+                    <Canvas x:Name="NetworkActivityCanvas" Grid.Column="1" SizeChanged="NetworkActivityCanvas_SizeChanged" />
+
+                    <Grid Grid.Row="1" Grid.Column="1">
+                        <TextBlock Text="-5 min" HorizontalAlignment="Left" FontSize="12" />
+                        <TextBlock Text="-2.5 min" HorizontalAlignment="Center" FontSize="12" />
+                        <TextBlock Text="Now" HorizontalAlignment="Right" FontSize="12" />
+                    </Grid>
+                </Grid>
             </Border>
 
             <TextBlock Text="Firewall mode" FontSize="20" FontWeight="SemiBold" Margin="0,12,0,0" />

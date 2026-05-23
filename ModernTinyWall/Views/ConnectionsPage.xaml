@@ -59,6 +59,12 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:ConnectionRowViewModel">
                     <Grid ColumnSpacing="12" Padding="8">
+                        <Grid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Allow connection application" Click="AllowConnectionMenuItem_Click" CommandParameter="{x:Bind}" />
+                                <MenuFlyoutItem Text="Block connection application" Click="BlockConnectionMenuItem_Click" CommandParameter="{x:Bind}" />
+                            </MenuFlyout>
+                        </Grid.ContextFlyout>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="Auto" />

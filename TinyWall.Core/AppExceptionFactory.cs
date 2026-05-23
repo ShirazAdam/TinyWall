@@ -35,7 +35,7 @@ public static class AppExceptionFactory
 
     public static List<FirewallExceptionV3> CreateForPackage(string packageSid, string displayName, string publisherId, string publisher)
     {
-        var subject = new AppContainerSubject(packageSid, displayName, publisherId, publisher);
+        var subject = new AppContainerSubject(packageSid, displayName, publisher, publisherId);
         return [new FirewallExceptionV3(subject, new TcpUdpPolicy(true))];
     }
 }

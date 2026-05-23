@@ -72,6 +72,9 @@ public sealed partial class OverviewPage : Page
         var samples = ViewModel.NetworkActivitySamples.ToArray();
         var maxValue = Math.Max(1, samples.DefaultIfEmpty().Max(sample => Math.Max(sample?.ReceivedBytesPerSecond ?? 0, sample?.SentBytesPerSecond ?? 0)));
 
+        BandwidthScaleTopText.Text = FormatRate(maxValue);
+        BandwidthScaleMiddleText.Text = FormatRate(maxValue / 2);
+
         NetworkActivityCanvas.Children.Clear();
         AddSeries(samples, maxValue, sample => sample.ReceivedBytesPerSecond, (Brush)Resources["NetworkDownloadBrush"]);
         AddSeries(samples, maxValue, sample => sample.SentBytesPerSecond, (Brush)Resources["NetworkUploadBrush"]);
@@ -98,5 +101,20 @@ public sealed partial class OverviewPage : Page
                 StrokeThickness = 2
             });
         }
+    }
+
+    private static string FormatRate(long bytesPerSecond)
+    {
+        string[] units = ["B/s", "KB/s", "MB/s", "GB/s"];
+        var rate = (double)bytesPerSecond;
+        var unitIndex = 0;
+
+        while (rate >= 1024 && unitIndex < units.Length - 1)
+        {
+            rate /= 1024;
+            unitIndex++;
+        }
+
+        return unitIndex == 0 ? $"{rate:0} {units[unitIndex]}" : $"{rate:0.0} {units[unitIndex]}";
     }
 }

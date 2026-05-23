@@ -46,6 +46,12 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:PackageRowViewModel">
                     <Grid Padding="8" ColumnSpacing="12">
+                        <Grid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Allow package" Click="AllowPackageMenuItem_Click" CommandParameter="{x:Bind}" />
+                                <MenuFlyoutItem Text="Block package" Click="BlockPackageMenuItem_Click" CommandParameter="{x:Bind}" />
+                            </MenuFlyout>
+                        </Grid.ContextFlyout>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="3*" />

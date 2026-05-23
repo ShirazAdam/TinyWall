@@ -44,6 +44,12 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:ProcessRowViewModel">
                     <Grid Padding="8" ColumnSpacing="12">
+                        <Grid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Allow process" Click="AllowProcessMenuItem_Click" CommandParameter="{x:Bind}" />
+                                <MenuFlyoutItem Text="Block process" Click="BlockProcessMenuItem_Click" CommandParameter="{x:Bind}" />
+                            </MenuFlyout>
+                        </Grid.ContextFlyout>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="*" />

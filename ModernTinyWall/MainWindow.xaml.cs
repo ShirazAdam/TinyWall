@@ -77,25 +77,25 @@ public sealed partial class MainWindow : Window
         switch (command.Id)
         {
             case "overview":
-                NavigateTo(typeof(OverviewPage));
+                ShowPage(typeof(OverviewPage));
                 break;
             case "settings":
-                NavigateTo(typeof(SettingsPage));
+                ShowPage(typeof(SettingsPage));
                 break;
             case "connections":
-                NavigateTo(typeof(ConnectionsPage));
+                ShowPage(typeof(ConnectionsPage));
                 break;
             case "processes":
-                NavigateTo(typeof(ProcessesPage));
+                ShowPage(typeof(ProcessesPage));
                 break;
             case "services":
-                NavigateTo(typeof(ServicesPage));
+                ShowPage(typeof(ServicesPage));
                 break;
             case "packages":
-                NavigateTo(typeof(PackagesPage));
+                ShowPage(typeof(PackagesPage));
                 break;
             case "exceptions":
-                NavigateTo(typeof(ExceptionsPage));
+                ShowPage(typeof(ExceptionsPage));
                 break;
             case "normal":
                 await SetFirewallModeAsync(Models.ModernFirewallMode.Normal);
@@ -161,6 +161,12 @@ public sealed partial class MainWindow : Window
     {
         if (ContentFrame.CurrentSourcePageType != pageType)
             ContentFrame.Navigate(pageType);
+    }
+
+    private void ShowPage(Type pageType)
+    {
+        NavigateTo(pageType);
+        Activate();
     }
 
     private async Task SetFirewallModeAsync(Models.ModernFirewallMode mode)

@@ -45,6 +45,16 @@ internal sealed class ExceptionsService : IExceptionsService
         }, "Package exception added.", cancellationToken), cancellationToken);
     }
 
+    public Task<ExceptionActionResult> PrepareEntryActionAsync(ExceptionEntryActionRequest request, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => PrepareEntryAction(request, cancellationToken), cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> ApplyEntryActionAsync(ExceptionEntryActionRequest request, bool replaceExisting, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => ApplyEntryAction(request, replaceExisting, cancellationToken), cancellationToken);
+    }
+
     public Task<ExceptionMutationResult> UpdateExceptionAsync(Guid exceptionId, ExceptionEditRequest request, CancellationToken cancellationToken = default)
     {
         return Task.Run(() => MutateExceptions(config =>
@@ -165,6 +175,114 @@ internal sealed class ExceptionsService : IExceptionsService
             MessageType.RESPONSE_ERROR => new ExceptionMutationResult(false, "The TinyWall service could not update application exceptions."),
             _ => new ExceptionMutationResult(false, $"Unexpected TinyWall service response: {updateResponse.Type}.")
         };
+    }
+
+    private ExceptionActionResult PrepareEntryAction(ExceptionEntryActionRequest request, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var validationMessage = ValidateEntryAction(request);
+        if (validationMessage is not null)
+            return new ExceptionActionResult(false, false, validationMessage);
+
+        var changeset = Guid.Empty;
+        var response = _controller.GetServerConfig(out var serviceConfig, out _, ref changeset);
+        if (response != MessageType.GET_SETTINGS || serviceConfig is null)
+            return new ExceptionActionResult(false, false, "Could not load TinyWall settings from the service.");
+
+        var subject = CreateSubject(request);
+        var existing = FindExistingException(serviceConfig, subject);
+        if (existing is null)
+            return new ExceptionActionResult(true, false, string.Empty);
+
+        return new ExceptionActionResult(
+            true,
+            true,
+            $"This {GetEntryKindDisplayName(request.Kind)} was added before as {DescribePolicy(existing.Policy).ToLowerInvariant()}. Apply the new {GetPolicyDisplayName(request.Policy).ToLowerInvariant()} requirement?",
+            DescribePolicy(existing.Policy));
+    }
+
+    private ExceptionMutationResult ApplyEntryAction(ExceptionEntryActionRequest request, bool replaceExisting, CancellationToken cancellationToken)
+    {
+        var validationMessage = ValidateEntryAction(request);
+        if (validationMessage is not null)
+            return new ExceptionMutationResult(false, validationMessage);
+
+        return MutateExceptions(config =>
+        {
+            var subject = CreateSubject(request);
+            var exception = new FirewallExceptionV3(subject, CreatePolicy(request.Policy));
+            var existing = FindExistingException(config, subject);
+
+            if (existing is not null && replaceExisting)
+            {
+                config.ActiveProfile.AppExceptions.Remove(existing);
+            }
+            else if (existing is not null)
+            {
+                return;
+            }
+
+            config.ActiveProfile.AppExceptions.Add(exception);
+        }, $"{GetPolicyDisplayName(request.Policy)} exception applied.", cancellationToken);
+    }
+
+    private static FirewallExceptionV3? FindExistingException(ServerConfiguration config, ExceptionSubject subject)
+    {
+        return config.ActiveProfile.AppExceptions.FirstOrDefault(exception => exception.Subject.Equals(subject));
+    }
+
+    private static ExceptionSubject CreateSubject(ExceptionEntryActionRequest request)
+    {
+        return request.Kind switch
+        {
+            ExceptionEntryKind.Service => new ServiceSubject(request.Details, request.Name),
+            ExceptionEntryKind.Package => new AppContainerSubject(request.Details, request.Name, request.Publisher, request.PublisherId),
+            _ => new ExecutableSubject(request.Details)
+        };
+    }
+
+    private static string? ValidateEntryAction(ExceptionEntryActionRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return $"Cannot {GetPolicyVerb(request.Policy)} this item because its name is unavailable.";
+
+        if (string.IsNullOrWhiteSpace(request.Details))
+        {
+            return request.Kind switch
+            {
+                ExceptionEntryKind.Service => $"Cannot {GetPolicyVerb(request.Policy)} this service because its executable path is unavailable.",
+                ExceptionEntryKind.Package => $"Cannot {GetPolicyVerb(request.Policy)} this package because its package SID is unavailable.",
+                _ => $"Cannot {GetPolicyVerb(request.Policy)} this process because its executable path is unavailable."
+            };
+        }
+
+        return null;
+    }
+
+    private static ExceptionPolicy CreatePolicy(ExceptionEntryPolicy policy)
+    {
+        return policy == ExceptionEntryPolicy.Block ? HardBlockPolicy.Instance : new TcpUdpPolicy(true);
+    }
+
+    private static string GetEntryKindDisplayName(ExceptionEntryKind kind)
+    {
+        return kind switch
+        {
+            ExceptionEntryKind.Service => "service",
+            ExceptionEntryKind.Package => "package",
+            _ => "process"
+        };
+    }
+
+    private static string GetPolicyDisplayName(ExceptionEntryPolicy policy)
+    {
+        return policy == ExceptionEntryPolicy.Block ? "Blocked" : "Allowed";
+    }
+
+    private static string GetPolicyVerb(ExceptionEntryPolicy policy)
+    {
+        return policy == ExceptionEntryPolicy.Block ? "block" : "allow";
     }
 
     private static FirewallExceptionV3 CreateException(ExceptionEditRequest request)

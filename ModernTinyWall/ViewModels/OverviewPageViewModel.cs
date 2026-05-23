@@ -13,7 +13,7 @@ namespace ModernTinyWall.ViewModels;
 
 internal sealed class OverviewPageViewModel : INotifyPropertyChanged
 {
-    private const int NetworkActivitySampleLimit = 60;
+    private const int NetworkActivitySampleLimit = 300;
 
     private readonly IFirewallModeService _firewallModeService;
     private NetworkTotals _previousNetworkTotals;
