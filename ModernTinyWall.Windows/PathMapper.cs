@@ -40,7 +40,7 @@ namespace ModernTinyWall.Windows
 
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            public static unsafe extern bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
+            public static extern unsafe bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern bool GetVolumeNameForVolumeMountPoint(string lpszVolumeMountPoint, [Out] StringBuilder lpszVolumeName, int cchBufferLength);
