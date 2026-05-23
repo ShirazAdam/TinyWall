@@ -17,8 +17,6 @@
   </PropertyGroup>
   <ItemGroup>
 	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250916003" />
-	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
-	<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,8 +26,7 @@
 
   <ItemGroup>
 	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" CopyToOutputDirectory="PreserveNewest" />
-	<Content Include="..\TinyWall\Resources\img\**\*.*" LinkBase="Assets\TinyWall" CopyToOutputDirectory="PreserveNewest" />
-	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\License.rtf" Link="Licence.rtf" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Licence.rtf" Link="Licence.rtf" CopyToOutputDirectory="PreserveNewest" />
 	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Attributions.txt" Link="Attributions.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
