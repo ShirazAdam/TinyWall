@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
 using ModernTinyWall.Views;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WinRT.Interop;
 
@@ -13,12 +14,18 @@ public sealed partial class MainWindow : Window
     private readonly ITrayIconService _trayIconService = new TrayIconService();
     private readonly IFirewallModeService _firewallModeService = new FirewallModeService();
     private readonly IControllerCommandService _controllerCommandService = new ControllerCommandService();
+    private readonly IntPtr _windowHandle;
+    private readonly WindowProc _windowProc;
+    private IntPtr _previousWindowProc;
 
     public MainWindow()
     {
         InitializeComponent();
+        _windowHandle = WindowNative.GetWindowHandle(this);
+        _windowProc = WndProc;
+        _previousWindowProc = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
-        _trayIconService.Initialise(WindowNative.GetWindowHandle(this));
+        _trayIconService.Initialise(_windowHandle);
         _trayIconService.SetStatus("ModernTinyWall migration shell");
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
@@ -28,6 +35,16 @@ public sealed partial class MainWindow : Window
     {
         _trayIconService.CommandInvoked -= TrayIconService_CommandInvoked;
         _trayIconService.Dispose();
+        if (_previousWindowProc != IntPtr.Zero)
+            _ = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, _previousWindowProc);
+    }
+
+    private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
+    {
+        if (_trayIconService.HandleWindowMessage(message, wParam, lParam))
+            return IntPtr.Zero;
+
+        return CallWindowProc(_previousWindowProc, hWnd, message, wParam, lParam);
     }
 
     private async void TrayIconService_CommandInvoked(object? sender, TrayCommand command)
@@ -165,4 +182,14 @@ public sealed partial class MainWindow : Window
 
         return completion.Task;
     }
+
+    private const int GWLP_WNDPROC = -4;
+
+    private delegate IntPtr WindowProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam);
+
+    [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    private static partial IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [LibraryImport("user32.dll", EntryPoint = "CallWindowProcW", SetLastError = true)]
+    private static partial IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 }

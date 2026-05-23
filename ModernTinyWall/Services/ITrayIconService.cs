@@ -9,6 +9,7 @@ internal interface ITrayIconService : IDisposable
 
     void Initialise(IntPtr windowHandle);
     void SetStatus(string tooltip);
+    bool HandleWindowMessage(uint message, IntPtr wParam, IntPtr lParam);
     IReadOnlyList<TrayCommand> GetCommands();
     void InvokeCommand(string commandId);
 }

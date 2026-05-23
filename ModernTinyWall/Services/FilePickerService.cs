@@ -13,25 +13,45 @@ internal static partial class FilePickerService
 
     public static string? PickOpenFile(IntPtr owner, string title)
     {
-        var fileBuffer = new char[MaxPath];
-        var ofn = CreateOpenFileName(owner, fileBuffer, title);
-        ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+        var fileBuffer = Marshal.AllocHGlobal(MaxPath * sizeof(char));
 
-        return GetOpenFileName(ref ofn) ? new string(fileBuffer, 0, Array.IndexOf(fileBuffer, '\0')) : null;
+        try
+        {
+            ClearFileBuffer(fileBuffer, MaxPath);
+
+            var ofn = CreateOpenFileName(owner, fileBuffer, MaxPath, title);
+            ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+
+            return GetOpenFileName(ref ofn) ? Marshal.PtrToStringUni(fileBuffer) : null;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(fileBuffer);
+        }
     }
 
     public static string? PickSaveFile(IntPtr owner, string title, string defaultFileName)
     {
-        var fileBuffer = new char[MaxPath];
-        defaultFileName.CopyTo(0, fileBuffer, 0, Math.Min(defaultFileName.Length, fileBuffer.Length - 1));
-        var ofn = CreateOpenFileName(owner, fileBuffer, title);
-        ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-        ofn.lpstrDefExt = "tws";
+        var fileBuffer = Marshal.AllocHGlobal(MaxPath * sizeof(char));
 
-        return GetSaveFileName(ref ofn) ? new string(fileBuffer, 0, Array.IndexOf(fileBuffer, '\0')) : null;
+        try
+        {
+            ClearFileBuffer(fileBuffer, MaxPath);
+            WriteFileBuffer(fileBuffer, MaxPath, defaultFileName);
+
+            var ofn = CreateOpenFileName(owner, fileBuffer, MaxPath, title);
+            ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+            ofn.lpstrDefExt = "tws";
+
+            return GetSaveFileName(ref ofn) ? Marshal.PtrToStringUni(fileBuffer) : null;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(fileBuffer);
+        }
     }
 
-    private static OpenFileName CreateOpenFileName(IntPtr owner, char[] fileBuffer, string title)
+    private static OpenFileName CreateOpenFileName(IntPtr owner, IntPtr fileBuffer, int fileBufferLength, string title)
     {
         return new OpenFileName
         {
@@ -39,9 +59,23 @@ internal static partial class FilePickerService
             hwndOwner = owner,
             lpstrFilter = "TinyWall settings (*.tws)\0*.tws\0All files (*.*)\0*.*\0",
             lpstrFile = fileBuffer,
-            nMaxFile = fileBuffer.Length,
+            nMaxFile = fileBufferLength,
             lpstrTitle = title
         };
+    }
+
+    private static void ClearFileBuffer(IntPtr fileBuffer, int fileBufferLength)
+    {
+        for (var i = 0; i < fileBufferLength; i++)
+            Marshal.WriteInt16(fileBuffer, i * sizeof(char), 0);
+    }
+
+    private static void WriteFileBuffer(IntPtr fileBuffer, int fileBufferLength, string value)
+    {
+        var length = Math.Min(value.Length, fileBufferLength - 1);
+
+        for (var i = 0; i < length; i++)
+            Marshal.WriteInt16(fileBuffer, i * sizeof(char), value[i]);
     }
 
     [DllImport("comdlg32.dll", EntryPoint = "GetOpenFileNameW", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -62,8 +96,7 @@ internal static partial class FilePickerService
         public string? lpstrCustomFilter;
         public int nMaxCustFilter;
         public int nFilterIndex;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public char[] lpstrFile;
+        public IntPtr lpstrFile;
         public int nMaxFile;
         public string? lpstrFileTitle;
         public int nMaxFileTitle;

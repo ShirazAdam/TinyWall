@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" />
+	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

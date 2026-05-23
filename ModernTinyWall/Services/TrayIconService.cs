@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -15,21 +16,125 @@ internal sealed partial class TrayIconService : ITrayIconService
     private const int NIF_TIP = 0x00000004;
     private const int NIF_SHOWTIP = 0x00000080;
     private const int WM_APP = 0x8000;
+    private const int WM_RBUTTONUP = 0x0205;
+    private const int WM_LBUTTONDBLCLK = 0x0203;
+    private const int WM_NULL = 0x0000;
     private const int TrayCallbackMessage = WM_APP + 100;
+    private const uint TPM_RIGHTBUTTON = 0x0002;
+    private const uint TPM_RETURNCMD = 0x0100;
+    private const int IMAGE_ICON = 1;
+    private const int LR_LOADFROMFILE = 0x00000010;
+    private const int LR_DEFAULTSIZE = 0x00000040;
 
     private IntPtr _windowHandle;
     private IntPtr _iconHandle;
     private bool _isVisible;
     private string _tooltip = "ModernTinyWall";
+    private readonly Dictionary<uint, string> _menuCommandMap = [];
 
     public event EventHandler<TrayCommand>? CommandInvoked;
 
     public void Initialise(IntPtr windowHandle)
     {
         _windowHandle = windowHandle;
-        _iconHandle = LoadIcon(IntPtr.Zero, new IntPtr(32512));
+        _iconHandle = LoadFirewallIcon();
         UpdateIcon(NIM_ADD);
         _isVisible = true;
+    }
+
+    public bool HandleWindowMessage(uint message, IntPtr wParam, IntPtr lParam)
+    {
+        if (message != TrayCallbackMessage)
+            return false;
+
+        var mouseMessage = lParam.ToInt32();
+        if (mouseMessage == WM_RBUTTONUP)
+        {
+            ShowContextMenu();
+            return true;
+        }
+
+        if (mouseMessage == WM_LBUTTONDBLCLK)
+        {
+            InvokeCommand("overview");
+            return true;
+        }
+
+        return false;
+    }
+
+    private static IntPtr LoadFirewallIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "firewall.ico");
+        if (File.Exists(iconPath))
+        {
+            var handle = LoadImage(IntPtr.Zero, iconPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+            if (handle != IntPtr.Zero)
+                return handle;
+        }
+
+        return LoadIcon(IntPtr.Zero, new IntPtr(32512));
+    }
+
+    private void ShowContextMenu()
+    {
+        var menu = CreatePopupMenu();
+        if (menu == IntPtr.Zero)
+            return;
+
+        try
+        {
+            _menuCommandMap.Clear();
+            AppendMenuItem(menu, 100, "Traffic rate");
+            AppendMenuSeparator(menu);
+            AppendMenuItem(menu, 200, "Mode: Normal protection", "normal");
+            AppendMenuItem(menu, 201, "Mode: Block all", "blockAll");
+            AppendMenuItem(menu, 202, "Mode: Allow outgoing", "allowOutgoing");
+            AppendMenuItem(menu, 203, "Mode: Disabled", "disabled");
+            AppendMenuItem(menu, 204, "Mode: Learning", "learning");
+            AppendMenuSeparator(menu);
+            AppendMenuItem(menu, 300, "Manage settings", "settings");
+            AppendMenuItem(menu, 301, "Show connections", "connections");
+            AppendMenuItem(menu, 302, "Show processes", "processes");
+            AppendMenuItem(menu, 303, "Show services", "services");
+            AppendMenuItem(menu, 304, "Show UWP packages", "packages");
+            AppendMenuItem(menu, 305, "Application exceptions", "exceptions");
+            AppendMenuSeparator(menu);
+            AppendMenuItem(menu, 400, "Lock", "lock");
+            AppendMenuItem(menu, 401, "Unlock", "unlock");
+            AppendMenuItem(menu, 402, "Run elevated", "elevate");
+            AppendMenuSeparator(menu);
+            AppendMenuItem(menu, 500, "Allow local subnet", "allowLocalSubnet");
+            AppendMenuItem(menu, 501, "Enable hosts blocklist", "hostsBlocklist");
+            AppendMenuSeparator(menu);
+            AppendMenuItem(menu, 900, "Exit", "exit");
+
+            _ = SetForegroundWindow(_windowHandle);
+            _ = GetCursorPos(out var point);
+            var commandId = TrackPopupMenu(menu, TPM_RIGHTBUTTON | TPM_RETURNCMD, point.X, point.Y, 0, _windowHandle, IntPtr.Zero);
+            _ = PostMessage(_windowHandle, WM_NULL, IntPtr.Zero, IntPtr.Zero);
+
+            if (commandId != 0 && _menuCommandMap.TryGetValue(commandId, out var command))
+                InvokeCommand(command);
+        }
+        finally
+        {
+            _ = DestroyMenu(menu);
+        }
+    }
+
+    private void AppendMenuItem(IntPtr menu, uint id, string text, string? commandId = null)
+    {
+        const uint MF_STRING = 0x00000000;
+        _ = AppendMenu(menu, MF_STRING, id, text);
+        if (commandId is not null)
+            _menuCommandMap[id] = commandId;
+    }
+
+    private static void AppendMenuSeparator(IntPtr menu)
+    {
+        const uint MF_SEPARATOR = 0x00000800;
+        _ = AppendMenu(menu, MF_SEPARATOR, 0, string.Empty);
     }
 
     public void SetStatus(string tooltip)
@@ -115,8 +220,44 @@ internal sealed partial class TrayIconService : ITrayIconService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static unsafe partial bool Shell_NotifyIcon(int dwMessage, NotifyIconData* lpData);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "LoadIconW", SetLastError = true)]
     private static partial IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+
+    [LibraryImport("user32.dll", EntryPoint = "LoadImageW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial IntPtr CreatePopupMenu();
+
+    [LibraryImport("user32.dll", EntryPoint = "AppendMenuW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AppendMenu(IntPtr hMenu, uint uFlags, uint uIDNewItem, string lpNewItem);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DestroyMenu(IntPtr hMenu);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial uint TrackPopupMenu(IntPtr hMenu, uint uFlags, int x, int y, int nReserved, IntPtr hWnd, IntPtr prcRect);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetForegroundWindow(IntPtr hWnd);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetCursorPos(out Point point);
+
+    [LibraryImport("user32.dll", EntryPoint = "PostMessageW", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Point
+    {
+        public int X;
+        public int Y;
+    }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private unsafe struct NotifyIconData
