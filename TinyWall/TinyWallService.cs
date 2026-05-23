@@ -1159,7 +1159,7 @@ namespace ModernTinyWall.TinyWall
                 if (DateTime.Now - LastUpdateCheck >= TimeSpan.FromDays(2))
                 {
                     LastUpdateCheck = DateTime.Now;
-                    update = UpdateChecker.GetDescriptor();
+                    update = UpdateChecker.GetDescriptorAsync().GetAwaiter().GetResult();
                 }
             }
             catch

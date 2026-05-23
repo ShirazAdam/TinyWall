@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -28,8 +27,8 @@ namespace ModernTinyWall.Windows
             //[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             //public static extern int QueryDosDevice(string lpDeviceName, [Out] StringBuilder lpTargetPath, int ucchMax);
 
-            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16, SetLastError = true, EntryPoint = "QueryDosDeviceW")]
-            public static partial int QueryDosDevice(string lpDeviceName, [MarshalUsing(CountElementName = "ucchMax")] out char[] lpTargetPath, int ucchMax);
+            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            public static extern int QueryDosDevice(string lpDeviceName, [Out] char[] lpTargetPath, int ucchMax);
 
             //[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             //[return: MarshalAs(UnmanagedType.Bool)]
@@ -139,10 +138,15 @@ namespace ModernTinyWall.Windows
                 var cacheEntry = new DriveCache(string.Empty, [vol], []);
 
                 string qddInput = vol.Substring(4, vol.Length - 5); // Also remove trailing backslash
-                int charCount = NativeMethods.QueryDosDevice(qddInput, out var myTargetPath, sb.Capacity);
-                sb.Append(myTargetPath);
+                Array.Clear(buf);
+                int charCount = NativeMethods.QueryDosDevice(qddInput, buf, buf.Length);
                 if (charCount > 0)
                 {
+                    sb.Clear();
+                    var targetLength = Array.IndexOf(buf, '\0');
+                    if (targetLength < 0)
+                        targetLength = Math.Min(charCount, buf.Length);
+                    sb.Append(buf, 0, targetLength);
                     sb.Append('\\');
                     cacheEntry.Device = sb.ToString();
                 }
