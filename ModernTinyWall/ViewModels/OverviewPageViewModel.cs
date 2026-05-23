@@ -1,7 +1,11 @@
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -9,8 +13,13 @@ namespace ModernTinyWall.ViewModels;
 
 internal sealed class OverviewPageViewModel : INotifyPropertyChanged
 {
+    private const int NetworkActivitySampleLimit = 60;
+
     private readonly IFirewallModeService _firewallModeService;
+    private NetworkTotals _previousNetworkTotals;
     private string _statusMessage = "Select a firewall mode to continue the migration workflow.";
+    private string _downloadRate = "Download: 0 B/s";
+    private string _uploadRate = "Upload: 0 B/s";
     private bool _isApplyingMode;
 
     public OverviewPageViewModel()
@@ -25,11 +34,41 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
         {
             ModeOptions.Add(option);
         }
+
+        _previousNetworkTotals = GetNetworkTotals();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<FirewallModeOption> ModeOptions { get; } = [];
+
+    public ObservableCollection<NetworkActivitySample> NetworkActivitySamples { get; } = [];
+
+    public string DownloadRate
+    {
+        get => _downloadRate;
+        private set
+        {
+            if (_downloadRate == value)
+                return;
+
+            _downloadRate = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string UploadRate
+    {
+        get => _uploadRate;
+        private set
+        {
+            if (_uploadRate == value)
+                return;
+
+            _uploadRate = value;
+            OnPropertyChanged();
+        }
+    }
 
     public string StatusMessage
     {
@@ -73,8 +112,71 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public void UpdateNetworkActivity()
+    {
+        var currentTotals = GetNetworkTotals();
+        var receivedBytesPerSecond = Math.Max(0, currentTotals.ReceivedBytes - _previousNetworkTotals.ReceivedBytes);
+        var sentBytesPerSecond = Math.Max(0, currentTotals.SentBytes - _previousNetworkTotals.SentBytes);
+
+        _previousNetworkTotals = currentTotals;
+        AddNetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond);
+    }
+
+    private void AddNetworkActivitySample(long receivedBytesPerSecond, long sentBytesPerSecond)
+    {
+        NetworkActivitySamples.Add(new NetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond));
+
+        while (NetworkActivitySamples.Count > NetworkActivitySampleLimit)
+        {
+            NetworkActivitySamples.RemoveAt(0);
+        }
+
+        DownloadRate = $"Download: {FormatRate(receivedBytesPerSecond)}";
+        UploadRate = $"Upload: {FormatRate(sentBytesPerSecond)}";
+    }
+
+    private static NetworkTotals GetNetworkTotals()
+    {
+        var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+            .Where(networkInterface =>
+                networkInterface.OperationalStatus == OperationalStatus.Up &&
+                networkInterface.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                networkInterface.NetworkInterfaceType != NetworkInterfaceType.Tunnel);
+
+        long receivedBytes = 0;
+        long sentBytes = 0;
+
+        foreach (var networkInterface in interfaces)
+        {
+            var statistics = networkInterface.GetIPv4Statistics();
+            receivedBytes += statistics.BytesReceived;
+            sentBytes += statistics.BytesSent;
+        }
+
+        return new NetworkTotals(receivedBytes, sentBytes);
+    }
+
+    private static string FormatRate(long bytesPerSecond)
+    {
+        string[] units = ["B/s", "KB/s", "MB/s", "GB/s"];
+        var rate = (double)bytesPerSecond;
+        var unitIndex = 0;
+
+        while (rate >= 1024 && unitIndex < units.Length - 1)
+        {
+            rate /= 1024;
+            unitIndex++;
+        }
+
+        return unitIndex == 0 ? $"{rate:0} {units[unitIndex]}" : $"{rate:0.0} {units[unitIndex]}";
+    }
+
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+
+internal sealed record NetworkActivitySample(long ReceivedBytesPerSecond, long SentBytesPerSecond);
+
+internal sealed record NetworkTotals(long ReceivedBytes, long SentBytes);
