@@ -110,6 +110,7 @@ internal sealed partial class TrayIconService : ITrayIconService
             AppendMenuItem(menu, 303, "Show services", "services");
             AppendMenuItem(menu, 304, "Show UWP packages", "packages");
             AppendMenuItem(menu, 305, "Application exceptions", "exceptions");
+            AppendMenuItem(menu, 306, "Options", "options");
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 400, "Lock", "lock", enabled: !_snapshot.IsLocked);
             AppendMenuItem(menu, 401, "Unlock", "unlock", enabled: _snapshot.IsLocked);
@@ -169,6 +170,7 @@ internal sealed partial class TrayIconService : ITrayIconService
             new TrayCommand("services", "Services"),
             new TrayCommand("packages", "UWP packages"),
             new TrayCommand("exceptions", "Application exceptions"),
+            new TrayCommand("options", "Options"),
             new TrayCommand("normal", "Normal protection"),
             new TrayCommand("allowOutgoing", "Allow outgoing"),
             new TrayCommand("blockAll", "Block all"),

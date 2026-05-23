@@ -14,10 +14,12 @@ public sealed partial class MainWindow : Window
     private readonly ITrayIconService _trayIconService = new TrayIconService();
     private readonly IFirewallModeService _firewallModeService = new FirewallModeService();
     private readonly IControllerCommandService _controllerCommandService = new ControllerCommandService();
+    private readonly IOptionsService _optionsService = new OptionsService();
     private readonly GlobalHotkeyService _globalHotkeyService = new();
     private readonly IntPtr _windowHandle;
     private readonly WindowProc _windowProc;
     private IntPtr _previousWindowProc;
+    private bool _isTerminating;
 
     public MainWindow()
     {
@@ -46,6 +48,18 @@ public sealed partial class MainWindow : Window
 
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
     {
+        if (message == WM_CLOSE && !_isTerminating && ShouldCloseToTray())
+        {
+            HideWindow();
+            return IntPtr.Zero;
+        }
+
+        if (message == WM_SYSCOMMAND && (wParam.ToInt64() & 0xFFF0) == SC_MINIMIZE && ShouldMinimiseToTray())
+        {
+            HideWindow();
+            return IntPtr.Zero;
+        }
+
         if (_trayIconService.IsTrayCallbackMessage(message, lParam))
         {
             _ = ShowTrayContextMenuAsync();
@@ -97,6 +111,9 @@ public sealed partial class MainWindow : Window
             case "exceptions":
                 ShowPage(typeof(ExceptionsPage));
                 break;
+            case "options":
+                ShowPage(typeof(OptionsPage));
+                break;
             case "normal":
                 await SetFirewallModeAsync(Models.ModernFirewallMode.Normal);
                 break;
@@ -131,7 +148,7 @@ public sealed partial class MainWindow : Window
                 await SetCommandStatusAsync(_controllerCommandService.WhitelistWindowUnderCursorAsync());
                 break;
             case "exit":
-                Close();
+                TerminateApplication();
                 break;
         }
     }
@@ -149,6 +166,7 @@ public sealed partial class MainWindow : Window
             "Services" => typeof(ServicesPage),
             "Exceptions" => typeof(ExceptionsPage),
             "Packages" => typeof(PackagesPage),
+            "Options" => typeof(OptionsPage),
             "About" => typeof(AboutPage),
             _ => typeof(OverviewPage)
         };
@@ -167,6 +185,12 @@ public sealed partial class MainWindow : Window
     {
         NavigateTo(pageType);
         Activate();
+    }
+
+    public void TerminateApplication()
+    {
+        _isTerminating = true;
+        Close();
     }
 
     private async Task SetFirewallModeAsync(Models.ModernFirewallMode mode)
@@ -217,7 +241,38 @@ public sealed partial class MainWindow : Window
         return completion.Task;
     }
 
+    private bool ShouldMinimiseToTray()
+    {
+        return LoadOptions().MinimiseToTray;
+    }
+
+    private bool ShouldCloseToTray()
+    {
+        return LoadOptions().CloseToTray;
+    }
+
+    private ModernTinyWallOptions LoadOptions()
+    {
+        try
+        {
+            return _optionsService.LoadAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            return new ModernTinyWallOptions();
+        }
+    }
+
+    private void HideWindow()
+    {
+        _ = ShowWindow(_windowHandle, SW_HIDE);
+    }
+
     private const int GWLP_WNDPROC = -4;
+    private const uint WM_CLOSE = 0x0010;
+    private const uint WM_SYSCOMMAND = 0x0112;
+    private const int SC_MINIMIZE = 0xF020;
+    private const int SW_HIDE = 0;
 
     private delegate IntPtr WindowProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam);
 
@@ -226,4 +281,8 @@ public sealed partial class MainWindow : Window
 
     [LibraryImport("user32.dll", EntryPoint = "CallWindowProcW", SetLastError = true)]
     private static partial IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);
 }

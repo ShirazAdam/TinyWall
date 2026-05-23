@@ -18,6 +18,7 @@
             <NavigationViewItem Content="Services" Icon="Repair" Tag="Services" />
             <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" />
             <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" />
+            <NavigationViewItem Content="Options" Icon="Setting" Tag="Options" />
         </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems>
             <NavigationViewItem Content="About" Icon="Help" Tag="About" />

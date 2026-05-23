@@ -29,5 +29,4 @@
 	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Licence.rtf" Link="Licence.rtf" CopyToOutputDirectory="PreserveNewest" />
 	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Attributions.txt" Link="Attributions.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
 </Project>
