@@ -13,6 +13,7 @@ internal sealed class OptionsService : IOptionsService
     };
 
     private readonly string _optionsFilePath;
+    private ModernTinyWallOptions? _cachedOptions;
 
     public OptionsService()
     {
@@ -22,11 +23,14 @@ internal sealed class OptionsService : IOptionsService
 
     public async Task<ModernTinyWallOptions> LoadAsync()
     {
+        if (_cachedOptions is not null)
+            return _cachedOptions;
+
         if (!File.Exists(_optionsFilePath))
-            return new ModernTinyWallOptions();
+            return _cachedOptions = new ModernTinyWallOptions();
 
         await using var stream = File.OpenRead(_optionsFilePath);
-        return await JsonSerializer.DeserializeAsync<ModernTinyWallOptions>(stream, JsonOptions) ?? new ModernTinyWallOptions();
+        return _cachedOptions = await JsonSerializer.DeserializeAsync<ModernTinyWallOptions>(stream, JsonOptions) ?? new ModernTinyWallOptions();
     }
 
     public async Task SaveAsync(ModernTinyWallOptions options)
@@ -39,5 +43,6 @@ internal sealed class OptionsService : IOptionsService
 
         await using var stream = File.Create(_optionsFilePath);
         await JsonSerializer.SerializeAsync(stream, options, JsonOptions);
+        _cachedOptions = options;
     }
 }

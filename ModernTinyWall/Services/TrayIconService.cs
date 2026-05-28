@@ -8,6 +8,32 @@ namespace ModernTinyWall.Services;
 
 internal sealed partial class TrayIconService : ITrayIconService
 {
+    private static readonly IReadOnlyList<TrayCommand> Commands =
+    [
+        new TrayCommand("overview", "Overview"),
+        new TrayCommand("settings", "Settings"),
+        new TrayCommand("connections", "Connections"),
+        new TrayCommand("processes", "Processes"),
+        new TrayCommand("services", "Services"),
+        new TrayCommand("packages", "UWP packages"),
+        new TrayCommand("exceptions", "Application exceptions"),
+        new TrayCommand("options", "Options"),
+        new TrayCommand("normal", "Normal protection"),
+        new TrayCommand("allowOutgoing", "Allow outgoing"),
+        new TrayCommand("blockAll", "Block all"),
+        new TrayCommand("disabled", "Disabled"),
+        new TrayCommand("learning", "Learning"),
+        new TrayCommand("lock", "Lock"),
+        new TrayCommand("unlock", "Unlock"),
+        new TrayCommand("elevate", "Run elevated"),
+        new TrayCommand("allowLocalSubnet", "Allow local subnet"),
+        new TrayCommand("hostsBlocklist", "Enable hosts blocklist"),
+        new TrayCommand("whitelistWindow", "Whitelist by window"),
+        new TrayCommand("exit", "Exit")
+    ];
+
+    private static readonly Dictionary<string, TrayCommand> CommandsById = Commands.ToDictionary(command => command.Id, StringComparer.Ordinal);
+
     private const int NIM_ADD = 0x00000000;
     private const int NIM_MODIFY = 0x00000001;
     private const int NIM_DELETE = 0x00000002;
@@ -161,35 +187,12 @@ internal sealed partial class TrayIconService : ITrayIconService
 
     public IReadOnlyList<TrayCommand> GetCommands()
     {
-        return
-        [
-            new TrayCommand("overview", "Overview"),
-            new TrayCommand("settings", "Settings"),
-            new TrayCommand("connections", "Connections"),
-            new TrayCommand("processes", "Processes"),
-            new TrayCommand("services", "Services"),
-            new TrayCommand("packages", "UWP packages"),
-            new TrayCommand("exceptions", "Application exceptions"),
-            new TrayCommand("options", "Options"),
-            new TrayCommand("normal", "Normal protection"),
-            new TrayCommand("allowOutgoing", "Allow outgoing"),
-            new TrayCommand("blockAll", "Block all"),
-            new TrayCommand("disabled", "Disabled"),
-            new TrayCommand("learning", "Learning"),
-            new TrayCommand("lock", "Lock"),
-            new TrayCommand("unlock", "Unlock"),
-            new TrayCommand("elevate", "Run elevated"),
-            new TrayCommand("allowLocalSubnet", "Allow local subnet"),
-            new TrayCommand("hostsBlocklist", "Enable hosts blocklist"),
-            new TrayCommand("whitelistWindow", "Whitelist by window"),
-            new TrayCommand("exit", "Exit")
-        ];
+        return Commands;
     }
 
     public void InvokeCommand(string commandId)
     {
-        var command = GetCommands().FirstOrDefault(command => command.Id == commandId);
-        if (command is not null)
+        if (CommandsById.TryGetValue(commandId, out var command))
             CommandInvoked?.Invoke(this, command);
     }
 

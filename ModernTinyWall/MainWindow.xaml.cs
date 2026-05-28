@@ -222,6 +222,18 @@ public sealed partial class MainWindow : Window
         _trayIconService.SetStatus(result.Message);
     }
 
+    private async Task<ModernTinyWallOptions> LoadOptionsAsync()
+    {
+        try
+        {
+            return await _optionsService.LoadAsync();
+        }
+        catch
+        {
+            return new ModernTinyWallOptions();
+        }
+    }
+
     private static Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
     {
         var completion = new TaskCompletionSource<ContentDialogResult>();
@@ -255,7 +267,7 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            return _optionsService.LoadAsync().GetAwaiter().GetResult();
+            return LoadOptionsAsync().GetAwaiter().GetResult();
         }
         catch
         {

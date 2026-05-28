@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ namespace ModernTinyWall.ViewModels;
 internal sealed class OverviewPageViewModel : INotifyPropertyChanged
 {
     private const int NetworkActivitySampleLimit = 300;
+    private static readonly string[] RateUnits = ["B/s", "KB/s", "MB/s", "GB/s"];
 
     private readonly IFirewallModeService _firewallModeService;
     private NetworkTotals _previousNetworkTotals;
@@ -137,17 +137,18 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
 
     private static NetworkTotals GetNetworkTotals()
     {
-        var interfaces = NetworkInterface.GetAllNetworkInterfaces()
-            .Where(networkInterface =>
-                networkInterface.OperationalStatus == OperationalStatus.Up &&
-                networkInterface.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-                networkInterface.NetworkInterfaceType != NetworkInterfaceType.Tunnel);
-
         long receivedBytes = 0;
         long sentBytes = 0;
 
-        foreach (var networkInterface in interfaces)
+        foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
         {
+            if (networkInterface.OperationalStatus != OperationalStatus.Up ||
+                networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
+                networkInterface.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
+            {
+                continue;
+            }
+
             var statistics = networkInterface.GetIPv4Statistics();
             receivedBytes += statistics.BytesReceived;
             sentBytes += statistics.BytesSent;
@@ -158,17 +159,16 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
 
     private static string FormatRate(long bytesPerSecond)
     {
-        string[] units = ["B/s", "KB/s", "MB/s", "GB/s"];
         var rate = (double)bytesPerSecond;
         var unitIndex = 0;
 
-        while (rate >= 1024 && unitIndex < units.Length - 1)
+        while (rate >= 1024 && unitIndex < RateUnits.Length - 1)
         {
             rate /= 1024;
             unitIndex++;
         }
 
-        return unitIndex == 0 ? $"{rate:0} {units[unitIndex]}" : $"{rate:0.0} {units[unitIndex]}";
+        return unitIndex == 0 ? $"{rate:0} {RateUnits[unitIndex]}" : $"{rate:0.0} {RateUnits[unitIndex]}";
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

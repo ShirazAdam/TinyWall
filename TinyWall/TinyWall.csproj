@@ -20,9 +20,9 @@
   <PropertyGroup>
 	<Product>TinyWall</Product>
 	<AssemblyTitle>TinyWall</AssemblyTitle>
-	<Company>Károly Pados</Company>
+	<Company>Modern TinyWall</Company>
 	<Description>A free, lightweight and non-intrusive firewall.</Description>
-	<Copyright>Copyright © 2011 Károly Pados</Copyright>
+	<Copyright>Copyright © 2026 Modern TinyWall</Copyright>
 	<Version>4.0.0</Version>
   </PropertyGroup>
   <PropertyGroup>

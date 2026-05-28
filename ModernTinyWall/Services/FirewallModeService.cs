@@ -8,19 +8,21 @@ namespace ModernTinyWall.Services;
 
 internal sealed class FirewallModeService : IFirewallModeService
 {
+    private static readonly IReadOnlyList<FirewallModeOption> ModeOptions =
+    [
+        new FirewallModeOption(ModernFirewallMode.Normal, "Normal protection", "Recommended TinyWall mode. Blocks unsolicited inbound traffic and allows trusted configured traffic."),
+        new FirewallModeOption(ModernFirewallMode.AllowOutgoing, "Allow outgoing", "Allows outgoing connections while retaining inbound protection."),
+        new FirewallModeOption(ModernFirewallMode.BlockAll, "Block all", "Blocks inbound and outbound traffic."),
+        new FirewallModeOption(ModernFirewallMode.Disabled, "Disabled", "Turns TinyWall filtering off."),
+        new FirewallModeOption(ModernFirewallMode.Learning, "Learning", "Temporarily learns allowed traffic. Use with care.")
+    ];
+
     private readonly Controller _controller = new("TinyWallController");
     private ModernFirewallMode _currentMode = ModernFirewallMode.Unknown;
 
     public IReadOnlyList<FirewallModeOption> GetModeOptions()
     {
-        return
-        [
-            new FirewallModeOption(ModernFirewallMode.Normal, "Normal protection", "Recommended TinyWall mode. Blocks unsolicited inbound traffic and allows trusted configured traffic."),
-            new FirewallModeOption(ModernFirewallMode.AllowOutgoing, "Allow outgoing", "Allows outgoing connections while retaining inbound protection."),
-            new FirewallModeOption(ModernFirewallMode.BlockAll, "Block all", "Blocks inbound and outbound traffic."),
-            new FirewallModeOption(ModernFirewallMode.Disabled, "Disabled", "Turns TinyWall filtering off."),
-            new FirewallModeOption(ModernFirewallMode.Learning, "Learning", "Temporarily learns allowed traffic. Use with care.")
-        ];
+        return ModeOptions;
     }
 
     public Task<FirewallModeResult> SetModeAsync(ModernFirewallMode mode, CancellationToken cancellationToken = default)

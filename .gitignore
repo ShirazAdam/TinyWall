@@ -50,3 +50,4 @@ artifacts/
 /ModernTinyWall.Windows.Services/obj/
 /ModernTinyWall.Windows.WFP/bin/
 /ModernTinyWall.Windows.WFP/obj/
+/.github/copilot-instructions.md

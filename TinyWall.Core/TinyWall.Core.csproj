@@ -7,6 +7,8 @@
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
 	<RootNamespace>ModernTinyWall.TinyWall</RootNamespace>
 	<DefineConstants>$(DefineConstants);TINYWALL_CORE</DefineConstants>
+	<Copyright>Copyright 2026 Modern TinyWall</Copyright>
+	<NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
