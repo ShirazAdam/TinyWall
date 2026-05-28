@@ -19,6 +19,7 @@ public sealed partial class MainWindow
     private readonly GlobalHotkeyService _globalHotkeyService = new();
     private readonly IntPtr _windowHandle;
     private readonly IntPtr _previousWindowProc;
+    private readonly WindowProc _windowProc;
     private int _traySnapshotRefreshInProgress;
     private bool _isTerminating;
 
@@ -26,8 +27,8 @@ public sealed partial class MainWindow
     {
         InitializeComponent();
         _windowHandle = WindowNative.GetWindowHandle(this);
-        WindowProc windowProc = WndProc;
-        _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(windowProc));
+        _windowProc = WndProc;
+        _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
         _trayIconService.Initialise(_windowHandle);
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
@@ -105,68 +106,75 @@ public sealed partial class MainWindow
 
     private async void TrayIconService_CommandInvoked(object? sender, TrayCommand command)
     {
-        switch (command.Id)
+        try
         {
-            case "overview":
-                ShowPage(typeof(OverviewPage));
-                break;
-            case "settings":
-                ShowPage(typeof(SettingsPage));
-                break;
-            case "connections":
-                ShowPage(typeof(ConnectionsPage));
-                break;
-            case "processes":
-                ShowPage(typeof(ProcessesPage));
-                break;
-            case "services":
-                ShowPage(typeof(ServicesPage));
-                break;
-            case "packages":
-                ShowPage(typeof(PackagesPage));
-                break;
-            case "exceptions":
-                ShowPage(typeof(ExceptionsPage));
-                break;
-            case "options":
-                ShowPage(typeof(OptionsPage));
-                break;
-            case "normal":
-                await SetFirewallModeAsync(Models.ModernFirewallMode.Normal);
-                break;
-            case "allowOutgoing":
-                await SetFirewallModeAsync(Models.ModernFirewallMode.AllowOutgoing);
-                break;
-            case "blockAll":
-                await SetFirewallModeAsync(Models.ModernFirewallMode.BlockAll);
-                break;
-            case "disabled":
-                await SetFirewallModeAsync(Models.ModernFirewallMode.Disabled);
-                break;
-            case "learning":
-                await SetFirewallModeAsync(Models.ModernFirewallMode.Learning);
-                break;
-            case "lock":
-                await SetCommandStatusAsync(_controllerCommandService.LockAsync());
-                break;
-            case "unlock":
-                await UnlockAsync();
-                break;
-            case "elevate":
-                await SetCommandStatusAsync(_controllerCommandService.ElevateAsync());
-                break;
-            case "allowLocalSubnet":
-                await SetCommandStatusAsync(_controllerCommandService.ToggleAllowLocalSubnetAsync());
-                break;
-            case "hostsBlocklist":
-                await SetCommandStatusAsync(_controllerCommandService.ToggleHostsBlocklistAsync());
-                break;
-            case "whitelistWindow":
-                await SetCommandStatusAsync(_controllerCommandService.WhitelistWindowUnderCursorAsync());
-                break;
-            case "exit":
-                TerminateApplication();
-                break;
+            switch (command.Id)
+            {
+                case "overview":
+                    ShowPage(typeof(OverviewPage));
+                    break;
+                case "settings":
+                    ShowPage(typeof(SettingsPage));
+                    break;
+                case "connections":
+                    ShowPage(typeof(ConnectionsPage));
+                    break;
+                case "processes":
+                    ShowPage(typeof(ProcessesPage));
+                    break;
+                case "services":
+                    ShowPage(typeof(ServicesPage));
+                    break;
+                case "packages":
+                    ShowPage(typeof(PackagesPage));
+                    break;
+                case "exceptions":
+                    ShowPage(typeof(ExceptionsPage));
+                    break;
+                case "options":
+                    ShowPage(typeof(OptionsPage));
+                    break;
+                case "normal":
+                    await SetFirewallModeAsync(Models.ModernFirewallMode.Normal);
+                    break;
+                case "allowOutgoing":
+                    await SetFirewallModeAsync(Models.ModernFirewallMode.AllowOutgoing);
+                    break;
+                case "blockAll":
+                    await SetFirewallModeAsync(Models.ModernFirewallMode.BlockAll);
+                    break;
+                case "disabled":
+                    await SetFirewallModeAsync(Models.ModernFirewallMode.Disabled);
+                    break;
+                case "learning":
+                    await SetFirewallModeAsync(Models.ModernFirewallMode.Learning);
+                    break;
+                case "lock":
+                    await SetCommandStatusAsync(_controllerCommandService.LockAsync());
+                    break;
+                case "unlock":
+                    await UnlockAsync();
+                    break;
+                case "elevate":
+                    await SetCommandStatusAsync(_controllerCommandService.ElevateAsync());
+                    break;
+                case "allowLocalSubnet":
+                    await SetCommandStatusAsync(_controllerCommandService.ToggleAllowLocalSubnetAsync());
+                    break;
+                case "hostsBlocklist":
+                    await SetCommandStatusAsync(_controllerCommandService.ToggleHostsBlocklistAsync());
+                    break;
+                case "whitelistWindow":
+                    await SetCommandStatusAsync(_controllerCommandService.WhitelistWindowUnderCursorAsync());
+                    break;
+                case "exit":
+                    TerminateApplication();
+                    break;
+            }
+        }
+        catch
+        {
+            // ignored
         }
     }
 
