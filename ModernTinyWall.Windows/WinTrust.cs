@@ -80,15 +80,15 @@ namespace ModernTinyWall.Windows
             CRYPT_E_FILE_ERROR = 0x80092003u
         };
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        [StructLayout(LayoutKind.Sequential)]
         private readonly struct WinTrustFileInfo
         {
             readonly uint StructSize;
-            [MarshalAs(UnmanagedType.LPWStr)] readonly string pszFilePath;
+            readonly IntPtr pszFilePath;
             readonly IntPtr hFile;
             readonly IntPtr pgKnownSubject;
 
-            internal WinTrustFileInfo(string path)
+            internal WinTrustFileInfo(IntPtr path)
             {
                 StructSize = (uint)Marshal.SizeOf(typeof(WinTrustFileInfo));
                 pszFilePath = path;
@@ -97,8 +97,8 @@ namespace ModernTinyWall.Windows
             }
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private class WinTrustData : IDisposable
+        [StructLayout(LayoutKind.Sequential)]
+        private sealed class WinTrustData : IDisposable
         {
             public uint StructSize = (uint)Marshal.SizeOf(typeof(WinTrustData));
             public IntPtr PolicyCallbackData = IntPtr.Zero;
@@ -109,9 +109,11 @@ namespace ModernTinyWall.Windows
             public IntPtr FileInfoPtr;
             public WinTrustDataStateAction StateAction = WinTrustDataStateAction.Verify;
             public IntPtr StateData = IntPtr.Zero;
-            public string? URLReference;
+            public IntPtr URLReference = IntPtr.Zero;
             public WinTrustDataProvFlags ProvFlags = WinTrustDataProvFlags.CacheOnlyUrlRetrieval | WinTrustDataProvFlags.RevocationCheckChain;
             public WinTrustDataUIContext UIContext = WinTrustDataUIContext.Execute;
+            private readonly IntPtr _fileNamePtr;
+            private IntPtr _nativePtr;
 
             public WinTrustData(string fileName, WinTrustDataRevocationChecks revocationChecks)
             {
@@ -125,14 +127,25 @@ namespace ModernTinyWall.Windows
 
                 RevocationChecks = revocationChecks;
 
-                var wtfiData = new WinTrustFileInfo(fileName);
+                _fileNamePtr = Marshal.StringToCoTaskMemUni(fileName);
+                var wtfiData = new WinTrustFileInfo(_fileNamePtr);
                 FileInfoPtr = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(WinTrustFileInfo)));
                 Marshal.StructureToPtr(wtfiData, FileInfoPtr, false);
             }
 
-            protected virtual void Dispose(bool disposing)
+            public IntPtr DangerousGetHandle()
             {
-                if (FileInfoPtr == IntPtr.Zero)
+                if (_nativePtr == IntPtr.Zero)
+                    _nativePtr = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(WinTrustData)));
+
+                Marshal.StructureToPtr(this, _nativePtr, false);
+
+                return _nativePtr;
+            }
+
+            private void Dispose(bool disposing)
+            {
+                if (FileInfoPtr != IntPtr.Zero)
                 {
                     if (disposing)
                     {
@@ -143,6 +156,15 @@ namespace ModernTinyWall.Windows
                     Marshal.FreeCoTaskMem(FileInfoPtr);
                     FileInfoPtr = IntPtr.Zero;
                 }
+
+                if (_nativePtr != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(_nativePtr);
+                    _nativePtr = IntPtr.Zero;
+                }
+
+                if (_fileNamePtr != IntPtr.Zero)
+                    Marshal.FreeCoTaskMem(_fileNamePtr);
             }
 
             ~WinTrustData() => Dispose(disposing: false);
@@ -163,24 +185,20 @@ namespace ModernTinyWall.Windows
         //private static readonly Guid WINTRUST_ACTION_TRUSTPROVIDER_TEST     = new(0x573e31f8, 0xddba, 0x11d0, 0x8c, 0xcb, 0x0, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
 
         [SuppressUnmanagedCodeSecurity]
-        private static class SafeNativeMethods
+        private static partial class SafeNativeMethods
         {
-            [DllImport("wintrust.dll", SetLastError = true)]
-            public static extern WinVerifyTrustResult WinVerifyTrust(
-                [In] IntPtr hwnd,
-                [In][MarshalAs(UnmanagedType.LPStruct)] Guid pgActionID,
-                [In] WinTrustData pWVTData
-            );
+            [LibraryImport("wintrust.dll", SetLastError = true)]
+            public static partial WinVerifyTrustResult WinVerifyTrust(IntPtr hwnd, in Guid pgActionID, IntPtr pWVTData);
         }
 
         private static VerifyResult VerifyEmbeddedSignature(string fileName, Guid guidAction, WinTrustDataRevocationChecks revocationChecks)
         {
             using var wtd = new WinTrustData(fileName, revocationChecks);
-            WinVerifyTrustResult lStatus = SafeNativeMethods.WinVerifyTrust(IntPtr.Zero, guidAction, wtd);
+            WinVerifyTrustResult lStatus = SafeNativeMethods.WinVerifyTrust(IntPtr.Zero, guidAction, wtd.DangerousGetHandle());
 
             // Any hWVTStateData must be released by a call with close.
             wtd.StateAction = WinTrustDataStateAction.Close;
-            SafeNativeMethods.WinVerifyTrust(IntPtr.Zero, guidAction, wtd);
+            SafeNativeMethods.WinVerifyTrust(IntPtr.Zero, guidAction, wtd.DangerousGetHandle());
 
             switch (lStatus)
             {

@@ -7,76 +7,48 @@ using System.Security;
 
 namespace ModernTinyWall.Windows.WFP
 {
-    public sealed class Engine : IDisposable
+    public sealed partial class Engine : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmEngineOpen0")]
-            internal static extern uint FwpmEngineOpen0(
-                [In, MarshalAs(UnmanagedType.LPWStr)] string? serverName,
-                [In] uint authnService,
-                [In] IntPtr authIdentity,
-                [In] ref Interop.FWPM_SESSION0 session,
-                [Out] out FwpmEngineSafeHandle engineHandle);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmEngineOpen0", StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial uint FwpmEngineOpen0(
+                string? serverName,
+                uint authnService,
+                IntPtr authIdentity,
+                IntPtr session,
+                out FwpmEngineSafeHandle engineHandle);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmEngineSetOption0")]
-            internal static extern uint FwpmEngineSetOption0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] Interop.FWPM_ENGINE_OPTION option,
-                [In] ref Interop.FWP_VALUE0 newValue);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmEngineSetOption0")]
+            internal static partial uint FwpmEngineSetOption0(FwpmEngineSafeHandle engineHandle, Interop.FWPM_ENGINE_OPTION option, ref Interop.FWP_VALUE0 newValue);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmEngineGetOption0")]
-            internal static extern uint FwpmEngineGetOption0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] Interop.FWPM_ENGINE_OPTION option,
-                [Out] out FwpmMemorySafeHandle value);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmEngineGetOption0")]
+            internal static partial uint FwpmEngineGetOption0(FwpmEngineSafeHandle engineHandle, Interop.FWPM_ENGINE_OPTION option, out FwpmMemorySafeHandle value);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderAdd0")]
-            internal static extern uint FwpmProviderAdd0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Interop.FWPM_PROVIDER0 provider,
-                [In] IntPtr sd);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmProviderAdd0")]
+            internal static partial uint FwpmProviderAdd0(FwpmEngineSafeHandle engineHandle, IntPtr provider, IntPtr sd);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDeleteByKey0")]
-            internal static extern uint FwpmProviderDeleteByKey0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Guid key);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDeleteByKey0")]
+            internal static partial uint FwpmProviderDeleteByKey0(FwpmEngineSafeHandle engineHandle, ref Guid key);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerAdd0")]
-            internal static extern uint FwpmSubLayerAdd0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Interop.FWPM_SUBLAYER0 subLayer,
-                [In] IntPtr sd);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerAdd0")]
+            internal static partial uint FwpmSubLayerAdd0(FwpmEngineSafeHandle engineHandle, IntPtr subLayer, IntPtr sd);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDeleteByKey0")]
-            internal static extern uint FwpmSubLayerDeleteByKey0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Guid key);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDeleteByKey0")]
+            internal static partial uint FwpmSubLayerDeleteByKey0(FwpmEngineSafeHandle engineHandle, ref Guid key);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterAdd0")]
-            internal static extern uint FwpmFilterAdd0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Interop.FWPM_FILTER0_NoStrings filter,
-                [In] IntPtr sd,
-                [Out] out ulong id);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterAdd0")]
+            internal static partial uint FwpmFilterAdd0(FwpmEngineSafeHandle engineHandle, ref Interop.FWPM_FILTER0_NoStrings filter, IntPtr sd, out ulong id);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDeleteByKey0")]
-            internal static extern uint FwpmFilterDeleteByKey0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Guid key);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDeleteByKey0")]
+            internal static partial uint FwpmFilterDeleteByKey0(FwpmEngineSafeHandle engineHandle, ref Guid key);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterGetByKey0")]
-            internal static extern uint FwpmFilterGetByKey0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Guid key,
-                [Out] out FwpmMemorySafeHandle filter);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterGetByKey0")]
+            internal static partial uint FwpmFilterGetByKey0(FwpmEngineSafeHandle engineHandle, ref Guid key, out FwpmMemorySafeHandle filter);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterGetById0")]
-            internal static extern uint FwpmFilterGetById0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ulong id,
-                [Out] out FwpmMemorySafeHandle filter);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterGetById0")]
+            internal static partial uint FwpmFilterGetById0(FwpmEngineSafeHandle engineHandle, ulong id, out FwpmMemorySafeHandle filter);
         }
 
         private readonly FwpmEngineSafeHandle _nativeEngineHandle;
@@ -100,7 +72,8 @@ namespace ModernTinyWall.Windows.WFP
             session.flags = flags;
             session.txnWaitTimeoutInMSec = txnTimeoutMsec;
 
-            uint error = NativeMethods.FwpmEngineOpen0(null, (uint)Interop.RPC_C_AUTHN.RPC_C_AUTHN_WINNT, IntPtr.Zero, ref session, out _nativeEngineHandle);
+            using var sessionHandle = SafeHGlobalHandle.FromManagedStruct(session);
+            uint error = NativeMethods.FwpmEngineOpen0(null, (uint)Interop.RPC_C_AUTHN.RPC_C_AUTHN_WINNT, IntPtr.Zero, sessionHandle.DangerousGetHandle(), out _nativeEngineHandle);
             if (0 != error)
                 throw new WfpException(error, "FwpmEngineOpen0");
         }
@@ -236,7 +209,8 @@ namespace ModernTinyWall.Windows.WFP
             if (Guid.Empty == provider.providerKey)
                 provider.providerKey = Guid.NewGuid();
 
-            uint error = NativeMethods.FwpmProviderAdd0(_nativeEngineHandle, ref provider, IntPtr.Zero);
+            using var providerHandle = SafeHGlobalHandle.FromManagedStruct(provider);
+            uint error = NativeMethods.FwpmProviderAdd0(_nativeEngineHandle, providerHandle.DangerousGetHandle(), IntPtr.Zero);
             if (0 != error)
                 throw new WfpException(error, "FwpmProviderAdd0");
 
@@ -250,7 +224,8 @@ namespace ModernTinyWall.Windows.WFP
 
             var nativeStruct = sublayer.Marshal();
 
-            uint error = NativeMethods.FwpmSubLayerAdd0(_nativeEngineHandle, ref nativeStruct, IntPtr.Zero);
+            using var sublayerHandle = SafeHGlobalHandle.FromManagedStruct(nativeStruct);
+            uint error = NativeMethods.FwpmSubLayerAdd0(_nativeEngineHandle, sublayerHandle.DangerousGetHandle(), IntPtr.Zero);
             if (0 != error)
                 throw new WfpException(error, "FwpmProviderAdd0");
 

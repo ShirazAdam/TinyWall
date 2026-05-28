@@ -12,10 +12,10 @@ namespace ModernTinyWall.Windows
         private sealed partial class SafeIpHlprNotifyHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
             [SuppressUnmanagedCodeSecurity]
-            private static class NativeMethods
+            private static partial class NativeMethods
             {
-                [DllImport("Iphlpapi.dll")]
-                internal static extern int CancelMibChangeNotify2(IntPtr NotificationHandle);
+                [LibraryImport("Iphlpapi.dll")]
+                internal static partial int CancelMibChangeNotify2(IntPtr NotificationHandle);
             }
 
             public SafeIpHlprNotifyHandle() : base(true) { }
@@ -49,16 +49,16 @@ namespace ModernTinyWall.Windows
         private delegate void NotifyIpInterfaceChangeDelegate(IntPtr CallerContext, IntPtr Row, MIB_NOTIFICATION_TYPE NotificationType);
 
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("Iphlpapi")]
-            public static extern int NotifyIpInterfaceChange(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
+            [LibraryImport("Iphlpapi")]
+            public static partial int NotifyIpInterfaceChange(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
 
-            [DllImport("Iphlpapi")]
-            public static extern int NotifyUnicastIpAddressChange(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
+            [LibraryImport("Iphlpapi")]
+            public static partial int NotifyUnicastIpAddressChange(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
 
-            [DllImport("Iphlpapi")]
-            public static extern int NotifyRouteChange2(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
+            [LibraryImport("Iphlpapi")]
+            public static partial int NotifyRouteChange2(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
         }
 
         private readonly NotifyIpInterfaceChangeDelegate NativeCallback;

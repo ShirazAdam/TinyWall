@@ -9,10 +9,6 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
-            //[return: MarshalAs(UnmanagedType.Bool)]
-            //internal static extern unsafe bool PathIsNetworkPath(char* pszPath);
-
             [LibraryImport("shlwapi.dll", StringMarshalling = StringMarshalling.Utf16, EntryPoint = "PathIsNetworkPathW")]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool PathIsNetworkPath(string pszPath);
@@ -22,14 +18,6 @@ namespace ModernTinyWall.Windows
             internal const int ERROR_MORE_DATA = 234;
             internal const int ERROR_NOT_CONNECTED = 2250;
             internal const int NOERROR = 0;
-
-            //[DllImport("mpr.dll", CharSet = CharSet.Unicode)]
-            //[return: MarshalAs(UnmanagedType.U4)]
-            //internal static extern int WNetGetUniversalName(
-            //    string lpLocalPath,
-            //    [MarshalAs(UnmanagedType.U4)] int dwInfoLevel,
-            //    IntPtr lpBuffer,
-            //    [MarshalAs(UnmanagedType.U4)] ref int lpBufferSize);
 
             [LibraryImport("mpr.dll", StringMarshalling = StringMarshalling.Utf16)]
             internal static partial int WNetGetUniversalName(string lpLocalPath, int dwInfoLevel, IntPtr lpBuffer, ref int lpBufferSize);

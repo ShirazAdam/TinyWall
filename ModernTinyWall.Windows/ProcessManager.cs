@@ -17,51 +17,54 @@ namespace ModernTinyWall.Windows
         public readonly uint ParentProcessId = parentPid;
     }
 
-    public static class ProcessManager
+    public static partial class ProcessManager
     {
         [SuppressUnmanagedCodeSecurity]
-        protected static class NativeMethods
+        protected static partial class NativeMethods
         {
-            [DllImport("kernel32", SetLastError = true)]
-            internal static extern SafeObjectHandle OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwProcessId);
+            [LibraryImport("kernel32", SetLastError = true)]
+            internal static partial SafeObjectHandle OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwProcessId);
 
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-            internal static extern bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] StringBuilder lpExeName, ref int size);
-
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+            [LibraryImport("kernel32", EntryPoint = "QueryFullProcessImageNameW", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern unsafe bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, [Out] char* lpExeName, ref int size);
+            internal static unsafe partial bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, char* lpExeName, ref int size);
 
-            [DllImport("ntdll")]
-            internal static extern int NtQueryInformationProcess(SafeObjectHandle hProcess, int processInformationClass, [Out] out PROCESS_BASIC_INFORMATION processInformation, int processInformationLength, out int returnLength);
+            internal static unsafe bool QueryFullProcessImageName(SafeObjectHandle hProcess, QueryFullProcessImageNameFlags dwFlags, char[] lpExeName, ref int size)
+            {
+                fixed (char* buffer = lpExeName)
+                    return QueryFullProcessImageName(hProcess, dwFlags, buffer, ref size);
+            }
 
-            [DllImport("kernel32", SetLastError = true)]
-            internal static extern SafeObjectHandle CreateToolhelp32Snapshot(SnapshotFlags flags, int id);
-            [DllImport("kernel32", SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool Process32First(SafeObjectHandle hSnapshot, [In, Out] ref PROCESSENTRY32 lppe);
-            [DllImport("kernel32", SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool Process32Next(SafeObjectHandle hSnapshot, [In, Out] ref PROCESSENTRY32 lppe);
+            [LibraryImport("ntdll")]
+            internal static partial int NtQueryInformationProcess(SafeObjectHandle hProcess, int processInformationClass, out PROCESS_BASIC_INFORMATION processInformation, int processInformationLength, out int returnLength);
 
-            [DllImport("user32", SetLastError = true)]
+            [LibraryImport("kernel32", SetLastError = true)]
+            internal static partial SafeObjectHandle CreateToolhelp32Snapshot(SnapshotFlags flags, int id);
+            [LibraryImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool PostThreadMessage(int threadId, uint msg, UIntPtr wParam, IntPtr lParam);
+            internal static partial bool Process32First(SafeObjectHandle hSnapshot, ref PROCESSENTRY32 lppe);
+            [LibraryImport("kernel32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static partial bool Process32Next(SafeObjectHandle hSnapshot, ref PROCESSENTRY32 lppe);
 
-            [DllImport("kernel32", SetLastError = true)]
+            [LibraryImport("user32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool GetProcessTimes(SafeObjectHandle hProcess, out long lpCreationTime, out long lpExitTime, out long lpKernelTime, out long lpUserTime);
+            internal static partial bool PostThreadMessage(int threadId, uint msg, UIntPtr wParam, IntPtr lParam);
 
-            [DllImport("advapi32", SetLastError = true)]
+            [LibraryImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool OpenProcessToken(
+            internal static partial bool GetProcessTimes(SafeObjectHandle hProcess, out long lpCreationTime, out long lpExitTime, out long lpKernelTime, out long lpUserTime);
+
+            [LibraryImport("advapi32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static partial bool OpenProcessToken(
                 SafeObjectHandle ProcessToken,
                 TokenAccessLevels DesiredAccess,
                 out SafeObjectHandle TokenHandle);
 
-            [DllImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool GetTokenInformation(
+            internal static partial bool GetTokenInformation(
                 SafeObjectHandle TokenHandle,
                 TokenInformationClass TokenInformationClass,
                 HeapSafeHandle TokenInformation,
@@ -273,21 +276,16 @@ namespace ModernTinyWall.Windows
             const int ERROR_INSUFFICIENT_BUFFER = 122;
             if (ERROR_INSUFFICIENT_BUFFER == Marshal.GetLastWin32Error())
             {
-                if (buffer is null)
-                {
-                    buffer = new StringBuilder(MAX_PATH_BUFF_CHARS);
-                }
-                else
-                {
-                    buffer.Clear();
-                    buffer.EnsureCapacity(MAX_PATH_BUFF_CHARS);
-                }
-                numChars = buffer.Capacity;
-                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.NativeFormat, buffer, ref numChars))
+                var heapBuffer = new char[MAX_PATH_BUFF_CHARS];
+                numChars = heapBuffer.Length;
+                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.NativeFormat, heapBuffer, ref numChars))
                 {
                     if (numChars == 0)
                         return string.Empty;
 
+                    buffer ??= new StringBuilder(MAX_PATH_BUFF_CHARS);
+                    buffer.Clear();
+                    buffer.Append(heapBuffer, 0, numChars);
                     return PathMapper.Instance.ConvertPathIgnoreErrors(buffer.ToString(), PathFormat.Win32);
                 }
             }

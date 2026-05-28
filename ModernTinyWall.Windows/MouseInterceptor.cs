@@ -7,7 +7,7 @@ namespace ModernTinyWall.Windows
 {
     public partial class MouseInterceptor : Disposable
     {
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
             public const int WH_MOUSE_LL = 14;
             public delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -39,18 +39,18 @@ namespace ModernTinyWall.Windows
                 public IntPtr dwExtraInfo;
             }
 
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+            [LibraryImport("user32.dll", SetLastError = true)]
+            public static partial IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
 
-            [DllImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+            public static partial bool UnhookWindowsHookEx(IntPtr hhk);
 
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+            [LibraryImport("user32.dll", SetLastError = true)]
+            public static partial IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
-            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern IntPtr GetModuleHandle(string lpModuleName);
+            [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            public static partial IntPtr GetModuleHandle(string lpModuleName);
         }
 
         public delegate void MouseHookLButtonDown(int x, int y);

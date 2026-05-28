@@ -32,8 +32,13 @@ namespace ModernTinyWall.TinyWall
         [SuppressUnmanagedCodeSecurity]
         internal static partial class SafeNativeMethods
         {
-            [DllImport("user32.dll")]
-            internal static extern IntPtr WindowFromPoint(Point pt);
+            internal static IntPtr WindowFromPoint(Point pt)
+            {
+                return WindowFromPointCore(new NativePoint(pt.X, pt.Y));
+            }
+
+            [LibraryImport("user32.dll", EntryPoint = "WindowFromPoint")]
+            private static partial IntPtr WindowFromPointCore(NativePoint pt);
 
             [LibraryImport("user32.dll", SetLastError = true)]
             internal static partial int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
@@ -62,16 +67,15 @@ namespace ModernTinyWall.TinyWall
                 bool bAllUsers
             );
 
-            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-            [return: MarshalAs(UnmanagedType.U4)]
-            internal static extern int GetLongPathName(
-                [MarshalAs(UnmanagedType.LPWStr)]
-                string lpszShortPath,
-                [MarshalAs(UnmanagedType.LPWStr)]
-                StringBuilder lpszLongPath,
-                [MarshalAs(UnmanagedType.U4)]
-                int cchBuffer
-            );
+            [LibraryImport("kernel32.dll", EntryPoint = "GetLongPathNameW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            internal static unsafe partial int GetLongPathName(string lpszShortPath, char* lpszLongPath, int cchBuffer);
+
+            [StructLayout(LayoutKind.Sequential)]
+            private readonly struct NativePoint(int x, int y)
+            {
+                private readonly int _x = x;
+                private readonly int _y = y;
+            }
 
             #region IsMetroActive
             [ComImport, Guid("2246EA2D-CAEA-4444-A3C4-6DE827E44313"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -297,20 +301,28 @@ namespace ModernTinyWall.TinyWall
             if (IsNullOrEmpty(shortPath))
                 return string.Empty;
 
-            var builder = new StringBuilder(255);
-            var result = SafeNativeMethods.GetLongPathName(shortPath, builder, builder.Capacity);
+            const int InitialBufferLength = 255;
 
-            switch (result)
+            unsafe
             {
-                case > 0 when (result < builder.Capacity):
-                    return builder.ToString(0, result);
-                case > 0:
-                    builder = new StringBuilder(result);
-                    result = SafeNativeMethods.GetLongPathName(shortPath, builder, builder.Capacity);
-                    return builder.ToString(0, result);
-                default:
-                    // Path not found or other error
-                    return shortPath;
+                var initialBuffer = stackalloc char[InitialBufferLength];
+                var result = SafeNativeMethods.GetLongPathName(shortPath, initialBuffer, InitialBufferLength);
+
+                switch (result)
+                {
+                    case > 0 when result < InitialBufferLength:
+                        return new string(initialBuffer, 0, result);
+                    case > 0:
+                        var expandedBuffer = new char[result];
+                        fixed (char* expandedBufferPointer = expandedBuffer)
+                        {
+                            result = SafeNativeMethods.GetLongPathName(shortPath, expandedBufferPointer, expandedBuffer.Length);
+                            return result > 0 ? new string(expandedBufferPointer, 0, result) : shortPath;
+                        }
+                    default:
+                        // Path not found or other error
+                        return shortPath;
+                }
             }
         }
 

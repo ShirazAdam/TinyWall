@@ -253,16 +253,16 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class NetEventSubscription0 : NetEventSubscription
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void FWPM_NET_EVENT_CALLBACK0(IntPtr context, IntPtr netEvent1);
 
-            [DllImport("FWPUClnt.dll")]
-            internal static extern uint FwpmNetEventSubscribe0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Interop.FWPM_NET_EVENT_SUBSCRIPTION0 subscription,
-                [In] FWPM_NET_EVENT_CALLBACK0 callback,
+            [LibraryImport("FWPUClnt.dll")]
+            internal static partial uint FwpmNetEventSubscribe0(
+                FwpmEngineSafeHandle engineHandle,
+                ref Interop.FWPM_NET_EVENT_SUBSCRIPTION0 subscription,
+                FWPM_NET_EVENT_CALLBACK0 callback,
                 IntPtr context,
                 out IntPtr changeHandle);
         }
@@ -308,16 +308,16 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class NetEventSubscription1 : NetEventSubscription
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void FWPM_NET_EVENT_CALLBACK1(IntPtr context, IntPtr netEvent2);
 
-            [DllImport("FWPUClnt.dll")]
-            internal static extern uint FwpmNetEventSubscribe1(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Interop.FWPM_NET_EVENT_SUBSCRIPTION0 subscription,
-                [In] FWPM_NET_EVENT_CALLBACK1 callback,
+            [LibraryImport("FWPUClnt.dll")]
+            internal static partial uint FwpmNetEventSubscribe1(
+                FwpmEngineSafeHandle engineHandle,
+                ref Interop.FWPM_NET_EVENT_SUBSCRIPTION0 subscription,
+                FWPM_NET_EVENT_CALLBACK1 callback,
                 IntPtr context,
                 out IntPtr changeHandle);
 

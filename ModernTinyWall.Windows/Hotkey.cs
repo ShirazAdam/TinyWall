@@ -1,15 +1,14 @@
+using ModernTinyWall.Utilities;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.Windows.Forms;
-using ModernTinyWall.Utilities;
 
 namespace ModernTinyWall.Windows
 {
     public partial class Hotkey : Disposable, IMessageFilter    // TODO: Can IMessageFilter be removed?
     {
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
             public const uint WM_HOTKEY = 0x312;
             public const uint MOD_ALT = 0x1;
@@ -18,11 +17,11 @@ namespace ModernTinyWall.Windows
             public const uint MOD_WIN = 0x8;
             public const uint ERROR_HOTKEY_ALREADY_REGISTERED = 1409;
 
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern int RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, System.Windows.Forms.Keys vk);
+            [LibraryImport("user32.dll", SetLastError = true)]
+            public static partial int RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, Keys vk);
 
-            [DllImport("user32.dll", SetLastError = true)]
-            public static extern int UnregisterHotKey(IntPtr hWnd, int id);
+            [LibraryImport("user32.dll", SetLastError = true)]
+            public static partial int UnregisterHotKey(IntPtr hWnd, int id);
         }
 
         private static int currentID;

@@ -73,12 +73,12 @@ namespace ModernTinyWall.Windows.WFP
         public static void AssertUnmanagedType<T>() where T : unmanaged
         { }
 
-        [DllImport("advapi32")]
-        static extern uint GetLengthSid(IntPtr pSid);
+        [LibraryImport("advapi32")]
+        private static partial uint GetLengthSid(IntPtr pSid);
 
-        [DllImport("advapi32")]
+        [LibraryImport("advapi32")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CopySid(uint nDestinationSidLength, IntPtr pDestinationSid, IntPtr pSourceSid);
+        private static partial bool CopySid(uint nDestinationSidLength, IntPtr pDestinationSid, IntPtr pSourceSid);
 
         public static SafeHandle CopyNativeSid(IntPtr sid)
         {
@@ -88,9 +88,9 @@ namespace ModernTinyWall.Windows.WFP
             return ret;
         }
 
-        [DllImport("advapi32", SetLastError = true)]
+        [LibraryImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool ConvertSidToStringSid(IntPtr sid, out AllocHLocalSafeHandle stringSid);
+        private static partial bool ConvertSidToStringSid(IntPtr sid, out AllocHLocalSafeHandle stringSid);
 
         internal static string? ConvertSidToStringSid(IntPtr pSid)
         {

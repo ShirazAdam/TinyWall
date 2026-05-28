@@ -9,15 +9,14 @@ namespace ModernTinyWall.Windows
     public static partial class VersionInfo
     {
         [StructLayout(LayoutKind.Sequential)]
-        private struct OsVersionInfoEx
+        private unsafe struct OsVersionInfoEx
         {
             public uint OSVersionInfoSize;
             public uint MajorVersion;
             public uint MinorVersion;
             public uint BuildNumber;
             public uint PlatformId;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public string CSDVersion;
+            public fixed char CSDVersion[128];
             public ushort ServicePackMajor;
             public ushort ServicePackMinor;
             public ushort SuiteMask;
@@ -26,18 +25,18 @@ namespace ModernTinyWall.Windows
         }
 
         [SuppressUnmanagedCodeSecurity]
-        internal static class SafeNativeMethods
+        internal static partial class SafeNativeMethods
         {
-            [DllImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            private static extern bool IsWow64Process([In] IntPtr hProcess, [Out][MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+            private static partial bool IsWow64Process(IntPtr hProcess, [MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
 
-            [DllImport("kernel32")]
-            static extern ulong VerSetConditionMask(ulong dwlConditionMask, uint dwTypeBitMask, byte dwConditionMask);
+            [LibraryImport("kernel32")]
+            private static partial ulong VerSetConditionMask(ulong dwlConditionMask, uint dwTypeBitMask, byte dwConditionMask);
 
-            [DllImport("kernel32")]
+            [LibraryImport("kernel32")]
             [return: MarshalAs(UnmanagedType.Bool)]
-            static extern bool VerifyVersionInfo([In] ref OsVersionInfoEx lpVersionInfo, uint dwTypeMask, ulong dwlConditionMask);
+            private static partial bool VerifyVersionInfo(ref OsVersionInfoEx lpVersionInfo, uint dwTypeMask, ulong dwlConditionMask);
 
             internal static bool InternalCheckIsWow64()
             {

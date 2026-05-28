@@ -17,18 +17,17 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class FilterSubscription : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void FWPM_FILTER_CHANGE_CALLBACK0(IntPtr context, IntPtr change);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterSubscribeChanges0")]
-
-            internal static extern uint FwpmFilterSubscribeChanges0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] ref Interop.FWPM_FILTER_SUBSCRIPTION0 subscription,
-                [In] FWPM_FILTER_CHANGE_CALLBACK0 callback,
-                [In] IntPtr context,
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterSubscribeChanges0")]
+            internal static partial uint FwpmFilterSubscribeChanges0(
+                FwpmEngineSafeHandle engineHandle,
+                IntPtr subscription,
+                FWPM_FILTER_CHANGE_CALLBACK0 callback,
+                IntPtr context,
                 out IntPtr changeHandle);
         }
 
@@ -63,7 +62,8 @@ namespace ModernTinyWall.Windows.WFP
                     };
                 }
 
-                var err = NativeMethods.FwpmFilterSubscribeChanges0(engine.NativePtr, ref subs0, _nativeCallbackDelegate, IntPtr.Zero, out IntPtr outHndl);
+                using var subscriptionHandle = SafeHGlobalHandle.FromManagedStruct(subs0);
+                var err = NativeMethods.FwpmFilterSubscribeChanges0(engine.NativePtr, subscriptionHandle.DangerousGetHandle(), _nativeCallbackDelegate, IntPtr.Zero, out IntPtr outHndl);
                 if (0 == err)
                     _subscriptionHandle = new FwpmFilterSubscriptionSafeHandle(outHndl, engine.NativePtr);
                 else

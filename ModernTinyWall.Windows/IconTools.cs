@@ -31,10 +31,10 @@ namespace ModernTinyWall.Windows
         private const int SHGFI_USEFILEATTRIBUTES = 0x10;
 
         [SuppressUnmanagedCodeSecurity]
-        private partial class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-            public static extern IntPtr SHGetFileInfo(
+            [LibraryImport("shell32.dll", EntryPoint = "SHGetFileInfoW", StringMarshalling = StringMarshalling.Utf16)]
+            public static partial IntPtr SHGetFileInfo(
                 string pszPath,
                 uint dwFileAttributes,
                 ref SHFILEINFO psfi,
@@ -42,21 +42,19 @@ namespace ModernTinyWall.Windows
                 ShellIconSize uFlags
             );
 
-            [DllImport("user32.dll")]
+            [LibraryImport("user32.dll")]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool DestroyIcon(IntPtr handle);
+            public static partial bool DestroyIcon(IntPtr handle);
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private struct SHFILEINFO
+        [StructLayout(LayoutKind.Sequential)]
+        private unsafe struct SHFILEINFO
         {
             public IntPtr hIcon;
             public int iIcon;
             public uint dwAttributes;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-            public string szDisplayName;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-            public string szTypeName;
+            public fixed char szDisplayName[260];
+            public fixed char szTypeName[80];
         };
 
         #endregion

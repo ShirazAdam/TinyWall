@@ -1,24 +1,23 @@
+using Microsoft.Win32.SafeHandles;
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using System.Runtime.InteropServices;
-
-using Microsoft.Win32.SafeHandles;
 
 namespace ModernTinyWall.Windows
 {
     public sealed partial class SafeHGlobalHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32")]
-            public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+            [LibraryImport("kernel32")]
+            public static partial IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [DllImport("kernel32")]
-            public static extern IntPtr GlobalFree(IntPtr hMem);
+            [LibraryImport("kernel32")]
+            public static partial IntPtr GlobalFree(IntPtr hMem);
         }
 
         private Type? MarshalDestroyType;
@@ -144,11 +143,11 @@ namespace ModernTinyWall.Windows
     public sealed partial class SafeObjectHandle : SafeHandleZeroOrMinusOneIsInvalid   // OpenProcess returns 0 on failure
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CloseHandle(IntPtr hHandle);
+            public static partial bool CloseHandle(IntPtr hHandle);
         }
 
         public SafeObjectHandle() : base(true) { }
@@ -159,7 +158,7 @@ namespace ModernTinyWall.Windows
         }
 
 
-        override protected bool ReleaseHandle()
+        protected override bool ReleaseHandle()
         {
             return NativeMethods.CloseHandle(handle);
         }
@@ -168,18 +167,18 @@ namespace ModernTinyWall.Windows
     public sealed partial class HeapSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32")]
-            internal static extern IntPtr HeapAlloc(IntPtr heap, uint uFlags, UIntPtr dwBytes);
+            [LibraryImport("kernel32")]
+            internal static partial IntPtr HeapAlloc(IntPtr heap, uint uFlags, UIntPtr dwBytes);
 
-            [DllImport("kernel32", SetLastError = true)]
-            internal static extern IntPtr GetProcessHeap();
+            [LibraryImport("kernel32", SetLastError = true)]
+            internal static partial IntPtr GetProcessHeap();
 
-            [DllImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", SetLastError = true)]
 
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool HeapFree(IntPtr heap, uint flags, IntPtr mem);
+            internal static partial bool HeapFree(IntPtr heap, uint flags, IntPtr mem);
         }
 
         private static IntPtr ProcessHeap { get; } = NativeMethods.GetProcessHeap();
@@ -235,13 +234,13 @@ namespace ModernTinyWall.Windows
         }
 
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("advapi32")]
-            public static extern int RegCloseKey(IntPtr hKey);
+            [LibraryImport("advapi32")]
+            public static partial int RegCloseKey(IntPtr hKey);
 
-            [DllImport("advapi32", CharSet = CharSet.Unicode)]
-            public static extern int RegOpenKeyEx(IntPtr hKey, string subKey, uint ulOptions, uint samDesired, out SafeRegistryHandle hkResult);
+            [LibraryImport("advapi32", StringMarshalling = StringMarshalling.Utf16)]
+            public static partial int RegOpenKeyEx(IntPtr hKey, string subKey, uint ulOptions, uint samDesired, out SafeRegistryHandle hkResult);
         }
 
         public SafeRegistryHandle() : base(true) { }
@@ -301,14 +300,14 @@ namespace ModernTinyWall.Windows
     public sealed partial class AllocHLocalSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32.dll")]
-            internal static extern IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
+            [LibraryImport("kernel32.dll")]
+            internal static partial IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [DllImport("kernel32.dll")]
+            [LibraryImport("kernel32.dll")]
 
-            internal static extern IntPtr LocalFree(IntPtr hMem);
+            internal static partial IntPtr LocalFree(IntPtr hMem);
         }
 
         public AllocHLocalSafeHandle(int nBytes)
@@ -340,18 +339,18 @@ namespace ModernTinyWall.Windows
     public sealed partial class FindVolumeSafeHandle : SafeHandleMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            internal static extern IntPtr FindFirstVolume([Out] StringBuilder lpszVolumeName, int cchBufferLength);
+            [LibraryImport("kernel32", EntryPoint = "FindFirstVolumeW", SetLastError = true)]
+            internal static unsafe partial IntPtr FindFirstVolume(char* lpszVolumeName, int cchBufferLength);
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "FindNextVolumeW", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool FindNextVolume(IntPtr hFindVolume, [Out] StringBuilder lpszVolumeName, int cchBufferLength);
+            internal static unsafe partial bool FindNextVolume(IntPtr hFindVolume, char* lpszVolumeName, int cchBufferLength);
 
-            [DllImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool FindVolumeClose(IntPtr hFindVolume);
+            internal static partial bool FindVolumeClose(IntPtr hFindVolume);
         }
 
         public FindVolumeSafeHandle()
@@ -369,17 +368,27 @@ namespace ModernTinyWall.Windows
         public static IEnumerable<string> EnumerateVolumes()
         {
             const int ERROR_NO_MORE_FILES = 18;
-            var sb = new StringBuilder(64);
+            const int VolumeNameBufferLength = 64;
 
-            using var safeHandle = FindFirstVolume(sb);
-            if (safeHandle.IsInvalid)
-                throw new Win32Exception();
-
-            yield return sb.ToString();
-
-            while (safeHandle.FindNextVolume(sb))
+            var volumes = new List<string>();
+            unsafe
             {
-                yield return sb.ToString();
+                var buffer = stackalloc char[VolumeNameBufferLength];
+                using var safeHandle = FindFirstVolume(buffer, VolumeNameBufferLength);
+                if (safeHandle.IsInvalid)
+                    throw new Win32Exception();
+
+                volumes.Add(new string(buffer));
+
+                while (safeHandle.FindNextVolume(buffer, VolumeNameBufferLength))
+                {
+                    volumes.Add(new string(buffer));
+                }
+            }
+
+            foreach (var volume in volumes)
+            {
+                yield return volume;
             }
 
             int errno = Marshal.GetLastWin32Error();
@@ -389,14 +398,14 @@ namespace ModernTinyWall.Windows
                 throw new Win32Exception(errno);
         }
 
-        private static FindVolumeSafeHandle FindFirstVolume(StringBuilder dst)
+        private static unsafe FindVolumeSafeHandle FindFirstVolume(char* dst, int length)
         {
-            return new FindVolumeSafeHandle(NativeMethods.FindFirstVolume(dst, dst.Capacity));
+            return new FindVolumeSafeHandle(NativeMethods.FindFirstVolume(dst, length));
         }
 
-        private bool FindNextVolume(StringBuilder dst)
+        private unsafe bool FindNextVolume(char* dst, int length)
         {
-            return NativeMethods.FindNextVolume(handle, dst, dst.Capacity);
+            return NativeMethods.FindNextVolume(handle, dst, length);
         }
 
         protected override bool ReleaseHandle()
@@ -408,14 +417,14 @@ namespace ModernTinyWall.Windows
     public sealed partial class SafeSidHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("advapi32")]
-            public static extern IntPtr FreeSid(IntPtr pSid);
+            [LibraryImport("advapi32")]
+            public static partial IntPtr FreeSid(IntPtr pSid);
 
-            [DllImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool ConvertSidToStringSid(IntPtr Sid, out AllocHLocalSafeHandle StringSid);
+            public static partial bool ConvertSidToStringSid(IntPtr Sid, out AllocHLocalSafeHandle StringSid);
         }
 
         public SafeSidHandle(IntPtr ptr, bool ownsHandle)

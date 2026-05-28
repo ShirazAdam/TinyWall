@@ -24,26 +24,21 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            //public static extern int QueryDosDevice(string lpDeviceName, [Out] StringBuilder lpTargetPath, int ucchMax);
-
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            public static extern int QueryDosDevice(string lpDeviceName, [Out] char[] lpTargetPath, int ucchMax);
-
-            //[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            //[return: MarshalAs(UnmanagedType.Bool)]
-            //public static extern bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
+            [LibraryImport("kernel32", EntryPoint = "QueryDosDeviceW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+            public static partial int QueryDosDevice(string lpDeviceName, char[] lpTargetPath, int ucchMax);
 
             [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool GetVolumePathNamesForVolumeName(string lpszVolumeName, [Out] char[] lpszVolumePathNames, int cchBufferLength, out int lpcchReturnLength);
 
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            public static extern unsafe bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
+            [LibraryImport("kernel32", EntryPoint = "GetVolumePathNameW", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static unsafe partial bool GetVolumePathName(char* lpszFileName, char* lpszVolumePathName, int ccBufferLength);
 
-            [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-            public static extern bool GetVolumeNameForVolumeMountPoint(string lpszVolumeMountPoint, [Out] StringBuilder lpszVolumeName, int cchBufferLength);
+            [LibraryImport("kernel32", EntryPoint = "GetVolumeNameForVolumeMountPointW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static unsafe partial bool GetVolumeNameForVolumeMountPoint(string lpszVolumeMountPoint, char* lpszVolumeName, int cchBufferLength);
         }
 
         public class DriveCache(string kernelDevice, List<string> volumes, List<string> drives)

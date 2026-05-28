@@ -126,10 +126,10 @@ namespace ModernTinyWall.Windows
         }
 
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("advapi32")]
-            internal static extern int RegNotifyChangeKeyValue(IntPtr hKey, [MarshalAs(UnmanagedType.Bool)] bool watchSubtree, RegNotifyFilter notifyFilter, IntPtr hEvent, [MarshalAs(UnmanagedType.Bool)] bool asynchronous);
+            [LibraryImport("advapi32")]
+            internal static partial int RegNotifyChangeKeyValue(IntPtr hKey, [MarshalAs(UnmanagedType.Bool)] bool watchSubtree, RegNotifyFilter notifyFilter, IntPtr hEvent, [MarshalAs(UnmanagedType.Bool)] bool asynchronous);
         }
     }
 }

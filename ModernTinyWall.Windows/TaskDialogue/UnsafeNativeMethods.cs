@@ -270,12 +270,32 @@ namespace Microsoft.Samples
         /// <param name="pnButton">The push button pressed.</param>
         /// <param name="pnRadioButton">The radio button that was selected.</param>
         /// <param name="pfVerificationFlagChecked">The state of the verification checkbox on dismiss of the Task Dialog.</param>
-        [DllImport("ComCtl32.dll", EntryPoint = "TaskDialogIndirect")]
-        internal static extern int TaskDialogIndirect(
-            [In] ref TASKDIALOGCONFIG pTaskConfig,
-            [Out] out int pnButton,
-            [Out] out int pnRadioButton,
-            [Out, MarshalAs(UnmanagedType.Bool)] out bool pfVerificationFlagChecked);
+        internal static int TaskDialogIndirect(
+            ref TASKDIALOGCONFIG pTaskConfig,
+            out int pnButton,
+            out int pnRadioButton,
+            out bool pfVerificationFlagChecked)
+        {
+            IntPtr nativeConfig = Marshal.AllocHGlobal(Marshal.SizeOf<TASKDIALOGCONFIG>());
+
+            try
+            {
+                Marshal.StructureToPtr(pTaskConfig, nativeConfig, false);
+                return TaskDialogIndirectNative(nativeConfig, out pnButton, out pnRadioButton, out pfVerificationFlagChecked);
+            }
+            finally
+            {
+                Marshal.DestroyStructure<TASKDIALOGCONFIG>(nativeConfig);
+                Marshal.FreeHGlobal(nativeConfig);
+            }
+        }
+
+        [LibraryImport("ComCtl32.dll", EntryPoint = "TaskDialogIndirect")]
+        private static partial int TaskDialogIndirectNative(
+            IntPtr pTaskConfig,
+            out int pnButton,
+            out int pnRadioButton,
+            [MarshalAs(UnmanagedType.Bool)] out bool pfVerificationFlagChecked);
 
         /// <summary>
         /// Win32 SendMessage.

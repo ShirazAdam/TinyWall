@@ -8,21 +8,21 @@ namespace ModernTinyWall.Windows.WFP
     public abstract partial class FilterEnumeratorBase : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterCreateEnumHandle0")]
-            public static extern uint FwpmFilterCreateEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] Interop.FWPM_FILTER_ENUM_TEMPLATE0? enumTemplate,
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterCreateEnumHandle0")]
+            public static partial uint FwpmFilterCreateEnumHandle0(
+                FwpmEngineSafeHandle engineHandle,
+                IntPtr enumTemplate,
                 out IntPtr enumHandle);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterEnum0")]
-            public static extern uint FwpmFilterEnum0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] FwpmFilterEnumSafeHandle enumHandle,
-                [In] int numEntriesRequested,
-                [Out] out FwpmMemorySafeHandle entries,
-                [Out] out int numEntriesReturned);
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterEnum0")]
+            public static partial uint FwpmFilterEnum0(
+                FwpmEngineSafeHandle engineHandle,
+                FwpmFilterEnumSafeHandle enumHandle,
+                int numEntriesRequested,
+                out FwpmMemorySafeHandle entries,
+                out int numEntriesReturned);
         }
 
         private const int NUM_ENTRY_REQUEST_SIZE = 16;
@@ -39,7 +39,9 @@ namespace ModernTinyWall.Windows.WFP
         {
             _engine = engine;
 
-            var err = NativeMethods.FwpmFilterCreateEnumHandle0(engine.NativePtr, template, out IntPtr outHndl);
+            using SafeHGlobalHandle? templateHandle = template is { } enumTemplate ? SafeHGlobalHandle.FromManagedStruct(enumTemplate) : null;
+            IntPtr templatePtr = templateHandle?.DangerousGetHandle() ?? IntPtr.Zero;
+            var err = NativeMethods.FwpmFilterCreateEnumHandle0(engine.NativePtr, templatePtr, out IntPtr outHndl);
             if (0 == err)
                 _enumSafeHandle = new FwpmFilterEnumSafeHandle(outHndl, engine.NativePtr);
             else

@@ -8,11 +8,11 @@ namespace ModernTinyWall.Windows.Services
     public sealed partial class SafeServiceHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("advapi32.dll", SetLastError = true)]
+            [LibraryImport("advapi32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CloseServiceHandle(IntPtr hSCObject);
+            public static partial bool CloseServiceHandle(IntPtr hSCObject);
         }
 
         public SafeServiceHandle()
@@ -33,17 +33,17 @@ namespace ModernTinyWall.Windows.Services
     public sealed partial class SafeHandlePowerSettingNotification : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("user32", SetLastError = true)]
-            public static extern SafeHandlePowerSettingNotification RegisterPowerSettingNotification(
+            [LibraryImport("user32", SetLastError = true)]
+            public static partial SafeHandlePowerSettingNotification RegisterPowerSettingNotification(
                 IntPtr hRecipient,
                 ref Guid PowerSettingGuid,
                 DeviceNotifFlags Flags);
 
-            [DllImport("user32")]
+            [LibraryImport("user32")]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool UnregisterPowerSettingNotification(IntPtr hPowerNotif);
+            public static partial bool UnregisterPowerSettingNotification(IntPtr hPowerNotif);
         }
 
         public static SafeHandlePowerSettingNotification Create(IntPtr service, Guid powerSetting, DeviceNotifFlags flags)
@@ -70,17 +70,17 @@ namespace ModernTinyWall.Windows.Services
     public sealed partial class SafeHandleDeviceNotification : SafeHandleZeroOrMinusOneIsInvalid
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("user32", SetLastError = true)]
-            public static extern SafeHandleDeviceNotification RegisterDeviceNotification(
+            [LibraryImport("user32", SetLastError = true)]
+            public static partial SafeHandleDeviceNotification RegisterDeviceNotification(
                 IntPtr hRecipient,
                 IntPtr NotificationFilter,
                 DeviceNotifFlags Flags);
 
-            [DllImport("user32")]
+            [LibraryImport("user32")]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool UnregisterDeviceNotification(IntPtr hDeviceNotif);
+            public static partial bool UnregisterDeviceNotification(IntPtr hDeviceNotif);
         }
 
         public static SafeHandleDeviceNotification Create(IntPtr recipient, Guid devIfaceClsGuid, DeviceNotifFlags flags)

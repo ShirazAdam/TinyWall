@@ -3,42 +3,42 @@ using System.Runtime.InteropServices;
 
 namespace ModernTinyWall.Windows.Services
 {
-    internal static class NativeMethods
+    internal static partial class NativeMethods
     {
-        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr RegisterServiceCtrlHandlerEx(string serviceName, ServiceCtrlHandlerExDelegate callback, IntPtr userData);
+        [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        public static partial IntPtr RegisterServiceCtrlHandlerEx(string serviceName, ServiceCtrlHandlerExDelegate callback, IntPtr userData);
 
-        [DllImport("advapi32", SetLastError = true)]
+        [LibraryImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
+        public static partial bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
-        [DllImport("advapi32", SetLastError = true)]
+        [LibraryImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool StartServiceCtrlDispatcher(IntPtr entry);
+        public static partial bool StartServiceCtrlDispatcher(IntPtr entry);
 
-        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern SafeServiceHandle OpenSCManager(
+        [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        public static partial SafeServiceHandle OpenSCManager(
             string? machineName,
             string? databaseName,
             ServiceControlAccessRights desiredAccess);
 
-        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern SafeServiceHandle OpenService(
+        [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        public static partial SafeServiceHandle OpenService(
             SafeServiceHandle hSCManager,
             string serviceName,
             ServiceAccessRights desiredAccess);
 
-        [DllImport("advapi32", SetLastError = true)]
+        [LibraryImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool QueryServiceConfig(
+        public static partial bool QueryServiceConfig(
             SafeServiceHandle hService,
             IntPtr intPtrQueryConfig,
             uint cbBufSize,
             out uint pcbBytesNeeded);
 
-        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+        [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ChangeServiceConfig(
+        public static partial bool ChangeServiceConfig(
             SafeServiceHandle hService,
             uint nServiceType,
             uint nStartType,
@@ -46,24 +46,24 @@ namespace ModernTinyWall.Windows.Services
             string? lpBinaryPathName,
             string? lpLoadOrderGroup,
             IntPtr lpdwTagId,
-            [In] char[]? lpDependencies,
+            IntPtr lpDependencies,
             string? lpServiceStartName,
             string? lpPassword,
             string? lpDisplayName);
 
-        [DllImport("advapi32", SetLastError = true)]
-        public static extern int ChangeServiceConfig2(
+        [LibraryImport("advapi32", SetLastError = true)]
+        public static partial int ChangeServiceConfig2(
             SafeServiceHandle hService,
             ServiceConfig2InfoLevel dwInfoLevel,
             IntPtr lpInfo);
 
-        [DllImport("advapi32", SetLastError = true)]
+        [LibraryImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool QueryServiceStatus(SafeServiceHandle hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
+        public static partial bool QueryServiceStatus(SafeServiceHandle hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
-        [DllImport("advapi32", SetLastError = true)]
+        [LibraryImport("advapi32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool QueryServiceStatusEx(
+        public static partial bool QueryServiceStatusEx(
             SafeServiceHandle hService,
             ServiceInfoLevel InfoLevel,
             IntPtr lpBuffer,

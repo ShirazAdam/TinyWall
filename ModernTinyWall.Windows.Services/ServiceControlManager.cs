@@ -123,7 +123,7 @@ namespace ModernTinyWall.Windows.Services
                 null,
                 null,
                 IntPtr.Zero,
-                null,
+                IntPtr.Zero,
                 null,
                 null,
                 null);
@@ -147,7 +147,7 @@ namespace ModernTinyWall.Windows.Services
                 null,
                 group,
                 IntPtr.Zero,
-                null,
+                IntPtr.Zero,
                 null,
                 null,
                 null);

@@ -10,11 +10,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         internal static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmEngineClose0")]
-
-            //internal static extern uint FwpmEngineClose0(
-            //    [In] IntPtr engineHandle);
-
             [LibraryImport("FWPUClnt.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
 
             internal static partial uint FwpmEngineClose0(IntPtr engineHandle);
@@ -38,11 +33,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         internal static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmFreeMemory0")]
-
-            //internal static extern void FwpmFreeMemory0(
-            //    [In] ref IntPtr p);
-
             [LibraryImport("FWPUClnt.dll", StringMarshalling = StringMarshalling.Utf16, EntryPoint = "FwpmFreeMemory0")]
 
             internal static partial void FwpmFreeMemory0(ref IntPtr p);
@@ -68,10 +58,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterUnsubscribeChanges0")]
-
-            //internal static extern uint FwpmFilterUnsubscribeChanges0([In] FwpmEngineSafeHandle engineHandle, [In] IntPtr changeHandle);
-
             [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterUnsubscribeChanges0", StringMarshalling = StringMarshalling.Utf16)]
 
             internal static partial uint FwpmFilterUnsubscribeChanges0(FwpmEngineSafeHandle engineHandle, IntPtr changeHandle);
@@ -114,12 +100,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventUnsubscribe0")]
-
-            //internal static extern uint FwpmNetEventUnsubscribe0(
-            //    [In] FwpmEngineSafeHandle engineHandle,
-            //    [In] IntPtr changeHandle);
-
             [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventUnsubscribe0", StringMarshalling = StringMarshalling.Utf16)]
 
             internal static partial uint FwpmNetEventUnsubscribe0(FwpmEngineSafeHandle engineHandle, IntPtr changeHandle);
@@ -162,12 +142,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDestroyEnumHandle0")]
-
-            //internal static extern uint FwpmFilterDestroyEnumHandle0(
-            //    [In] FwpmEngineSafeHandle engineHandle,
-            //    [In] IntPtr enumHandle);
-
             [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmFilterDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
 
             internal static partial uint FwpmFilterDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
@@ -210,12 +184,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDestroyEnumHandle0")]
-
-            //internal static extern uint FwpmProviderDestroyEnumHandle0(
-            //    [In] FwpmEngineSafeHandle engineHandle,
-            //    [In] IntPtr enumHandle);
-
             [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmProviderDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
 
             internal static partial uint FwpmProviderDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
@@ -256,12 +224,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmSessionDestroyEnumHandle0")]
-
-            //internal static extern uint FwpmSessionDestroyEnumHandle0(
-            //    [In] FwpmEngineSafeHandle engineHandle,
-            //    [In] IntPtr enumHandle);
-
             [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSessionDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
 
             internal static partial uint FwpmSessionDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
@@ -304,12 +266,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDestroyEnumHandle0")]
-
-            //internal static extern uint FwpmSubLayerDestroyEnumHandle0(
-            //    [In] FwpmEngineSafeHandle engineHandle,
-            //    [In] IntPtr enumHandle);
-
             [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerDestroyEnumHandle0", StringMarshalling = StringMarshalling.Utf16)]
 
             internal static partial uint FwpmSubLayerDestroyEnumHandle0(FwpmEngineSafeHandle engineHandle, IntPtr enumHandle);
@@ -350,12 +306,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("kernel32")]
-            //public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
-
-            //[DllImport("kernel32")]
-            //public static extern IntPtr GlobalFree(IntPtr hMem);
-
             [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16)]
             public static partial IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
 
@@ -491,13 +441,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("kernel32.dll")]
-            //internal static extern IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
-
-            //[DllImport("kernel32.dll")]
-
-            //internal static extern IntPtr LocalFree(IntPtr hMem);
-
             [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
             internal static partial IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
 
@@ -537,9 +480,6 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            //[DllImport("advapi32.dll", SetLastError = false)]
-            //internal static extern IntPtr FreeSid(IntPtr sid);
-
             [LibraryImport("advapi32.dll", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
             internal static partial IntPtr FreeSid(IntPtr sid);
 

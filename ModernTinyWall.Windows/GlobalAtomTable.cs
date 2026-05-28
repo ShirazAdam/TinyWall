@@ -1,10 +1,6 @@
-using System;
 using System.ComponentModel;
-using System.Data;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-using System.Xml.Linq;
 
 namespace ModernTinyWall.Windows
 {
@@ -17,7 +13,7 @@ namespace ModernTinyWall.Windows
             public const int ERROR_FILE_NOT_FOUND = 2;
             public const int ERROR_INVALID_HANDLE = 6;
             public const int ERROR_INVALID_PARAMETER = 87;
-            public const int MAX_ATOM_NAME_LENGTH = 256;   // 255 + null temrinator
+            public const int MAX_ATOM_NAME_LENGTH = 256;
 
             [LibraryImport("kernel32", SetLastError = true)]
             public static partial void SetLastError(uint dwErrorCode);
@@ -31,25 +27,16 @@ namespace ModernTinyWall.Windows
             [LibraryImport("kernel32", SetLastError = true)]
             public static partial ushort GlobalDeleteAtom(ushort nAtom);
 
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern uint GlobalGetAtomName(ushort nAtom, [Out] StringBuilder lpBuffer, int nSize);
+            [LibraryImport("kernel32", EntryPoint = "GlobalGetAtomNameW", SetLastError = true)]
+            public static unsafe partial uint GlobalGetAtomName(ushort nAtom, char* lpBuffer, int nSize);
         }
 
-        public class AtomNotFoundException : Win32Exception
-        {
-            public AtomNotFoundException() : base(NativeMethods.ERROR_FILE_NOT_FOUND, "The atom name was not found.")
-            { }
-        }
-        public class InvalidAtomNameException : Win32Exception
-        {
-            public InvalidAtomNameException() : base(NativeMethods.ERROR_INVALID_PARAMETER, "Invalid atom name.")
-            { }
-        }
-        public class InvalidAtomHandleException : Win32Exception
-        {
-            public InvalidAtomHandleException() : base(NativeMethods.ERROR_INVALID_HANDLE, "Invalid atom handle.")
-            { }
-        }
+        public class AtomNotFoundException()
+            : Win32Exception(NativeMethods.ERROR_FILE_NOT_FOUND, "The atom name was not found.");
+        public class InvalidAtomNameException()
+            : Win32Exception(NativeMethods.ERROR_INVALID_PARAMETER, "Invalid atom name.");
+        public class InvalidAtomHandleException()
+            : Win32Exception(NativeMethods.ERROR_INVALID_HANDLE, "Invalid atom handle.");
 
         private static void TranslateWin32LastError()
         {
@@ -108,12 +95,15 @@ namespace ModernTinyWall.Windows
 
         public static string GetName(ushort atom)
         {
-            var buffer = new StringBuilder(NativeMethods.MAX_ATOM_NAME_LENGTH);
-            var ret = NativeMethods.GlobalGetAtomName(atom, buffer, buffer.Capacity);
-            if (0 == ret)
-                TranslateWin32LastError();
+            unsafe
+            {
+                var buffer = stackalloc char[NativeMethods.MAX_ATOM_NAME_LENGTH];
+                var ret = NativeMethods.GlobalGetAtomName(atom, buffer, NativeMethods.MAX_ATOM_NAME_LENGTH);
+                if (0 == ret)
+                    TranslateWin32LastError();
 
-            return buffer.ToString(0, (int)ret);
+                return new string(buffer, 0, (int)ret);
+            }
         }
 
     }

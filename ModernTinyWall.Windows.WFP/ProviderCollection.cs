@@ -10,19 +10,19 @@ namespace ModernTinyWall.Windows.WFP
     public partial class ProviderCollection : System.Collections.ObjectModel.ReadOnlyCollection<Interop.FWPM_PROVIDER0>
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderCreateEnumHandle0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmProviderCreateEnumHandle0")]
 
-            internal static extern uint FwpmProviderCreateEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr enumTemplate,
+            internal static partial uint FwpmProviderCreateEnumHandle0(
+                FwpmEngineSafeHandle engineHandle,
+                IntPtr enumTemplate,
                 out IntPtr enumHandle);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmProviderEnum0")]
-            internal static extern uint FwpmProviderEnum0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] FwpmProviderEnumSafeHandle enumHandle,
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmProviderEnum0")]
+            internal static partial uint FwpmProviderEnum0(
+                FwpmEngineSafeHandle engineHandle,
+                FwpmProviderEnumSafeHandle enumHandle,
                 uint numEntriesRequested,
                 out FwpmMemorySafeHandle entries,
                 out uint numEntriesReturned);

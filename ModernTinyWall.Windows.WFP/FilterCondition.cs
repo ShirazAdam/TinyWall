@@ -370,13 +370,13 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class AppIdFilterCondition : FilterCondition
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmGetAppIdFromFileName0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmGetAppIdFromFileName0", StringMarshalling = StringMarshalling.Utf16)]
 
-            internal static extern uint FwpmGetAppIdFromFileName0(
-                [MarshalAs(UnmanagedType.LPWStr), In] string fileName,
-                [Out] out FwpmMemorySafeHandle appId);
+            internal static partial uint FwpmGetAppIdFromFileName0(
+                string fileName,
+                out FwpmMemorySafeHandle appId);
         }
 
         private readonly SafeHandle NativeMem;
@@ -425,18 +425,18 @@ namespace ModernTinyWall.Windows.WFP
 
     public abstract partial class SecurityDescriptorFilterCondition : FilterCondition
     {
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
-            [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+            [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(
+            public static partial bool ConvertStringSecurityDescriptorToSecurityDescriptor(
                 string stringSd,
                 uint stringSdRevision,
                 out IntPtr resultSd,
                 ref int resultSdLength);
 
-            [DllImport("kernel32")]
-            public static extern IntPtr LocalFree(IntPtr hMem);
+            [LibraryImport("kernel32")]
+            public static partial IntPtr LocalFree(IntPtr hMem);
         }
 
         private SafeHandle NativeMem;
@@ -579,14 +579,14 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class PackageIdFilterCondition : FilterCondition
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+            [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool ConvertStringSidToSid(string stringSid, out AllocHLocalSafeHandle ptrSid);
+            internal static partial bool ConvertStringSidToSid(string stringSid, out AllocHLocalSafeHandle ptrSid);
 
-            [DllImport("userenv", SetLastError = false, CharSet = CharSet.Unicode)]
-            internal static extern int DeriveAppContainerSidFromAppContainerName(string appContainerName, out SidSafeHandle sid);
+            [LibraryImport("userenv", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial int DeriveAppContainerSidFromAppContainerName(string appContainerName, out SidSafeHandle sid);
         }
 
         private SafeHandle sidNativeMem;
@@ -726,10 +726,10 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class LocalInterfaceCondition : FilterCondition
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("Iphlpapi", SetLastError = false, CharSet = CharSet.Unicode)]
-            internal static extern int ConvertInterfaceAliasToLuid(string stringSid, [Out] out ulong InterfaceLuid);
+            [LibraryImport("Iphlpapi", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial int ConvertInterfaceAliasToLuid(string stringSid, out ulong InterfaceLuid);
         }
 
         public static bool InterfaceAliasExists(string ifAlias)
