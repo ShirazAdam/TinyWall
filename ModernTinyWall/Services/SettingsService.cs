@@ -79,7 +79,7 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(AutoUpdateCheckKey, "Automatic update checks", "Check for TinyWall updates automatically.", serviceConfig.AutoUpdateCheck, true),
                     new SettingsItem(AskForExceptionDetailsKey, "Ask for exception details", "Prompt for details when creating new application exceptions.", controllerSettings.AskForExceptionDetails, true),
                     new SettingsItem(EnableGlobalHotkeysKey, "Global hotkeys", "Enable TinyWall global keyboard shortcuts.", controllerSettings.EnableGlobalHotkeys, true),
-                    new SettingsItem("controller.language", "Language", "British English is the ModernTinyWall baseline language.", true, false)
+                    new SettingsItem("controller.language", "Language", "English is the ModernTinyWall baseline language.", true, false)
                 ]),
             new SettingsSection(
                 "Machine settings",
@@ -122,7 +122,7 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(AutoUpdateCheckKey, "Automatic update checks", "Check for TinyWall updates automatically.", false, false),
                     new SettingsItem(AskForExceptionDetailsKey, "Ask for exception details", "Prompt for details when creating new application exceptions.", false, false),
                     new SettingsItem(EnableGlobalHotkeysKey, "Global hotkeys", "Enable TinyWall global keyboard shortcuts.", false, false),
-                    new SettingsItem("controller.language", "Language", "Use British English as the default language baseline.", true, false)
+                    new SettingsItem("controller.language", "Language", "Use English as the default language baseline.", true, false)
                 ]),
             new SettingsSection(
                 "Machine settings",

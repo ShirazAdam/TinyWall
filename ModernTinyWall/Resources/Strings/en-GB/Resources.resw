@@ -85,6 +85,6 @@
 	<value>Learning</value>
   </data>
   <data name="LocalisationMigrationNote" xml:space="preserve">
-	<value>ModernTinyWall currently uses British English as the baseline. Legacy TinyWall translations remain available in WinForms resources and can be migrated to WinUI RESW files in a dedicated localisation pass.</value>
+	<value>ModernTinyWall currently uses English as the baseline. Legacy TinyWall translations remain available in WinForms resources and can be migrated to WinUI RESW files in a dedicated localisation pass.</value>
   </data>
 </root>
