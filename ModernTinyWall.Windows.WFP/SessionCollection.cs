@@ -10,19 +10,19 @@ namespace ModernTinyWall.Windows.WFP
     public partial class SessionCollection : System.Collections.ObjectModel.ReadOnlyCollection<Interop.FWPM_SESSION0>
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSessionCreateEnumHandle0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSessionCreateEnumHandle0")]
 
-            internal static extern uint FwpmSessionCreateEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] IntPtr enumTemplate,
+            internal static partial uint FwpmSessionCreateEnumHandle0(
+                FwpmEngineSafeHandle engineHandle,
+                IntPtr enumTemplate,
                 out IntPtr enumHandle);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSessionEnum0")]
-            internal static extern uint FwpmSessionEnum0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] FwpmSessionEnumSafeHandle enumHandle,
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSessionEnum0")]
+            internal static partial uint FwpmSessionEnum0(
+                FwpmEngineSafeHandle engineHandle,
+                FwpmSessionEnumSafeHandle enumHandle,
                 uint numEntriesRequested,
                 out FwpmMemorySafeHandle entries,
                 out uint numEntriesReturned);

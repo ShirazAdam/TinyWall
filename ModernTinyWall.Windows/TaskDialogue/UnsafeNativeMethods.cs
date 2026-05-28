@@ -14,7 +14,7 @@ namespace Microsoft.Samples
     /// <summary>
     /// Class to hold native code interop declarations.
     /// </summary>
-    internal static class UnsafeNativeMethods
+    internal static partial class UnsafeNativeMethods
     {
         /// <summary>
         /// WM_USER taken from WinUser.h
@@ -285,8 +285,8 @@ namespace Microsoft.Samples
         /// <param name="wParam">Specifies additional message-specific information.</param>
         /// <param name="lParam">Specifies additional message-specific information.</param>
         /// <returns>The return value specifies the result of the message processing; it depends on the message sent.</returns>
-        [DllImport("user32.dll")]
-        internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        [LibraryImport("user32.dll")]
+        internal static partial IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         /// <summary>
         /// Win32 SendMessage.
@@ -296,8 +296,8 @@ namespace Microsoft.Samples
         /// <param name="wParam">Specifies additional message-specific information.</param>
         /// <param name="lParam">Specifies additional message-specific information as a string.</param>
         /// <returns>The return value specifies the result of the message processing; it depends on the message sent.</returns>
-        [DllImport("user32.dll", EntryPoint = "SendMessage")]
-        internal static extern IntPtr SendMessageWithString(IntPtr hWnd, uint Msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
+        [LibraryImport("user32.dll", EntryPoint = "SendMessage", StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial IntPtr SendMessageWithString(IntPtr hWnd, uint Msg, IntPtr wParam, string lParam);
 
         /// <summary>
         /// TASKDIALOGCONFIG taken from commctl.h.

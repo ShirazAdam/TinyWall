@@ -11,7 +11,7 @@ namespace ModernTinyWall.Windows
     public static partial class GlobalAtomTable
     {
         [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
             public const int ERROR_SUCCESS = 0;
             public const int ERROR_FILE_NOT_FOUND = 2;
@@ -19,17 +19,17 @@ namespace ModernTinyWall.Windows
             public const int ERROR_INVALID_PARAMETER = 87;
             public const int MAX_ATOM_NAME_LENGTH = 256;   // 255 + null temrinator
 
-            [DllImport("kernel32", SetLastError = true)]
-            public static extern void SetLastError(uint dwErrorCode);
+            [LibraryImport("kernel32", SetLastError = true)]
+            public static partial void SetLastError(uint dwErrorCode);
 
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern ushort GlobalAddAtom([In] string lpString);
+            [LibraryImport("kernel32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            public static partial ushort GlobalAddAtom(string lpString);
 
-            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-            public static extern ushort GlobalFindAtom([In] string lpString);
+            [LibraryImport("kernel32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            public static partial ushort GlobalFindAtom(string lpString);
 
-            [DllImport("kernel32", SetLastError = true)]
-            public static extern ushort GlobalDeleteAtom(ushort nAtom);
+            [LibraryImport("kernel32", SetLastError = true)]
+            public static partial ushort GlobalDeleteAtom(ushort nAtom);
 
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern uint GlobalGetAtomName(ushort nAtom, [Out] StringBuilder lpBuffer, int nSize);

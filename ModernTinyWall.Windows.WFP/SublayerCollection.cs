@@ -10,19 +10,19 @@ namespace ModernTinyWall.Windows.WFP
     public partial class SublayerCollection : System.Collections.ObjectModel.ReadOnlyCollection<Sublayer>
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerCreateEnumHandle0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerCreateEnumHandle0")]
 
-            internal static extern uint FwpmSubLayerCreateEnumHandle0(
-                [In] FwpmEngineSafeHandle engineHandle,
+            internal static partial uint FwpmSubLayerCreateEnumHandle0(
+                FwpmEngineSafeHandle engineHandle,
                 IntPtr enumTemplate,
                 out IntPtr enumHandle);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerEnum0")]
-            internal static extern uint FwpmSubLayerEnum0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] FwpmSublayerEnumSafeHandle enumHandle,
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmSubLayerEnum0")]
+            internal static partial uint FwpmSubLayerEnum0(
+                FwpmEngineSafeHandle engineHandle,
+                FwpmSublayerEnumSafeHandle enumHandle,
                 uint numEntriesRequested,
                 out FwpmMemorySafeHandle entries,
                 out uint numEntriesReturned);

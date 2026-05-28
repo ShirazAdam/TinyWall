@@ -9,7 +9,7 @@ namespace ModernTinyWall.Windows.WFP
     public sealed partial class Transaction : IDisposable
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class NativeMethods
+        internal static partial class NativeMethods
         {
             [Flags]
             internal enum TransactionFlags : uint
@@ -18,21 +18,21 @@ namespace ModernTinyWall.Windows.WFP
                 FWPM_TXN_READ_ONLY = 0x00000001
             }
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionBegin0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionBegin0")]
 
-            internal static extern uint FwpmTransactionBegin0(
-                [In] FwpmEngineSafeHandle engineHandle,
-                [In] TransactionFlags flags);
+            internal static partial uint FwpmTransactionBegin0(
+                FwpmEngineSafeHandle engineHandle,
+                TransactionFlags flags);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionCommit0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionCommit0")]
 
-            internal static extern uint FwpmTransactionCommit0(
-                [In] FwpmEngineSafeHandle engineHandle);
+            internal static partial uint FwpmTransactionCommit0(
+                FwpmEngineSafeHandle engineHandle);
 
-            [DllImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionAbort0")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmTransactionAbort0")]
 
-            internal static extern uint FwpmTransactionAbort0(
-                [In] FwpmEngineSafeHandle engineHandle);
+            internal static partial uint FwpmTransactionAbort0(
+                FwpmEngineSafeHandle engineHandle);
         }
 
         private readonly FwpmEngineSafeHandle _safeEngineHandle;

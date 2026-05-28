@@ -4,18 +4,18 @@ using System.Runtime.InteropServices;
 
 namespace ModernTinyWall.Windows.NetStat
 {
-    internal static class NativeMethods
+    internal static partial class NativeMethods
     {
         internal const int AfInet = 2;
         internal const int AfInet6 = 23;
 
         private const string DllName = "iphlpapi.dll";
 
-        [DllImport(DllName, SetLastError = true)]
-        public static extern uint GetExtendedTcpTable(IntPtr tcpTable, ref int tcpTableLength, [MarshalAs(UnmanagedType.Bool)] bool sort, int ipVersion, TcpTableType tcpTableType, int reserved);
+        [LibraryImport(DllName, SetLastError = true)]
+        public static partial uint GetExtendedTcpTable(IntPtr tcpTable, ref int tcpTableLength, [MarshalAs(UnmanagedType.Bool)] bool sort, int ipVersion, TcpTableType tcpTableType, int reserved);
 
-        [DllImport(DllName, SetLastError = true)]
-        public static extern uint GetExtendedUdpTable(IntPtr udpTable, ref int udpTableLength, [MarshalAs(UnmanagedType.Bool)] bool sort, int ipVersion, UdpTableType udpTableType, int reserved);
+        [LibraryImport(DllName, SetLastError = true)]
+        public static partial uint GetExtendedUdpTable(IntPtr udpTable, ref int udpTableLength, [MarshalAs(UnmanagedType.Bool)] bool sort, int ipVersion, UdpTableType udpTableType, int reserved);
 
         public enum TcpTableType
         {

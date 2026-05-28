@@ -30,34 +30,33 @@ namespace ModernTinyWall.TinyWall
     internal static partial class Utils
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class SafeNativeMethods
+        internal static partial class SafeNativeMethods
         {
             [DllImport("user32.dll")]
             internal static extern IntPtr WindowFromPoint(Point pt);
 
-            [DllImport("user32.dll", SetLastError = true)]
-            internal static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+            [LibraryImport("user32.dll", SetLastError = true)]
+            internal static partial int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-            [DllImport("user32.dll")]
-            internal static extern IntPtr GetForegroundWindow();
+            [LibraryImport("user32.dll")]
+            internal static partial IntPtr GetForegroundWindow();
 
-            [DllImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool IsImmersiveProcess(IntPtr hProcess);
+            internal static partial bool IsImmersiveProcess(IntPtr hProcess);
 
-            [DllImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")]
-            internal static extern uint DnsFlushResolverCache();
+            [LibraryImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")]
+            internal static partial uint DnsFlushResolverCache();
 
-            [DllImport("User32.dll", SetLastError = true)]
-            internal static extern int GetSystemMetrics(int nIndex);
+            [LibraryImport("User32.dll", SetLastError = true)]
+            internal static partial int GetSystemMetrics(int nIndex);
 
-            [DllImport("kernel32.dll", SetLastError = true)]
+            [LibraryImport("kernel32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool GetNamedPipeClientProcessId(IntPtr pipe, out ulong clientProcessId);
+            internal static partial bool GetNamedPipeClientProcessId(IntPtr pipe, out ulong clientProcessId);
 
-            [DllImport("Wer.dll", CharSet = CharSet.Unicode)]
-            internal static extern int WerAddExcludedApplication(
-                [MarshalAs(UnmanagedType.LPWStr)]
+            [LibraryImport("Wer.dll", StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial int WerAddExcludedApplication(
                 string pwzExeName,
                 [MarshalAs(UnmanagedType.Bool)]
                 bool bAllUsers
@@ -112,9 +111,9 @@ namespace ModernTinyWall.TinyWall
             #endregion
 
             #region DoMouseRightClick
-            [DllImport("user32.dll")]
+            [LibraryImport("user32.dll")]
             [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
-            public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, IntPtr dwExtraInfo);
+            public static partial void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, IntPtr dwExtraInfo);
             //private const uint MOUSEEVENTF_LEFTDOWN = 0x02;
             //private const uint MOUSEEVENTF_LEFTUP = 0x04;
             private const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
