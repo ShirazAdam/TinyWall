@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ModernTinyWall.Services;
 
@@ -44,8 +46,10 @@ internal sealed partial class TrayIconService : ITrayIconService
     private const int WmApp = 0x8000;
     private const int WmRbuttonup = 0x0205;
     private const int WmLbuttondblclk = 0x0203;
+    private const int WmTimer = 0x0113;
     private const int WmNull = 0x0000;
     private const int TrayCallbackMessage = WmApp + 100;
+    private const nuint MenuTrafficTimerId = 1;
     private const uint TpmRightbutton = 0x0002;
     private const uint TpmReturncmd = 0x0100;
     private const int ImageIcon = 1;
@@ -59,6 +63,10 @@ internal sealed partial class TrayIconService : ITrayIconService
     private string _tooltip = "ModernTinyWall";
     private readonly Dictionary<uint, string> _menuCommandMap = [];
     private TrayStateSnapshot _snapshot = new("Traffic rate unavailable", "unknown", false, false, false);
+    private IntPtr _activeMenu;
+    private Func<CancellationToken, Task<TrayStateSnapshot>>? _activeSnapshotProvider;
+    private int _activeMenuRefreshInProgress;
+    private int _activeMenuRefreshGeneration;
 
     public event EventHandler<TrayCommand>? CommandInvoked;
 
@@ -78,13 +86,28 @@ internal sealed partial class TrayIconService : ITrayIconService
     public bool HandleWindowMessage(uint message, IntPtr wParam, IntPtr lParam)
     {
         if (message != TrayCallbackMessage)
+        {
+            if (message == WmTimer && wParam == new IntPtr((nint)MenuTrafficTimerId) && _activeMenu != IntPtr.Zero)
+            {
+                try
+                {
+                    RefreshActiveMenuTrafficInBackground();
+                }
+                catch (ObjectDisposedException)
+                {
+                    return true;
+                }
+
+                return true;
+            }
+
             return false;
+        }
 
         var mouseMessage = lParam.ToInt32();
         if (mouseMessage == WmRbuttonup)
         {
-            ShowContextMenu();
-            return true;
+            return false;
         }
 
         if (mouseMessage == WmLbuttondblclk)
@@ -114,8 +137,10 @@ internal sealed partial class TrayIconService : ITrayIconService
         return message == TrayCallbackMessage && lParam.ToInt32() == WmRbuttonup;
     }
 
-    public void ShowContextMenu()
+    public void ShowContextMenu(Func<CancellationToken, Task<TrayStateSnapshot>> snapshotProvider)
     {
+        ArgumentNullException.ThrowIfNull(snapshotProvider);
+
         var menu = CreatePopupMenu();
         if (menu == IntPtr.Zero)
             return;
@@ -149,9 +174,17 @@ internal sealed partial class TrayIconService : ITrayIconService
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 900, "Exit", "exit");
 
+            _activeMenu = menu;
+            _activeSnapshotProvider = snapshotProvider;
+            _activeMenuRefreshInProgress = 0;
+            _activeMenuRefreshGeneration++;
+            RefreshActiveMenuTrafficInBackground();
+
             _ = SetForegroundWindow(_windowHandle);
+            _ = SetTimer(_windowHandle, MenuTrafficTimerId, 1000, IntPtr.Zero);
             _ = GetCursorPos(out var point);
             var commandId = TrackPopupMenu(menu, TpmRightbutton | TpmReturncmd, point.X, point.Y, 0, _windowHandle, IntPtr.Zero);
+            _ = KillTimer(_windowHandle, MenuTrafficTimerId);
             _ = PostMessage(_windowHandle, WmNull, IntPtr.Zero, IntPtr.Zero);
 
             if (commandId != 0 && _menuCommandMap.TryGetValue(commandId, out var command))
@@ -159,8 +192,60 @@ internal sealed partial class TrayIconService : ITrayIconService
         }
         finally
         {
+            _ = KillTimer(_windowHandle, MenuTrafficTimerId);
+            _activeSnapshotProvider = null;
+            _activeMenu = IntPtr.Zero;
+            _activeMenuRefreshInProgress = 0;
+            _activeMenuRefreshGeneration++;
             _ = DestroyMenu(menu);
         }
+    }
+
+    private void RefreshActiveMenuTrafficInBackground()
+    {
+        if (_activeSnapshotProvider is null || _activeMenu == IntPtr.Zero)
+            return;
+
+        if (Interlocked.Exchange(ref _activeMenuRefreshInProgress, 1) == 1)
+            return;
+
+        _ = RefreshActiveMenuTrafficAsync(_activeSnapshotProvider, _activeMenuRefreshGeneration);
+    }
+
+    private async Task RefreshActiveMenuTrafficAsync(Func<CancellationToken, Task<TrayStateSnapshot>> snapshotProvider, int refreshGeneration)
+    {
+        var menu = _activeMenu;
+
+        try
+        {
+            var snapshot = await snapshotProvider(CancellationToken.None);
+            SetSnapshot(snapshot);
+
+            if (refreshGeneration == _activeMenuRefreshGeneration && menu != IntPtr.Zero && menu == _activeMenu)
+                UpdateMenuTrafficText(menu, snapshot.TrafficText);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch
+        {
+            // ignored
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _activeMenuRefreshInProgress, 0);
+        }
+    }
+
+    private static void UpdateMenuTrafficText(IntPtr menu, string text)
+    {
+        const uint MF_BYCOMMAND = 0x00000000;
+        const uint MF_STRING = 0x00000000;
+        const uint MF_GRAYED = 0x00000001;
+        _ = ModifyMenu(menu, 100, MF_BYCOMMAND | MF_STRING | MF_GRAYED, 100, text);
     }
 
     private void AppendMenuItem(IntPtr menu, uint id, string text, string? commandId = null, bool isChecked = false, bool enabled = true)
@@ -265,6 +350,10 @@ internal sealed partial class TrayIconService : ITrayIconService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool AppendMenu(IntPtr hMenu, uint uFlags, uint uIdNewItem, string lpNewItem);
 
+    [LibraryImport("user32.dll", EntryPoint = "ModifyMenuW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool ModifyMenu(IntPtr hMnu, uint uPosition, uint uFlags, uint uIdNewItem, string lpNewItem);
+
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool DestroyMenu(IntPtr hMenu);
@@ -283,6 +372,13 @@ internal sealed partial class TrayIconService : ITrayIconService
     [LibraryImport("user32.dll", EntryPoint = "PostMessageW", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial nuint SetTimer(IntPtr hWnd, nuint nIdEvent, uint uElapse, IntPtr lpTimerFunc);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool KillTimer(IntPtr hWnd, nuint uIdEvent);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Point

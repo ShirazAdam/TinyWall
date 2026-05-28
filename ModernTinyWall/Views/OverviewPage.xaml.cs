@@ -21,7 +21,7 @@ public sealed partial class OverviewPage
     private readonly List<Line> _downloadLines = [];
     private readonly List<Line> _uploadLines = [];
 
-    internal OverviewPageViewModel ViewModel { get; } = new();
+    public OverviewPageViewModel ViewModel { get; } = new();
 
     public OverviewPage()
     {

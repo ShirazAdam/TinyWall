@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ModernTinyWall.ViewModels;
 
-internal sealed class OverviewPageViewModel : INotifyPropertyChanged
+public sealed class OverviewPageViewModel : INotifyPropertyChanged
 {
     private const int NetworkActivitySampleLimit = 300;
     private static readonly string[] RateUnits = ["B/s", "KB/s", "MB/s", "GB/s"];
@@ -185,6 +185,6 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
     }
 }
 
-internal sealed record NetworkActivitySample(long ReceivedBytesPerSecond, long SentBytesPerSecond);
+public sealed record NetworkActivitySample(long ReceivedBytesPerSecond, long SentBytesPerSecond);
 
 internal sealed record NetworkTotals(long ReceivedBytes, long SentBytes);

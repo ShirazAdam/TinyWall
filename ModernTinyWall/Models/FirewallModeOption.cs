@@ -1,6 +1,6 @@
 namespace ModernTinyWall.Models;
 
-internal enum ModernFirewallMode
+public enum ModernFirewallMode
 {
     Normal,
     AllowOutgoing,
@@ -10,4 +10,4 @@ internal enum ModernFirewallMode
     Unknown
 }
 
-internal sealed record FirewallModeOption(ModernFirewallMode Mode, string DisplayName, string Description);
+public sealed record FirewallModeOption(ModernFirewallMode Mode, string DisplayName, string Description);

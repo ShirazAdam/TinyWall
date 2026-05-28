@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ModernTinyWall.Services;
 
@@ -11,7 +13,7 @@ internal interface ITrayIconService : IDisposable
     void SetStatus(string tooltip);
     void SetSnapshot(TrayStateSnapshot snapshot);
     bool IsTrayCallbackMessage(uint message, IntPtr lParam);
-    void ShowContextMenu();
+    void ShowContextMenu(Func<CancellationToken, Task<TrayStateSnapshot>> snapshotProvider);
     bool HandleWindowMessage(uint message, IntPtr wParam, IntPtr lParam);
     IReadOnlyList<TrayCommand> GetCommands();
     void InvokeCommand(string commandId);
