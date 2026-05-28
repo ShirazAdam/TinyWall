@@ -4,12 +4,13 @@ using ModernTinyWall.Services;
 using ModernTinyWall.Views;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WinRT.Interop;
 
 namespace ModernTinyWall;
 
-public sealed partial class MainWindow : Window
+public sealed partial class MainWindow
 {
     private readonly ITrayIconService _trayIconService = new TrayIconService();
     private readonly IFirewallModeService _firewallModeService = new FirewallModeService();
@@ -17,16 +18,16 @@ public sealed partial class MainWindow : Window
     private readonly IOptionsService _optionsService = new OptionsService();
     private readonly GlobalHotkeyService _globalHotkeyService = new();
     private readonly IntPtr _windowHandle;
-    private readonly WindowProc _windowProc;
-    private IntPtr _previousWindowProc;
+    private readonly IntPtr _previousWindowProc;
+    private int _traySnapshotRefreshInProgress;
     private bool _isTerminating;
 
     public MainWindow()
     {
         InitializeComponent();
         _windowHandle = WindowNative.GetWindowHandle(this);
-        _windowProc = WndProc;
-        _previousWindowProc = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(_windowProc));
+        WindowProc windowProc = WndProc;
+        _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
         _trayIconService.Initialise(_windowHandle);
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
@@ -43,18 +44,12 @@ public sealed partial class MainWindow : Window
         _globalHotkeyService.Dispose();
         _trayIconService.Dispose();
         if (_previousWindowProc != IntPtr.Zero)
-            _ = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, _previousWindowProc);
+            _ = SetWindowLongPtr(_windowHandle, GwlpWndproc, _previousWindowProc);
     }
 
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
     {
-        if (message == WM_CLOSE && !_isTerminating && ShouldCloseToTray())
-        {
-            HideWindow();
-            return IntPtr.Zero;
-        }
-
-        if (message == WM_SYSCOMMAND && (wParam.ToInt64() & 0xFFF0) == SC_MINIMIZE && ShouldMinimiseToTray())
+        if ((message == WmClose && !_isTerminating && ShouldCloseToTray()) || (message == WmSyscommand && (wParam.ToInt64() & 0xFFF0) == ScMinimise && ShouldMinimiseToTray()))
         {
             HideWindow();
             return IntPtr.Zero;
@@ -66,10 +61,7 @@ public sealed partial class MainWindow : Window
             return IntPtr.Zero;
         }
 
-        if (_trayIconService.HandleWindowMessage(message, wParam, lParam))
-            return IntPtr.Zero;
-
-        if (_globalHotkeyService.HandleWindowMessage(message, wParam))
+        if (_trayIconService.HandleWindowMessage(message, wParam, lParam) || _globalHotkeyService.HandleWindowMessage(message, wParam))
             return IntPtr.Zero;
 
         return CallWindowProc(_previousWindowProc, hWnd, message, wParam, lParam);
@@ -80,10 +72,35 @@ public sealed partial class MainWindow : Window
         TrayIconService_CommandInvoked(sender, new TrayCommand(commandId, commandId));
     }
 
-    private async Task ShowTrayContextMenuAsync()
+    private Task ShowTrayContextMenuAsync()
     {
-        _trayIconService.SetSnapshot(await _controllerCommandService.GetTrayStateSnapshotAsync());
+        RefreshTraySnapshotInBackground();
         _trayIconService.ShowContextMenu();
+        return Task.CompletedTask;
+    }
+
+    private void RefreshTraySnapshotInBackground()
+    {
+        if (Interlocked.Exchange(ref _traySnapshotRefreshInProgress, 1) == 1)
+            return;
+
+        _ = RefreshTraySnapshotAsync();
+    }
+
+    private async Task RefreshTraySnapshotAsync()
+    {
+        try
+        {
+            _trayIconService.SetSnapshot(await _controllerCommandService.GetTrayStateSnapshotAsync());
+        }
+        catch
+        {
+            // Keep the previous snapshot if the service is unavailable.
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _traySnapshotRefreshInProgress, 0);
+        }
     }
 
     private async void TrayIconService_CommandInvoked(object? sender, TrayCommand command)
@@ -197,6 +214,7 @@ public sealed partial class MainWindow : Window
     {
         var result = await _firewallModeService.SetModeAsync(mode);
         _trayIconService.SetStatus(result.Message);
+        RefreshTraySnapshotInBackground();
         NavigateTo(typeof(OverviewPage));
     }
 
@@ -220,6 +238,7 @@ public sealed partial class MainWindow : Window
     {
         var result = await commandTask;
         _trayIconService.SetStatus(result.Message);
+        RefreshTraySnapshotInBackground();
     }
 
     private async Task<ModernTinyWallOptions> LoadOptionsAsync()
@@ -277,14 +296,14 @@ public sealed partial class MainWindow : Window
 
     private void HideWindow()
     {
-        _ = ShowWindow(_windowHandle, SW_HIDE);
+        _ = ShowWindow(_windowHandle, SwHide);
     }
 
-    private const int GWLP_WNDPROC = -4;
-    private const uint WM_CLOSE = 0x0010;
-    private const uint WM_SYSCOMMAND = 0x0112;
-    private const int SC_MINIMIZE = 0xF020;
-    private const int SW_HIDE = 0;
+    private const int GwlpWndproc = -4;
+    private const uint WmClose = 0x0010;
+    private const uint WmSyscommand = 0x0112;
+    private const int ScMinimise = 0xF020;
+    private const int SwHide = 0;
 
     private delegate IntPtr WindowProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam);
 

@@ -34,26 +34,27 @@ internal sealed partial class TrayIconService : ITrayIconService
 
     private static readonly Dictionary<string, TrayCommand> CommandsById = Commands.ToDictionary(command => command.Id, StringComparer.Ordinal);
 
-    private const int NIM_ADD = 0x00000000;
-    private const int NIM_MODIFY = 0x00000001;
-    private const int NIM_DELETE = 0x00000002;
-    private const int NIF_MESSAGE = 0x00000001;
-    private const int NIF_ICON = 0x00000002;
-    private const int NIF_TIP = 0x00000004;
-    private const int NIF_SHOWTIP = 0x00000080;
-    private const int WM_APP = 0x8000;
-    private const int WM_RBUTTONUP = 0x0205;
-    private const int WM_LBUTTONDBLCLK = 0x0203;
-    private const int WM_NULL = 0x0000;
-    private const int TrayCallbackMessage = WM_APP + 100;
-    private const uint TPM_RIGHTBUTTON = 0x0002;
-    private const uint TPM_RETURNCMD = 0x0100;
-    private const int IMAGE_ICON = 1;
-    private const int LR_LOADFROMFILE = 0x00000010;
-    private const int LR_DEFAULTSIZE = 0x00000040;
+    private const int NimAdd = 0x00000000;
+    private const int NimModify = 0x00000001;
+    private const int NimDelete = 0x00000002;
+    private const int NifMessage = 0x00000001;
+    private const int NifIcon = 0x00000002;
+    private const int NifTip = 0x00000004;
+    private const int NifShowtip = 0x00000080;
+    private const int WmApp = 0x8000;
+    private const int WmRbuttonup = 0x0205;
+    private const int WmLbuttondblclk = 0x0203;
+    private const int WmNull = 0x0000;
+    private const int TrayCallbackMessage = WmApp + 100;
+    private const uint TpmRightbutton = 0x0002;
+    private const uint TpmReturncmd = 0x0100;
+    private const int ImageIcon = 1;
+    private const int LrLoadfromfile = 0x00000010;
+    private const int LrDefaultsize = 0x00000040;
 
     private IntPtr _windowHandle;
     private IntPtr _iconHandle;
+    private bool _ownsIconHandle;
     private bool _isVisible;
     private string _tooltip = "ModernTinyWall";
     private readonly Dictionary<uint, string> _menuCommandMap = [];
@@ -64,8 +65,8 @@ internal sealed partial class TrayIconService : ITrayIconService
     public void Initialise(IntPtr windowHandle)
     {
         _windowHandle = windowHandle;
-        _iconHandle = LoadFirewallIcon();
-        UpdateIcon(NIM_ADD);
+        (_iconHandle, _ownsIconHandle) = LoadFirewallIcon();
+        UpdateIcon(NimAdd);
         _isVisible = true;
     }
 
@@ -80,13 +81,13 @@ internal sealed partial class TrayIconService : ITrayIconService
             return false;
 
         var mouseMessage = lParam.ToInt32();
-        if (mouseMessage == WM_RBUTTONUP)
+        if (mouseMessage == WmRbuttonup)
         {
             ShowContextMenu();
             return true;
         }
 
-        if (mouseMessage == WM_LBUTTONDBLCLK)
+        if (mouseMessage == WmLbuttondblclk)
         {
             InvokeCommand("overview");
             return true;
@@ -95,22 +96,22 @@ internal sealed partial class TrayIconService : ITrayIconService
         return false;
     }
 
-    private static IntPtr LoadFirewallIcon()
+    private static (IntPtr Handle, bool OwnsHandle) LoadFirewallIcon()
     {
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "firewall.ico");
         if (File.Exists(iconPath))
         {
-            var handle = LoadImage(IntPtr.Zero, iconPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+            var handle = LoadImage(IntPtr.Zero, iconPath, ImageIcon, 0, 0, LrLoadfromfile | LrDefaultsize);
             if (handle != IntPtr.Zero)
-                return handle;
+                return (handle, true);
         }
 
-        return LoadIcon(IntPtr.Zero, new IntPtr(32512));
+        return (LoadIcon(IntPtr.Zero, new IntPtr(32512)), false);
     }
 
     public bool IsTrayCallbackMessage(uint message, IntPtr lParam)
     {
-        return message == TrayCallbackMessage && lParam.ToInt32() == WM_RBUTTONUP;
+        return message == TrayCallbackMessage && lParam.ToInt32() == WmRbuttonup;
     }
 
     public void ShowContextMenu()
@@ -149,8 +150,8 @@ internal sealed partial class TrayIconService : ITrayIconService
 
             _ = SetForegroundWindow(_windowHandle);
             _ = GetCursorPos(out var point);
-            var commandId = TrackPopupMenu(menu, TPM_RIGHTBUTTON | TPM_RETURNCMD, point.X, point.Y, 0, _windowHandle, IntPtr.Zero);
-            _ = PostMessage(_windowHandle, WM_NULL, IntPtr.Zero, IntPtr.Zero);
+            var commandId = TrackPopupMenu(menu, TpmRightbutton | TpmReturncmd, point.X, point.Y, 0, _windowHandle, IntPtr.Zero);
+            _ = PostMessage(_windowHandle, WmNull, IntPtr.Zero, IntPtr.Zero);
 
             if (commandId != 0 && _menuCommandMap.TryGetValue(commandId, out var command))
                 InvokeCommand(command);
@@ -182,7 +183,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     {
         _tooltip = tooltip;
         if (_isVisible)
-            UpdateIcon(NIM_MODIFY);
+            UpdateIcon(NimModify);
     }
 
     public IReadOnlyList<TrayCommand> GetCommands()
@@ -200,8 +201,14 @@ internal sealed partial class TrayIconService : ITrayIconService
     {
         if (_isVisible)
         {
-            UpdateIcon(NIM_DELETE);
+            UpdateIcon(NimDelete);
             _isVisible = false;
+        }
+
+        if (_ownsIconHandle && _iconHandle != IntPtr.Zero)
+        {
+            _ = DestroyIcon(_iconHandle);
+            _ownsIconHandle = false;
         }
 
         _windowHandle = IntPtr.Zero;
@@ -215,7 +222,7 @@ internal sealed partial class TrayIconService : ITrayIconService
             cbSize = (uint)Marshal.SizeOf<NotifyIconData>(),
             hWnd = _windowHandle,
             uID = 1,
-            uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP,
+            uFlags = NifMessage | NifIcon | NifTip | NifShowtip,
             uCallbackMessage = TrayCallbackMessage,
             hIcon = _iconHandle
         };
@@ -247,11 +254,15 @@ internal sealed partial class TrayIconService : ITrayIconService
     private static partial IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
 
     [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DestroyIcon(IntPtr hIcon);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
     private static partial IntPtr CreatePopupMenu();
 
     [LibraryImport("user32.dll", EntryPoint = "AppendMenuW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool AppendMenu(IntPtr hMenu, uint uFlags, uint uIDNewItem, string lpNewItem);
+    private static partial bool AppendMenu(IntPtr hMenu, uint uFlags, uint uIdNewItem, string lpNewItem);
 
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
