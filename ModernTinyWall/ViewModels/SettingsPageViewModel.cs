@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
@@ -13,6 +14,9 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
 {
     private readonly ISettingsService _settingsService;
     private readonly IMaintenanceService _maintenanceService;
+    private readonly AsyncRelayCommand _loadCommand;
+    private readonly AsyncRelayCommand _applyCommand;
+    private readonly AsyncRelayCommand _checkForUpdatesCommand;
     private bool _isLoading;
     private string _statusMessage = "Settings migration layout ready.";
 
@@ -25,11 +29,20 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
     {
         _settingsService = settingsService;
         _maintenanceService = maintenanceService;
+        _loadCommand = new AsyncRelayCommand(LoadAsync, CanRunCommand);
+        _applyCommand = new AsyncRelayCommand(ApplyAsync, CanRunCommand);
+        _checkForUpdatesCommand = new AsyncRelayCommand(CheckForUpdatesAsync, CanRunCommand);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<SettingsSection> Sections { get; } = [];
+
+    public IAsyncRelayCommand LoadCommand => _loadCommand;
+
+    public IAsyncRelayCommand ApplyCommand => _applyCommand;
+
+    public IAsyncRelayCommand CheckForUpdatesCommand => _checkForUpdatesCommand;
 
     public bool IsLoading
     {
@@ -41,6 +54,7 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
 
             _isLoading = value;
             OnPropertyChanged();
+            NotifyCommandStatesChanged();
         }
     }
 
@@ -140,6 +154,18 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
     {
         var result = await _maintenanceService.ExportSettingsAsync(filePath);
         StatusMessage = result.Message;
+    }
+
+    private bool CanRunCommand()
+    {
+        return !IsLoading;
+    }
+
+    private void NotifyCommandStatesChanged()
+    {
+        _loadCommand.NotifyCanExecuteChanged();
+        _applyCommand.NotifyCanExecuteChanged();
+        _checkForUpdatesCommand.NotifyCanExecuteChanged();
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

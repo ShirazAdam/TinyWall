@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using ModernTinyWall.Models;
@@ -44,14 +43,6 @@ public sealed partial class OverviewPage
         _networkActivityTimer.Stop();
         _networkActivityTimer.Tick -= NetworkActivityTimer_Tick;
         ViewModel.NetworkActivitySamples.CollectionChanged -= NetworkActivitySamples_CollectionChanged;
-    }
-
-    private async void ModeButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { Tag: FirewallModeOption option })
-        {
-            await ViewModel.ApplyModeAsync(option);
-        }
     }
 
     private void NetworkActivitySamples_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

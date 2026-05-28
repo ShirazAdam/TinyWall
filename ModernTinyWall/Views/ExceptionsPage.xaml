@@ -1,5 +1,6 @@
 <Page
     x:Class="ModernTinyWall.Views.ExceptionsPage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:ModernTinyWall.ViewModels">
@@ -18,9 +19,9 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="SearchBox" PlaceholderText="Search application exceptions" TextChanged="SearchBox_TextChanged" />
-            <Button Grid.Column="1" Content="Search" Click="SearchButton_Click" />
-            <Button Grid.Column="2" Content="Clear" Click="ClearButton_Click" />
+            <TextBox PlaceholderText="Search application exceptions" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="1" Content="Search" Command="{x:Bind ViewModel.RefreshCommand}" />
+            <Button Grid.Column="2" Content="Clear" Command="{x:Bind ViewModel.ClearCommand}" />
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -66,10 +67,10 @@
         </ListView>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Add" Click="AddButton_Click" />
-            <Button Content="Modify" Click="ModifyButton_Click" />
-            <Button Content="Remove" Click="RemoveButton_Click" />
-            <Button Content="Remove all" Click="RemoveAllButton_Click" />
+            <Button Content="Add" Command="{x:Bind AddCommand}" />
+            <Button Content="Modify" Command="{x:Bind ModifyCommand}" />
+            <Button Content="Remove" Command="{x:Bind RemoveCommand}" />
+            <Button Content="Remove all" Command="{x:Bind RemoveAllCommand}" />
         </StackPanel>
     </Grid>
 </Page>

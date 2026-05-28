@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
+using System;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.Views;
@@ -12,52 +14,27 @@ public sealed partial class ServicesPage : Page
     private readonly IExceptionsService _exceptionsService = new ExceptionsService();
     internal ServicesPageViewModel ViewModel { get; } = new();
 
+    internal IAsyncRelayCommand<ServiceRowViewModel> AllowServiceCommand { get; }
+
+    internal IAsyncRelayCommand<ServiceRowViewModel> BlockServiceCommand { get; }
+
     public ServicesPage()
     {
+        AllowServiceCommand = new AsyncRelayCommand<ServiceRowViewModel>(service => ApplyServiceExceptionAsync(service, ExceptionEntryPolicy.Allow), static service => service is not null);
+        BlockServiceCommand = new AsyncRelayCommand<ServiceRowViewModel>(service => ApplyServiceExceptionAsync(service, ExceptionEntryPolicy.Block), static service => service is not null);
         InitializeComponent();
         Loaded += ServicesPage_Loaded;
     }
 
     private async void ServicesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await RefreshAsync();
+        await ViewModel.RefreshCommand.ExecuteAsync(null);
     }
 
-    private async void SearchButton_Click(object sender, RoutedEventArgs e)
+    private async Task ApplyServiceExceptionAsync(ServiceRowViewModel? service, ExceptionEntryPolicy policy)
     {
-        await RefreshAsync();
-    }
+        ArgumentNullException.ThrowIfNull(service);
 
-    private async void ClearButton_Click(object sender, RoutedEventArgs e)
-    {
-        SearchBox.Text = string.Empty;
-        await RefreshAsync();
-    }
-
-    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        ViewModel.SearchText = SearchBox.Text;
-    }
-
-    private Task RefreshAsync()
-    {
-        return ViewModel.RefreshAsync(SearchBox.Text);
-    }
-
-    private async void AllowServiceMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem { CommandParameter: ServiceRowViewModel service })
-            await ApplyServiceExceptionAsync(service, ExceptionEntryPolicy.Allow);
-    }
-
-    private async void BlockServiceMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem { CommandParameter: ServiceRowViewModel service })
-            await ApplyServiceExceptionAsync(service, ExceptionEntryPolicy.Block);
-    }
-
-    private async Task ApplyServiceExceptionAsync(ServiceRowViewModel service, ExceptionEntryPolicy policy)
-    {
         var request = new ExceptionEntryActionRequest(ExceptionEntryKind.Service, policy, service.ServiceName, service.ExecutablePath);
         var prepareResult = await _exceptionsService.PrepareEntryActionAsync(request);
         if (!prepareResult.Success)

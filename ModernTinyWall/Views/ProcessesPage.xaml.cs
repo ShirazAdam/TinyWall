@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
+using System;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.Views;
@@ -12,52 +14,27 @@ public sealed partial class ProcessesPage : Page
     private readonly IExceptionsService _exceptionsService = new ExceptionsService();
     internal ProcessesPageViewModel ViewModel { get; } = new();
 
+    internal IAsyncRelayCommand<ProcessRowViewModel> AllowProcessCommand { get; }
+
+    internal IAsyncRelayCommand<ProcessRowViewModel> BlockProcessCommand { get; }
+
     public ProcessesPage()
     {
+        AllowProcessCommand = new AsyncRelayCommand<ProcessRowViewModel>(process => ApplyProcessExceptionAsync(process, ExceptionEntryPolicy.Allow), static process => process is not null);
+        BlockProcessCommand = new AsyncRelayCommand<ProcessRowViewModel>(process => ApplyProcessExceptionAsync(process, ExceptionEntryPolicy.Block), static process => process is not null);
         InitializeComponent();
         Loaded += ProcessesPage_Loaded;
     }
 
     private async void ProcessesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await RefreshAsync();
+        await ViewModel.RefreshCommand.ExecuteAsync(null);
     }
 
-    private async void SearchButton_Click(object sender, RoutedEventArgs e)
+    private async Task ApplyProcessExceptionAsync(ProcessRowViewModel? process, ExceptionEntryPolicy policy)
     {
-        await RefreshAsync();
-    }
+        ArgumentNullException.ThrowIfNull(process);
 
-    private async void ClearButton_Click(object sender, RoutedEventArgs e)
-    {
-        SearchBox.Text = string.Empty;
-        await RefreshAsync();
-    }
-
-    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        ViewModel.SearchText = SearchBox.Text;
-    }
-
-    private Task RefreshAsync()
-    {
-        return ViewModel.RefreshAsync(SearchBox.Text);
-    }
-
-    private async void AllowProcessMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem { CommandParameter: ProcessRowViewModel process })
-            await ApplyProcessExceptionAsync(process, ExceptionEntryPolicy.Allow);
-    }
-
-    private async void BlockProcessMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem { CommandParameter: ProcessRowViewModel process })
-            await ApplyProcessExceptionAsync(process, ExceptionEntryPolicy.Block);
-    }
-
-    private async Task ApplyProcessExceptionAsync(ProcessRowViewModel process, ExceptionEntryPolicy policy)
-    {
         var request = new ExceptionEntryActionRequest(ExceptionEntryKind.Executable, policy, process.ProcessName, process.Path);
         var prepareResult = await _exceptionsService.PrepareEntryActionAsync(request);
         if (!prepareResult.Success)

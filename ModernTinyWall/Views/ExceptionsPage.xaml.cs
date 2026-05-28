@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
@@ -13,31 +14,27 @@ public sealed partial class ExceptionsPage : Page
     private readonly IDialogueService _dialogueService = new DialogueService();
     internal ExceptionsPageViewModel ViewModel { get; } = new();
 
+    internal IAsyncRelayCommand AddCommand { get; }
+
+    internal IAsyncRelayCommand ModifyCommand { get; }
+
+    internal IAsyncRelayCommand RemoveCommand { get; }
+
+    internal IAsyncRelayCommand RemoveAllCommand { get; }
+
     public ExceptionsPage()
     {
+        AddCommand = new AsyncRelayCommand(AddAsync);
+        ModifyCommand = new AsyncRelayCommand(ModifyAsync);
+        RemoveCommand = new AsyncRelayCommand(RemoveAsync);
+        RemoveAllCommand = new AsyncRelayCommand(RemoveAllAsync);
         InitializeComponent();
         Loaded += ExceptionsPage_Loaded;
     }
 
     private async void ExceptionsPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await RefreshAsync();
-    }
-
-    private async void SearchButton_Click(object sender, RoutedEventArgs e)
-    {
-        await RefreshAsync();
-    }
-
-    private async void ClearButton_Click(object sender, RoutedEventArgs e)
-    {
-        SearchBox.Text = string.Empty;
-        await RefreshAsync();
-    }
-
-    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        ViewModel.SearchText = SearchBox.Text;
+        await ViewModel.RefreshCommand.ExecuteAsync(null);
     }
 
     private void ExceptionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -45,7 +42,7 @@ public sealed partial class ExceptionsPage : Page
         ViewModel.SelectedException = (sender as ListView)?.SelectedItem as ExceptionRowViewModel;
     }
 
-    private async void AddButton_Click(object sender, RoutedEventArgs e)
+    private async Task AddAsync()
     {
         var sourceType = await ShowAddSourceDialogAsync();
         if (sourceType == "Executable")
@@ -81,7 +78,7 @@ public sealed partial class ExceptionsPage : Page
             await ViewModel.AddExceptionAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy, request.Value.RemoteTcpPorts, request.Value.LocalTcpPorts, request.Value.RemoteUdpPorts, request.Value.LocalUdpPorts);
     }
 
-    private async void ModifyButton_Click(object sender, RoutedEventArgs e)
+    private async Task ModifyAsync()
     {
         if (ViewModel.SelectedException is null)
         {
@@ -94,7 +91,7 @@ public sealed partial class ExceptionsPage : Page
             await ViewModel.ModifySelectedAsync(request.Value.SubjectType, request.Value.Name, request.Value.Details, request.Value.Policy, request.Value.RemoteTcpPorts, request.Value.LocalTcpPorts, request.Value.RemoteUdpPorts, request.Value.LocalUdpPorts);
     }
 
-    private async void RemoveButton_Click(object sender, RoutedEventArgs e)
+    private async Task RemoveAsync()
     {
         if (ViewModel.SelectedException is null)
         {
@@ -106,15 +103,10 @@ public sealed partial class ExceptionsPage : Page
             await ViewModel.RemoveSelectedAsync();
     }
 
-    private async void RemoveAllButton_Click(object sender, RoutedEventArgs e)
+    private async Task RemoveAllAsync()
     {
         if (await _dialogueService.ConfirmAsync(XamlRoot, "Remove all exceptions", "Remove all application exceptions?", "Remove all"))
             await ViewModel.RemoveAllAsync();
-    }
-
-    private Task RefreshAsync()
-    {
-        return ViewModel.RefreshAsync(SearchBox.Text);
     }
 
     private async Task<ExceptionEditorRequest?> ShowExceptionEditorAsync(string title, ExceptionRowViewModel? existing = null)

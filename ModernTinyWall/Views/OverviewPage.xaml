@@ -1,5 +1,6 @@
 <Page
     x:Class="ModernTinyWall.Views.OverviewPage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:ModernTinyWall.Models">
@@ -61,7 +62,7 @@
                                 <ColumnDefinition Width="220" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Button Content="{x:Bind DisplayName}" Click="ModeButton_Click" Tag="{x:Bind}" HorizontalAlignment="Stretch" />
+                            <Button Content="{x:Bind DisplayName}" Command="{Binding ViewModel.ApplyModeCommand, ElementName=PageRoot}" CommandParameter="{x:Bind}" HorizontalAlignment="Stretch" />
                             <TextBlock Grid.Column="1" Text="{x:Bind Description}" TextWrapping="Wrap" VerticalAlignment="Center" />
                         </Grid>
                     </DataTemplate>

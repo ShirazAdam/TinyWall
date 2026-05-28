@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
+using System;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.Views;
@@ -12,52 +14,27 @@ public sealed partial class PackagesPage : Page
     private readonly IExceptionsService _exceptionsService = new ExceptionsService();
     internal PackagesPageViewModel ViewModel { get; } = new();
 
+    internal IAsyncRelayCommand<PackageRowViewModel> AllowPackageCommand { get; }
+
+    internal IAsyncRelayCommand<PackageRowViewModel> BlockPackageCommand { get; }
+
     public PackagesPage()
     {
+        AllowPackageCommand = new AsyncRelayCommand<PackageRowViewModel>(package => ApplyPackageExceptionAsync(package, ExceptionEntryPolicy.Allow), static package => package is not null);
+        BlockPackageCommand = new AsyncRelayCommand<PackageRowViewModel>(package => ApplyPackageExceptionAsync(package, ExceptionEntryPolicy.Block), static package => package is not null);
         InitializeComponent();
         Loaded += PackagesPage_Loaded;
     }
 
     private async void PackagesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await RefreshAsync();
+        await ViewModel.RefreshCommand.ExecuteAsync(null);
     }
 
-    private async void SearchButton_Click(object sender, RoutedEventArgs e)
+    private async Task ApplyPackageExceptionAsync(PackageRowViewModel? package, ExceptionEntryPolicy policy)
     {
-        await RefreshAsync();
-    }
+        ArgumentNullException.ThrowIfNull(package);
 
-    private async void ClearButton_Click(object sender, RoutedEventArgs e)
-    {
-        SearchBox.Text = string.Empty;
-        await RefreshAsync();
-    }
-
-    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        ViewModel.SearchText = SearchBox.Text;
-    }
-
-    private Task RefreshAsync()
-    {
-        return ViewModel.RefreshAsync(SearchBox.Text);
-    }
-
-    private async void AllowPackageMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem { CommandParameter: PackageRowViewModel package })
-            await ApplyPackageExceptionAsync(package, ExceptionEntryPolicy.Allow);
-    }
-
-    private async void BlockPackageMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem { CommandParameter: PackageRowViewModel package })
-            await ApplyPackageExceptionAsync(package, ExceptionEntryPolicy.Block);
-    }
-
-    private async Task ApplyPackageExceptionAsync(PackageRowViewModel package, ExceptionEntryPolicy policy)
-    {
         var request = new ExceptionEntryActionRequest(ExceptionEntryKind.Package, policy, package.Name, package.Sid, package.PublisherId, package.Publisher);
         var prepareResult = await _exceptionsService.PrepareEntryActionAsync(request);
         if (!prepareResult.Success)

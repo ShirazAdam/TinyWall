@@ -1,5 +1,6 @@
 <Page
     x:Class="ModernTinyWall.Views.ProcessesPage"
+    x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:ModernTinyWall.ViewModels">
@@ -18,9 +19,9 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="SearchBox" PlaceholderText="Search processes" TextChanged="SearchBox_TextChanged" />
-            <Button Grid.Column="1" Content="Search" Click="SearchButton_Click" />
-            <Button Grid.Column="2" Content="Clear" Click="ClearButton_Click" />
+            <TextBox PlaceholderText="Search processes" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="1" Content="Search" Command="{x:Bind ViewModel.RefreshCommand}" />
+            <Button Grid.Column="2" Content="Clear" Command="{x:Bind ViewModel.ClearCommand}" />
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -46,8 +47,8 @@
                     <Grid Padding="8" ColumnSpacing="12">
                         <Grid.ContextFlyout>
                             <MenuFlyout>
-                                <MenuFlyoutItem Text="Allow process" Click="AllowProcessMenuItem_Click" CommandParameter="{x:Bind}" />
-                                <MenuFlyoutItem Text="Block process" Click="BlockProcessMenuItem_Click" CommandParameter="{x:Bind}" />
+                                <MenuFlyoutItem Text="Allow process" Command="{Binding AllowProcessCommand, ElementName=PageRoot}" CommandParameter="{x:Bind}" />
+                                <MenuFlyoutItem Text="Block process" Command="{Binding BlockProcessCommand, ElementName=PageRoot}" CommandParameter="{x:Bind}" />
                             </MenuFlyout>
                         </Grid.ContextFlyout>
                         <Grid.ColumnDefinitions>

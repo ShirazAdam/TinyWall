@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Services;
 using System;
@@ -12,8 +13,11 @@ namespace ModernTinyWall.ViewModels;
 internal sealed class ServicesPageViewModel : INotifyPropertyChanged
 {
     private readonly IServicesService _servicesService;
+    private readonly AsyncRelayCommand _refreshCommand;
+    private readonly AsyncRelayCommand _clearCommand;
     private bool _isRefreshing;
     private string _statusMessage = "Ready";
+    private string _searchText = string.Empty;
 
     public ServicesPageViewModel()
         : this(new ServicesService())
@@ -23,12 +27,23 @@ internal sealed class ServicesPageViewModel : INotifyPropertyChanged
     internal ServicesPageViewModel(IServicesService servicesService)
     {
         _servicesService = servicesService;
+        _refreshCommand = new AsyncRelayCommand(RefreshAsync, CanRunCommand);
+        _clearCommand = new AsyncRelayCommand(ClearAsync, CanRunCommand);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<ServiceRowViewModel> Services { get; } = [];
-    public string SearchText { get; set; } = string.Empty;
+
+    public IAsyncRelayCommand RefreshCommand => _refreshCommand;
+
+    public IAsyncRelayCommand ClearCommand => _clearCommand;
+
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetField(ref _searchText, value);
+    }
 
     public bool IsRefreshing
     {
@@ -70,6 +85,22 @@ internal sealed class ServicesPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private Task RefreshAsync()
+    {
+        return RefreshAsync(SearchText);
+    }
+
+    private Task ClearAsync()
+    {
+        SearchText = string.Empty;
+        return RefreshAsync(SearchText);
+    }
+
+    private bool CanRunCommand()
+    {
+        return !IsRefreshing;
+    }
+
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -82,6 +113,11 @@ internal sealed class ServicesPageViewModel : INotifyPropertyChanged
 
         field = value;
         OnPropertyChanged(propertyName);
+        if (propertyName == nameof(IsRefreshing))
+        {
+            _refreshCommand.NotifyCanExecuteChanged();
+            _clearCommand.NotifyCanExecuteChanged();
+        }
     }
 }
 

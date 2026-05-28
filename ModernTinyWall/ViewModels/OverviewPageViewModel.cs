@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using System;
@@ -20,6 +21,7 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
     private string _statusMessage = "Select a firewall mode to continue the migration workflow.";
     private string _downloadRate = "Download: 0 B/s";
     private string _uploadRate = "Upload: 0 B/s";
+    private readonly AsyncRelayCommand<FirewallModeOption> _applyModeCommand;
     private bool _isApplyingMode;
 
     public OverviewPageViewModel()
@@ -30,6 +32,7 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
     internal OverviewPageViewModel(IFirewallModeService firewallModeService)
     {
         _firewallModeService = firewallModeService;
+        _applyModeCommand = new AsyncRelayCommand<FirewallModeOption>(ApplyModeAsync, option => option is not null && !IsApplyingMode);
         foreach (var option in _firewallModeService.GetModeOptions())
         {
             ModeOptions.Add(option);
@@ -43,6 +46,8 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
     public ObservableCollection<FirewallModeOption> ModeOptions { get; } = [];
 
     public ObservableCollection<NetworkActivitySample> NetworkActivitySamples { get; } = [];
+
+    public IAsyncRelayCommand<FirewallModeOption> ApplyModeCommand => _applyModeCommand;
 
     public string DownloadRate
     {
@@ -93,11 +98,14 @@ internal sealed class OverviewPageViewModel : INotifyPropertyChanged
 
             _isApplyingMode = value;
             OnPropertyChanged();
+            ApplyModeCommand.NotifyCanExecuteChanged();
         }
     }
 
-    public async Task ApplyModeAsync(FirewallModeOption option)
+    public async Task ApplyModeAsync(FirewallModeOption? option)
     {
+        ArgumentNullException.ThrowIfNull(option);
+
         IsApplyingMode = true;
         StatusMessage = $"Applying {option.DisplayName.ToLowerInvariant()}...";
 

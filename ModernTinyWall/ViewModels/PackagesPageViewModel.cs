@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ModernTinyWall.Services;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,11 @@ namespace ModernTinyWall.ViewModels;
 internal sealed class PackagesPageViewModel : INotifyPropertyChanged
 {
     private readonly IPackagesService _packagesService;
+    private readonly AsyncRelayCommand _refreshCommand;
+    private readonly AsyncRelayCommand _clearCommand;
     private bool _isRefreshing;
     private string _statusMessage = "Ready";
+    private string _searchText = string.Empty;
 
     public PackagesPageViewModel()
         : this(new PackagesService())
@@ -22,12 +26,23 @@ internal sealed class PackagesPageViewModel : INotifyPropertyChanged
     internal PackagesPageViewModel(IPackagesService packagesService)
     {
         _packagesService = packagesService;
+        _refreshCommand = new AsyncRelayCommand(RefreshAsync, CanRunCommand);
+        _clearCommand = new AsyncRelayCommand(ClearAsync, CanRunCommand);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<PackageRowViewModel> Packages { get; } = [];
-    public string SearchText { get; set; } = string.Empty;
+
+    public IAsyncRelayCommand RefreshCommand => _refreshCommand;
+
+    public IAsyncRelayCommand ClearCommand => _clearCommand;
+
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetField(ref _searchText, value);
+    }
 
     public bool IsRefreshing
     {
@@ -69,6 +84,22 @@ internal sealed class PackagesPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private Task RefreshAsync()
+    {
+        return RefreshAsync(SearchText);
+    }
+
+    private Task ClearAsync()
+    {
+        SearchText = string.Empty;
+        return RefreshAsync(SearchText);
+    }
+
+    private bool CanRunCommand()
+    {
+        return !IsRefreshing;
+    }
+
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -81,6 +112,11 @@ internal sealed class PackagesPageViewModel : INotifyPropertyChanged
 
         field = value;
         OnPropertyChanged(propertyName);
+        if (propertyName == nameof(IsRefreshing))
+        {
+            _refreshCommand.NotifyCanExecuteChanged();
+            _clearCommand.NotifyCanExecuteChanged();
+        }
     }
 }
 

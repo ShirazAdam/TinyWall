@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
@@ -12,28 +13,27 @@ public sealed partial class SettingsPage : Page
 {
     internal SettingsPageViewModel ViewModel { get; } = new();
 
+    internal IAsyncRelayCommand ChangePasswordCommand { get; }
+
+    internal IAsyncRelayCommand ImportCommand { get; }
+
+    internal IAsyncRelayCommand ExportCommand { get; }
+
     public SettingsPage()
     {
+        ChangePasswordCommand = new AsyncRelayCommand(ChangePasswordAsync);
+        ImportCommand = new AsyncRelayCommand(ImportAsync);
+        ExportCommand = new AsyncRelayCommand(ExportAsync);
         InitializeComponent();
         Loaded += SettingsPage_Loaded;
     }
 
     private async void SettingsPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadAsync();
+        await ViewModel.LoadCommand.ExecuteAsync(null);
     }
 
-    private async void ApplyButton_Click(object sender, RoutedEventArgs e)
-    {
-        await ViewModel.ApplyAsync();
-    }
-
-    private async void CancelButton_Click(object sender, RoutedEventArgs e)
-    {
-        await ViewModel.LoadAsync();
-    }
-
-    private async void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
+    private async Task ChangePasswordAsync()
     {
         var passwordBox = new PasswordBox { Header = "New password" };
         var dialog = new ContentDialog
@@ -53,23 +53,18 @@ public sealed partial class SettingsPage : Page
             await ViewModel.ChangePasswordAsync(string.Empty);
     }
 
-    private async void ImportButton_Click(object sender, RoutedEventArgs e)
+    private async Task ImportAsync()
     {
         var filePath = FilePickerService.PickOpenFile(WindowNative.GetWindowHandle(App.MainWindow), "Import TinyWall settings");
         if (filePath is not null)
             await ViewModel.ImportSettingsAsync(filePath);
     }
 
-    private async void ExportButton_Click(object sender, RoutedEventArgs e)
+    private async Task ExportAsync()
     {
         var filePath = FilePickerService.PickSaveFile(WindowNative.GetWindowHandle(App.MainWindow), "Export TinyWall settings", "TinyWall-settings.tws");
         if (filePath is not null)
             await ViewModel.ExportSettingsAsync(filePath);
-    }
-
-    private async void UpdateButton_Click(object sender, RoutedEventArgs e)
-    {
-        await ViewModel.CheckForUpdatesAsync();
     }
 
     private static Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
