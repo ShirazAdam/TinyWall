@@ -20,6 +20,8 @@ The applications provide tray-based control for managing firewall modes, applica
 
 TinyWall and Modern TinyWall focus on being practical and low-overhead. They use Windows networking and security features rather than replacing them, and aim to keep the user interface responsive while doing heavier discovery and rule-management work in the background.
 
+Now enabled to run natively on x86, x64, and ARM.
+
 ## Current development focus
 
 - Targeting .NET 10 for the actively modernized projects.
