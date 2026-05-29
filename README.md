@@ -6,15 +6,26 @@
 
 [![Dependabot Updates](https://github.com/ShirazAdam/TinyWall/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/ShirazAdam/TinyWall/actions/workflows/dependabot/dependabot-updates)
 
-# TinyWall
+# TinyWall / Modern TinyWall
 
 TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no noisy pop-ups, no bundled drivers, and no unnecessary background clutter.
 
-The original project suffered from a lack of updates and support. The original project still suffers from performance problems where right-clicking on the tray icon can take anywhere between 2 - 12 seconds to the show the context menu. Some of the forms also freeze due to the events running on the UI thread. This fork aims to experiment and continue the development of TinyWall, keeping it up-to-date and compatible with the latest Windows versions, while also adding new features and improvements.
+The original project suffered from a lack of updates and support. The original project also suffers from performance problems where right-clicking on the tray icon can take anywhere between 2 - 12 seconds to show the context menu. Some forms can also freeze because expensive work runs on the UI thread. This fork aims to experiment and continue the development of TinyWall, keeping it up-to-date and compatible with the latest Windows versions, while also adding new features and improvements.
 
-The application provides a tray-based control centre for managing firewall modes, application exceptions, service and process rules, connection activity, blocklists, and firewall log entries. It helps users allow trusted applications, block unwanted network access, and review network activity without needing to edit Windows Firewall rules manually.
+This repository now contains both the legacy TinyWall application and a new **Modern TinyWall** application. Modern TinyWall is a .NET 10 Windows desktop client that modernises the user experience while reusing the existing firewall, Windows integration, package discovery, service-control, and Windows Filtering Platform functionality where practical. The goal is to keep the proven TinyWall behaviour while improving responsiveness, maintainability, and compatibility with current Windows and .NET releases.
 
-TinyWall focuses on being practical and low-overhead. It uses Windows networking and security features rather than replacing them, and aims to keep the user interface responsive while doing heavier discovery and rule-management work in the background.
+The applications provide tray-based control for managing firewall modes, application exceptions, service and process rules, Microsoft Store / packaged app rules, connection activity, blocklists, and firewall log entries. They help users allow trusted applications, block unwanted network access, and review network activity without needing to edit Windows Firewall rules manually.
+
+TinyWall and Modern TinyWall focus on being practical and low-overhead. They use Windows networking and security features rather than replacing them, and aim to keep the user interface responsive while doing heavier discovery and rule-management work in the background.
+
+## Current development focus
+
+- Targeting .NET 10 for the actively modernized projects.
+- Adding the new `Modern TinyWall` desktop client alongside the existing `TinyWall` application.
+- Moving expensive UI-triggered operations off the UI thread where possible.
+- Improving tray responsiveness and modernising tray command handling.
+- Preserving existing TinyWall firewall behaviour while modernising the surrounding application code.
+- Keeping native Windows interop explicit and source-generator friendly for modern .NET builds.
 
 You're welcome to hack and slash at it. Enjoy!
 
@@ -27,13 +38,26 @@ You're welcome to hack and slash at it. Enjoy!
 ### Necessary tools
 
 - [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com/vs/)
-- [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+- [.NET 10](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Microsoft Visual Studio 2022/2026 Installer Project Extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
 
 ### To build the application
 
-1. Open the solution file in Visual Studio and compile the `TinyWall` project. The other projects referenced inside the solution need not be compiled separately as they will be statically compiled into the application.
+1. Open the solution file in Visual Studio.
+1. Build `Modern TinyWall` to run the modernised .NET 10 client.
+1. Build `TinyWall` to run the legacy WinForms application.
+1. The referenced projects are built automatically by Visual Studio as needed.
 1. Done.
+
+### Main projects
+
+- `ModernTinyWall` - modern .NET 10 Windows desktop client.
+- `TinyWall` - original / legacy TinyWall application.
+- `TinyWall.Core` - shared core functionality.
+- `ModernTinyWall.Windows` - Windows platform helpers and native interop wrappers.
+- `ModernTinyWall.Windows.WFP` - Windows Filtering Platform integration.
+- `ModernTinyWall.Windows.Services` - Windows service-control helpers.
+- `ModernTinyWall.Utilities` - shared utility code for the modernised projects.
 
 ### To update/build build the database of known applications
 
