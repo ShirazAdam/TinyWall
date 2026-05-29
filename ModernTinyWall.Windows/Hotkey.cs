@@ -17,10 +17,10 @@ namespace ModernTinyWall.Windows
             public const uint MOD_WIN = 0x8;
             public const uint ERROR_HOTKEY_ALREADY_REGISTERED = 1409;
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "RegisterHotKey", SetLastError = true)]
             public static partial int RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, Keys vk);
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "UnregisterHotKey", SetLastError = true)]
             public static partial int UnregisterHotKey(IntPtr hWnd, int id);
         }
 

@@ -321,7 +321,7 @@ public sealed partial class MainWindow
     [LibraryImport("user32.dll", EntryPoint = "CallWindowProcW", SetLastError = true)]
     private static partial IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "ShowWindow", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);
 }

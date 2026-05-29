@@ -14,7 +14,7 @@ namespace ModernTinyWall.Windows
             [SuppressUnmanagedCodeSecurity]
             private static partial class NativeMethods
             {
-                [LibraryImport("Iphlpapi.dll")]
+                [LibraryImport("Iphlpapi.dll", EntryPoint = "CancelMibChangeNotify2")]
                 internal static partial int CancelMibChangeNotify2(IntPtr NotificationHandle);
             }
 
@@ -51,13 +51,13 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("Iphlpapi")]
+            [LibraryImport("Iphlpapi", EntryPoint = "NotifyIpInterfaceChange")]
             public static partial int NotifyIpInterfaceChange(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
 
-            [LibraryImport("Iphlpapi")]
+            [LibraryImport("Iphlpapi", EntryPoint = "NotifyUnicastIpAddressChange")]
             public static partial int NotifyUnicastIpAddressChange(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
 
-            [LibraryImport("Iphlpapi")]
+            [LibraryImport("Iphlpapi", EntryPoint = "NotifyRouteChange2")]
             public static partial int NotifyRouteChange2(ADDRESS_FAMILY Family, NotifyIpInterfaceChangeDelegate Callback, IntPtr CallerContext, [MarshalAs(UnmanagedType.I1)] bool InitialNotification, out SafeIpHlprNotifyHandle NotificationHandle);
         }
 

@@ -10,7 +10,7 @@ namespace ModernTinyWall.Windows.Services
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("advapi32.dll", SetLastError = true)]
+            [LibraryImport("advapi32.dll", EntryPoint = "CloseServiceHandle", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool CloseServiceHandle(IntPtr hSCObject);
         }
@@ -35,13 +35,13 @@ namespace ModernTinyWall.Windows.Services
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("user32", SetLastError = true)]
+            [LibraryImport("user32", EntryPoint = "RegisterPowerSettingNotification", SetLastError = true)]
             public static partial SafeHandlePowerSettingNotification RegisterPowerSettingNotification(
                 IntPtr hRecipient,
                 ref Guid PowerSettingGuid,
                 DeviceNotifFlags Flags);
 
-            [LibraryImport("user32")]
+            [LibraryImport("user32", EntryPoint = "UnregisterPowerSettingNotification")]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool UnregisterPowerSettingNotification(IntPtr hPowerNotif);
         }
@@ -72,13 +72,13 @@ namespace ModernTinyWall.Windows.Services
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("user32", SetLastError = true)]
+            [LibraryImport("user32", EntryPoint = "RegisterDeviceNotificationW", SetLastError = true)]
             public static partial SafeHandleDeviceNotification RegisterDeviceNotification(
                 IntPtr hRecipient,
                 IntPtr NotificationFilter,
                 DeviceNotifFlags Flags);
 
-            [LibraryImport("user32")]
+            [LibraryImport("user32", EntryPoint = "UnregisterDeviceNotification")]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool UnregisterDeviceNotification(IntPtr hDeviceNotif);
         }

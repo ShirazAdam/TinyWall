@@ -25,7 +25,7 @@ namespace Microsoft.Samples
 
         internal static SafeTokenHandle InvalidHandle => new(IntPtr.Zero);
 
-        [LibraryImport("kernel32", SetLastError = true),
+        [LibraryImport("kernel32", EntryPoint = "CloseHandle", SetLastError = true),
          SuppressUnmanagedCodeSecurity]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static partial bool CloseHandle(IntPtr handle);
@@ -117,11 +117,11 @@ namespace Microsoft.Samples
             internal const int ERROR_NO_SUCH_PRIVILEGE = 0x521;
             internal const int ERROR_CANT_OPEN_ANONYMOUS = 0x543;
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "CloseHandle", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool CloseHandle(IntPtr handle);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "AdjustTokenPrivileges", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool AdjustTokenPrivileges(
                 SafeTokenHandle TokenHandle,
@@ -131,7 +131,7 @@ namespace Microsoft.Samples
                 ref TOKEN_PRIVILEGE PreviousState,
                 ref uint ReturnLength);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "RevertToSelf", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool RevertToSelf();
 
@@ -142,22 +142,22 @@ namespace Microsoft.Samples
                 string lpName,
                 ref LUID Luid);
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "GetCurrentProcess", SetLastError = true)]
 
             internal static partial IntPtr GetCurrentProcess();
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "GetCurrentThread", SetLastError = true)]
 
             internal static partial IntPtr GetCurrentThread();
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "OpenProcessToken", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool OpenProcessToken(
                 IntPtr ProcessToken,
                 TokenAccessLevels DesiredAccess,
                 ref SafeTokenHandle TokenHandle);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "OpenThreadToken", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool OpenThreadToken(
                 IntPtr ThreadToken,
@@ -165,7 +165,7 @@ namespace Microsoft.Samples
                 [MarshalAs(UnmanagedType.Bool)] bool OpenAsSelf,
                 ref SafeTokenHandle TokenHandle);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "DuplicateTokenEx", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool DuplicateTokenEx(
                 SafeTokenHandle ExistingToken,
@@ -175,7 +175,7 @@ namespace Microsoft.Samples
                 TokenType TokenType,
                 ref SafeTokenHandle NewToken);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "SetThreadToken", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool SetThreadToken(
                 IntPtr Thread,

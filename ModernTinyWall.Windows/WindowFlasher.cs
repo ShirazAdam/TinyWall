@@ -6,11 +6,11 @@ namespace ModernTinyWall.Windows
 
     public static partial class WindowFlasher
     {
-        [LibraryImport("user32.dll")]
+        [LibraryImport("user32.dll", EntryPoint = "FlashWindowEx")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static partial bool FlashWindowEx(ref FLASHWINFO pwfi);
 
-        [LibraryImport("user32.dll")]
+        [LibraryImport("user32.dll", EntryPoint = "FlashWindow")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static partial bool FlashWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool bInvert);
 

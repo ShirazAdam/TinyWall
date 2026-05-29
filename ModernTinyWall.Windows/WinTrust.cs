@@ -187,7 +187,7 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class SafeNativeMethods
         {
-            [LibraryImport("wintrust.dll", SetLastError = true)]
+            [LibraryImport("wintrust.dll", EntryPoint = "WinVerifyTrust", SetLastError = true)]
             public static partial WinVerifyTrustResult WinVerifyTrust(IntPtr hwnd, in Guid pgActionID, IntPtr pWVTData);
         }
 

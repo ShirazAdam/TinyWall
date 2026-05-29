@@ -15,16 +15,16 @@ namespace ModernTinyWall.Windows
             public const int ERROR_INVALID_PARAMETER = 87;
             public const int MAX_ATOM_NAME_LENGTH = 256;
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "SetLastError", SetLastError = true)]
             public static partial void SetLastError(uint dwErrorCode);
 
-            [LibraryImport("kernel32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("kernel32", EntryPoint = "GlobalAddAtomW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
             public static partial ushort GlobalAddAtom(string lpString);
 
-            [LibraryImport("kernel32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("kernel32", EntryPoint = "GlobalFindAtomW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
             public static partial ushort GlobalFindAtom(string lpString);
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "GlobalDeleteAtom", SetLastError = true)]
             public static partial ushort GlobalDeleteAtom(ushort nAtom);
 
             [LibraryImport("kernel32", EntryPoint = "GlobalGetAtomNameW", SetLastError = true)]

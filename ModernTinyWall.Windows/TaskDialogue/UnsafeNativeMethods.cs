@@ -305,7 +305,7 @@ namespace Microsoft.Samples
         /// <param name="wParam">Specifies additional message-specific information.</param>
         /// <param name="lParam">Specifies additional message-specific information.</param>
         /// <returns>The return value specifies the result of the message processing; it depends on the message sent.</returns>
-        [LibraryImport("user32.dll")]
+        [LibraryImport("user32.dll", EntryPoint = "SendMessageW")]
         internal static partial IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         /// <summary>

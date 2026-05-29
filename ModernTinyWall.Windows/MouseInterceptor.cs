@@ -39,14 +39,14 @@ namespace ModernTinyWall.Windows
                 public IntPtr dwExtraInfo;
             }
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "SetWindowsHookExW", SetLastError = true)]
             public static partial IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "UnhookWindowsHookEx", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool UnhookWindowsHookEx(IntPtr hhk);
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "CallNextHookEx", SetLastError = true)]
             public static partial IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
             [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]

@@ -258,7 +258,7 @@ namespace ModernTinyWall.Windows.WFP
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void FWPM_NET_EVENT_CALLBACK0(IntPtr context, IntPtr netEvent1);
 
-            [LibraryImport("FWPUClnt.dll")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventSubscribe0")]
             internal static partial uint FwpmNetEventSubscribe0(
                 FwpmEngineSafeHandle engineHandle,
                 ref Interop.FWPM_NET_EVENT_SUBSCRIPTION0 subscription,
@@ -313,7 +313,7 @@ namespace ModernTinyWall.Windows.WFP
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void FWPM_NET_EVENT_CALLBACK1(IntPtr context, IntPtr netEvent2);
 
-            [LibraryImport("FWPUClnt.dll")]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmNetEventSubscribe1")]
             internal static partial uint FwpmNetEventSubscribe1(
                 FwpmEngineSafeHandle engineHandle,
                 ref Interop.FWPM_NET_EVENT_SUBSCRIPTION0 subscription,

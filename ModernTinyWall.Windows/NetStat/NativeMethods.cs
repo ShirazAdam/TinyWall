@@ -11,10 +11,10 @@ namespace ModernTinyWall.Windows.NetStat
 
         private const string DllName = "iphlpapi.dll";
 
-        [LibraryImport(DllName, SetLastError = true)]
+        [LibraryImport(DllName, EntryPoint = "GetExtendedTcpTable", SetLastError = true)]
         public static partial uint GetExtendedTcpTable(IntPtr tcpTable, ref int tcpTableLength, [MarshalAs(UnmanagedType.Bool)] bool sort, int ipVersion, TcpTableType tcpTableType, int reserved);
 
-        [LibraryImport(DllName, SetLastError = true)]
+        [LibraryImport(DllName, EntryPoint = "GetExtendedUdpTable", SetLastError = true)]
         public static partial uint GetExtendedUdpTable(IntPtr udpTable, ref int udpTableLength, [MarshalAs(UnmanagedType.Bool)] bool sort, int ipVersion, UdpTableType udpTableType, int reserved);
 
         public enum TcpTableType

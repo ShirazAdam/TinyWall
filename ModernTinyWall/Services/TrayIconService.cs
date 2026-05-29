@@ -329,7 +329,7 @@ internal sealed partial class TrayIconService : ITrayIconService
         destination[length] = '\0';
     }
 
-    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    [LibraryImport("shell32.dll", EntryPoint = "Shell_NotifyIconW", StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static unsafe partial bool Shell_NotifyIcon(int dwMessage, NotifyIconData* lpData);
 
@@ -339,11 +339,11 @@ internal sealed partial class TrayIconService : ITrayIconService
     [LibraryImport("user32.dll", EntryPoint = "LoadImageW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     private static partial IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "DestroyIcon", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool DestroyIcon(IntPtr hIcon);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "CreatePopupMenu", SetLastError = true)]
     private static partial IntPtr CreatePopupMenu();
 
     [LibraryImport("user32.dll", EntryPoint = "AppendMenuW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
@@ -354,18 +354,18 @@ internal sealed partial class TrayIconService : ITrayIconService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool ModifyMenu(IntPtr hMnu, uint uPosition, uint uFlags, uint uIdNewItem, string lpNewItem);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "DestroyMenu", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool DestroyMenu(IntPtr hMenu);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "TrackPopupMenu", SetLastError = true)]
     private static partial uint TrackPopupMenu(IntPtr hMenu, uint uFlags, int x, int y, int nReserved, IntPtr hWnd, IntPtr prcRect);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "SetForegroundWindow", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetForegroundWindow(IntPtr hWnd);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "GetCursorPos", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetCursorPos(out Point point);
 
@@ -373,10 +373,10 @@ internal sealed partial class TrayIconService : ITrayIconService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "SetTimer", SetLastError = true)]
     private static partial nuint SetTimer(IntPtr hWnd, nuint nIdEvent, uint uElapse, IntPtr lpTimerFunc);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "KillTimer", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool KillTimer(IntPtr hWnd, nuint uIdEvent);
 

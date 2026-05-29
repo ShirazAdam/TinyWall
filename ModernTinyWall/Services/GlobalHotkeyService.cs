@@ -49,11 +49,11 @@ internal sealed partial class GlobalHotkeyService : IDisposable
             _commands[id] = command;
     }
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "RegisterHotKey", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "UnregisterHotKey", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool UnregisterHotKey(IntPtr hWnd, int id);
 }

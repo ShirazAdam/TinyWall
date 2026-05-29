@@ -27,14 +27,14 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         internal static partial class SafeNativeMethods
         {
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "IsWow64Process", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             private static partial bool IsWow64Process(IntPtr hProcess, [MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
 
-            [LibraryImport("kernel32")]
+            [LibraryImport("kernel32", EntryPoint = "VerSetConditionMask")]
             private static partial ulong VerSetConditionMask(ulong dwlConditionMask, uint dwTypeBitMask, byte dwConditionMask);
 
-            [LibraryImport("kernel32")]
+            [LibraryImport("kernel32", EntryPoint = "VerifyVersionInfoW")]
             [return: MarshalAs(UnmanagedType.Bool)]
             private static partial bool VerifyVersionInfo(ref OsVersionInfoEx lpVersionInfo, uint dwTypeMask, ulong dwlConditionMask);
 

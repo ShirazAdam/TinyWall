@@ -232,14 +232,14 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
         public int Y;
     }
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "GetCursorPos", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetCursorPos(out Point point);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "WindowFromPoint", SetLastError = true)]
     private static partial IntPtr WindowFromPoint(Point point);
 
-    [LibraryImport("user32.dll", SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "GetWindowThreadProcessId", SetLastError = true)]
     private static partial uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 }
 

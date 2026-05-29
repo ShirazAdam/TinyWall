@@ -22,7 +22,7 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         protected static partial class NativeMethods
         {
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "OpenProcess", SetLastError = true)]
             internal static partial SafeObjectHandle OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwProcessId);
 
             [LibraryImport("kernel32", EntryPoint = "QueryFullProcessImageNameW", SetLastError = true)]
@@ -35,34 +35,34 @@ namespace ModernTinyWall.Windows
                     return QueryFullProcessImageName(hProcess, dwFlags, buffer, ref size);
             }
 
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "NtQueryInformationProcess")]
             internal static partial int NtQueryInformationProcess(SafeObjectHandle hProcess, int processInformationClass, out PROCESS_BASIC_INFORMATION processInformation, int processInformationLength, out int returnLength);
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "CreateToolhelp32Snapshot", SetLastError = true)]
             internal static partial SafeObjectHandle CreateToolhelp32Snapshot(SnapshotFlags flags, int id);
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "Process32FirstW", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool Process32First(SafeObjectHandle hSnapshot, ref PROCESSENTRY32 lppe);
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "Process32NextW", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool Process32Next(SafeObjectHandle hSnapshot, ref PROCESSENTRY32 lppe);
 
-            [LibraryImport("user32", SetLastError = true)]
+            [LibraryImport("user32", EntryPoint = "PostThreadMessageW", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool PostThreadMessage(int threadId, uint msg, UIntPtr wParam, IntPtr lParam);
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "GetProcessTimes", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool GetProcessTimes(SafeObjectHandle hProcess, out long lpCreationTime, out long lpExitTime, out long lpKernelTime, out long lpUserTime);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "OpenProcessToken", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool OpenProcessToken(
                 SafeObjectHandle ProcessToken,
                 TokenAccessLevels DesiredAccess,
                 out SafeObjectHandle TokenHandle);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "GetTokenInformation", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool GetTokenInformation(
                 SafeObjectHandle TokenHandle,

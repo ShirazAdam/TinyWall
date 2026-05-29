@@ -19,7 +19,7 @@ namespace ModernTinyWall.Windows
             internal const int ERROR_NOT_CONNECTED = 2250;
             internal const int NOERROR = 0;
 
-            [LibraryImport("mpr.dll", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("mpr.dll", EntryPoint = "WNetGetUniversalNameW", StringMarshalling = StringMarshalling.Utf16)]
             internal static partial int WNetGetUniversalName(string lpLocalPath, int dwInfoLevel, IntPtr lpBuffer, ref int lpBufferSize);
             #endregion
         }

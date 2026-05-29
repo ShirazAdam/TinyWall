@@ -13,10 +13,10 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32")]
+            [LibraryImport("kernel32", EntryPoint = "GlobalAlloc")]
             public static partial IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [LibraryImport("kernel32")]
+            [LibraryImport("kernel32", EntryPoint = "GlobalFree")]
             public static partial IntPtr GlobalFree(IntPtr hMem);
         }
 
@@ -145,7 +145,7 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "CloseHandle", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool CloseHandle(IntPtr hHandle);
         }
@@ -169,13 +169,13 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32")]
+            [LibraryImport("kernel32", EntryPoint = "HeapAlloc")]
             internal static partial IntPtr HeapAlloc(IntPtr heap, uint uFlags, UIntPtr dwBytes);
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "GetProcessHeap", SetLastError = true)]
             internal static partial IntPtr GetProcessHeap();
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "HeapFree", SetLastError = true)]
 
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool HeapFree(IntPtr heap, uint flags, IntPtr mem);
@@ -236,10 +236,10 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("advapi32")]
+            [LibraryImport("advapi32", EntryPoint = "RegCloseKey")]
             public static partial int RegCloseKey(IntPtr hKey);
 
-            [LibraryImport("advapi32", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("advapi32", EntryPoint = "RegOpenKeyExW", StringMarshalling = StringMarshalling.Utf16)]
             public static partial int RegOpenKeyEx(IntPtr hKey, string subKey, uint ulOptions, uint samDesired, out SafeRegistryHandle hkResult);
         }
 
@@ -302,10 +302,10 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32.dll")]
+            [LibraryImport("kernel32.dll", EntryPoint = "LocalAlloc")]
             internal static partial IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [LibraryImport("kernel32.dll")]
+            [LibraryImport("kernel32.dll", EntryPoint = "LocalFree")]
 
             internal static partial IntPtr LocalFree(IntPtr hMem);
         }
@@ -348,7 +348,7 @@ namespace ModernTinyWall.Windows
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static unsafe partial bool FindNextVolume(IntPtr hFindVolume, char* lpszVolumeName, int cchBufferLength);
 
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "FindVolumeClose", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool FindVolumeClose(IntPtr hFindVolume);
         }
@@ -419,10 +419,10 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("advapi32")]
+            [LibraryImport("advapi32", EntryPoint = "FreeSid")]
             public static partial IntPtr FreeSid(IntPtr pSid);
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "ConvertSidToStringSidW", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool ConvertSidToStringSid(IntPtr Sid, out AllocHLocalSafeHandle StringSid);
         }

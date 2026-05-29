@@ -162,7 +162,7 @@ namespace ModernTinyWall.TinyWall
                 internal Guid AuditCategoryGuid;
             }
 
-            [LibraryImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "AuditSetSystemPolicy", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.U1)]
             internal static partial bool AuditSetSystemPolicy(ref AuditPolicyInformation pAuditPolicy, uint policyCount);
         }

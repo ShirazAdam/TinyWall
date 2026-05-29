@@ -129,19 +129,19 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("pdh", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("pdh", EntryPoint = "PdhOpenQueryW", StringMarshalling = StringMarshalling.Utf16)]
             public static partial int PdhOpenQuery(string? szDataSource, IntPtr dwUserData, out IntPtr phQuery);
 
-            [LibraryImport("pdh", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("pdh", EntryPoint = "PdhAddEnglishCounterW", StringMarshalling = StringMarshalling.Utf16)]
             public static partial int PdhAddEnglishCounter(IntPtr hQuery, string szFullCounterPath, IntPtr dwUserData, out IntPtr phCounter);
 
-            [LibraryImport("pdh")]
+            [LibraryImport("pdh", EntryPoint = "PdhCollectQueryData")]
             public static partial int PdhCollectQueryData(IntPtr hQuery);
 
-            [LibraryImport("pdh")]
+            [LibraryImport("pdh", EntryPoint = "PdhGetFormattedCounterArrayW")]
             public static partial int PdhGetFormattedCounterArray(IntPtr hCounter, PDH_FMT dwFormat, ref int lpdwBufferSize, ref int lpdwItemCount, IntPtr ItemBuffer);
 
-            [LibraryImport("pdh")]
+            [LibraryImport("pdh", EntryPoint = "PdhCloseQuery")]
             public static partial int PdhCloseQuery(IntPtr hQuery);
         }
     }

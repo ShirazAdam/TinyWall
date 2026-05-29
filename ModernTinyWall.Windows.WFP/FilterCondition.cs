@@ -427,7 +427,7 @@ namespace ModernTinyWall.Windows.WFP
     {
         private static partial class NativeMethods
         {
-            [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("advapi32", EntryPoint = "ConvertStringSecurityDescriptorToSecurityDescriptorW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool ConvertStringSecurityDescriptorToSecurityDescriptor(
                 string stringSd,
@@ -435,7 +435,7 @@ namespace ModernTinyWall.Windows.WFP
                 out IntPtr resultSd,
                 ref int resultSdLength);
 
-            [LibraryImport("kernel32")]
+            [LibraryImport("kernel32", EntryPoint = "LocalFree")]
             public static partial IntPtr LocalFree(IntPtr hMem);
         }
 
@@ -581,11 +581,11 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         internal static partial class NativeMethods
         {
-            [LibraryImport("advapi32", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("advapi32", EntryPoint = "ConvertStringSidToSidW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool ConvertStringSidToSid(string stringSid, out AllocHLocalSafeHandle ptrSid);
 
-            [LibraryImport("userenv", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("userenv", EntryPoint = "DeriveAppContainerSidFromAppContainerName", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
             internal static partial int DeriveAppContainerSidFromAppContainerName(string appContainerName, out SidSafeHandle sid);
         }
 
@@ -728,7 +728,7 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         internal static partial class NativeMethods
         {
-            [LibraryImport("Iphlpapi", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("Iphlpapi", EntryPoint = "ConvertInterfaceAliasToLuid", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
             internal static partial int ConvertInterfaceAliasToLuid(string stringSid, out ulong InterfaceLuid);
         }
 

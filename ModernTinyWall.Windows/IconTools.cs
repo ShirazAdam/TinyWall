@@ -42,7 +42,7 @@ namespace ModernTinyWall.Windows
                 ShellIconSize uFlags
             );
 
-            [LibraryImport("user32.dll")]
+            [LibraryImport("user32.dll", EntryPoint = "DestroyIcon")]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool DestroyIcon(IntPtr handle);
         }

@@ -23,7 +23,7 @@ namespace ModernTinyWall.TinyWall
             [SuppressUnmanagedCodeSecurity]
             private static partial class NativeMethods
             {
-                [LibraryImport("Userenv", StringMarshalling = StringMarshalling.Utf16)]
+                [LibraryImport("Userenv", EntryPoint = "DeriveAppContainerSidFromAppContainerName", StringMarshalling = StringMarshalling.Utf16)]
                 public static partial int DeriveAppContainerSidFromAppContainerName(string pszAppContainerName, out SafeSidHandle ppsidAppContainerSid);
             }
 

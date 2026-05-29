@@ -10,7 +10,7 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         internal static partial class NativeMethods
         {
-            [LibraryImport("FWPUClnt.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+            [LibraryImport("FWPUClnt.dll", EntryPoint = "FwpmEngineClose0", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
 
             internal static partial uint FwpmEngineClose0(IntPtr engineHandle);
         }
@@ -306,10 +306,10 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("kernel32", EntryPoint = "GlobalAlloc", StringMarshalling = StringMarshalling.Utf16)]
             public static partial IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("kernel32", EntryPoint = "GlobalFree", StringMarshalling = StringMarshalling.Utf16)]
             public static partial IntPtr GlobalFree(IntPtr hMem);
 
         }
@@ -441,10 +441,10 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("kernel32.dll", EntryPoint = "LocalAlloc", StringMarshalling = StringMarshalling.Utf16)]
             internal static partial IntPtr LocalAlloc(uint uFlags, UIntPtr dwBytes);
 
-            [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("kernel32.dll", EntryPoint = "LocalFree", StringMarshalling = StringMarshalling.Utf16)]
             internal static partial IntPtr LocalFree(IntPtr hMem);
 
         }
@@ -480,7 +480,7 @@ namespace ModernTinyWall.Windows.WFP
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("advapi32.dll", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("advapi32.dll", EntryPoint = "FreeSid", SetLastError = false, StringMarshalling = StringMarshalling.Utf16)]
             internal static partial IntPtr FreeSid(IntPtr sid);
 
         }

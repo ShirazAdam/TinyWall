@@ -40,27 +40,27 @@ namespace ModernTinyWall.TinyWall
             [LibraryImport("user32.dll", EntryPoint = "WindowFromPoint")]
             private static partial IntPtr WindowFromPointCore(NativePoint pt);
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "GetWindowThreadProcessId", SetLastError = true)]
             internal static partial int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-            [LibraryImport("user32.dll")]
+            [LibraryImport("user32.dll", EntryPoint = "GetForegroundWindow")]
             internal static partial IntPtr GetForegroundWindow();
 
-            [LibraryImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "IsImmersiveProcess", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool IsImmersiveProcess(IntPtr hProcess);
 
             [LibraryImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")]
             internal static partial uint DnsFlushResolverCache();
 
-            [LibraryImport("User32.dll", SetLastError = true)]
+            [LibraryImport("User32.dll", EntryPoint = "GetSystemMetrics", SetLastError = true)]
             internal static partial int GetSystemMetrics(int nIndex);
 
-            [LibraryImport("kernel32.dll", SetLastError = true)]
+            [LibraryImport("kernel32.dll", EntryPoint = "GetNamedPipeClientProcessId", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static partial bool GetNamedPipeClientProcessId(IntPtr pipe, out ulong clientProcessId);
 
-            [LibraryImport("Wer.dll", StringMarshalling = StringMarshalling.Utf16)]
+            [LibraryImport("Wer.dll", EntryPoint = "WerAddExcludedApplication", StringMarshalling = StringMarshalling.Utf16)]
             internal static partial int WerAddExcludedApplication(
                 string pwzExeName,
                 [MarshalAs(UnmanagedType.Bool)]
@@ -115,7 +115,7 @@ namespace ModernTinyWall.TinyWall
             #endregion
 
             #region DoMouseRightClick
-            [LibraryImport("user32.dll")]
+            [LibraryImport("user32.dll", EntryPoint = "mouse_event")]
             [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
             public static partial void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, IntPtr dwExtraInfo);
             //private const uint MOUSEEVENTF_LEFTDOWN = 0x02;

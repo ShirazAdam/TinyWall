@@ -13,7 +13,7 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("kernel32", SetLastError = true)]
+            [LibraryImport("kernel32", EntryPoint = "CloseHandle", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool CloseHandle(IntPtr hObject);
         }
@@ -39,7 +39,7 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "RtlEqualUnicodeString")]
             [return: MarshalAs(UnmanagedType.U1)]
             public static partial bool RtlEqualUnicodeString(SafeUnicodeStringHandle str1, in UNICODE_STRING str2, [MarshalAs(UnmanagedType.U1)] bool caseInSensitive);
         }
@@ -142,7 +142,7 @@ namespace ModernTinyWall.Windows
         [SuppressUnmanagedCodeSecurity]
         private static partial class NativeMethods
         {
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "RtlEqualUnicodeString")]
             [return: MarshalAs(UnmanagedType.U1)]
             public static partial bool RtlEqualUnicodeString(in UNICODE_STRING str1, in UNICODE_STRING str2, [MarshalAs(UnmanagedType.U1)] bool caseInSensitive);
         }
@@ -253,16 +253,16 @@ namespace ModernTinyWall.Windows
                 public IntPtr securityQualityOfService;
             }
 
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "NtOpenDirectoryObject")]
             public static partial NtStatus NtOpenDirectoryObject(out SafeNtObjectHandle Handle, AccessMask DesiredAccess, ref OBJECT_ATTRIBUTES ObjectAttributes);
 
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "NtQueryDirectoryObject")]
             public static partial NtStatus NtQueryDirectoryObject(SafeNtObjectHandle DirectoryHandle, IntPtr Buffer, uint Length, [MarshalAs(UnmanagedType.Bool)] bool ReturnSingleEntry, [MarshalAs(UnmanagedType.Bool)] bool RestartScan, ref uint Context, out uint ReturnLength);
 
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "NtOpenSymbolicLinkObject")]
             public static partial NtStatus NtOpenSymbolicLinkObject(out SafeNtObjectHandle Handle, AccessMask DesiredAccess, ref OBJECT_ATTRIBUTES ObjectAttributes);
 
-            [LibraryImport("ntdll")]
+            [LibraryImport("ntdll", EntryPoint = "NtQuerySymbolicLinkObject")]
             public static partial NtStatus NtQuerySymbolicLinkObject(SafeNtObjectHandle Handle, SafeUnicodeStringHandle LinkTarget, out uint ReturnLength);
         }
 
