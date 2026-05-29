@@ -24,7 +24,7 @@ Now enabled to run natively on x86, x64, and ARM.
 
 ## Current development focus
 
-- Targeting .NET 10 for the actively modernized projects.
+- Targeting .NET 10 for the actively modernised projects.
 - Adding the new `Modern TinyWall` desktop client alongside the existing `TinyWall` application.
 - Moving expensive UI-triggered operations off the UI thread where possible.
 - Improving tray responsiveness and modernising tray command handling.
