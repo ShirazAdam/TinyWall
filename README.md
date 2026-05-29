@@ -51,4 +51,4 @@ Please feel free to contribute to the project. Fork the repository, make your ch
 
 - Task Dialogue wrapper (code in directory `pylorak.Windows\TaskDialog`) written by KevinGre ([link](https://www.codeproject.com/Articles/17026/TaskDialog-for-WinForms)) and placed under Public Domain.
 
-- All other code in the repository is under the GNU GPLv3 Licence. See `LICENCE.txt` for more information.
+- All other code and artefacts in the repository are under the DO WHAT THE F*** YOU WANT TO PUBLIC LICENCE. See `LICENCE.txt` for more information.
