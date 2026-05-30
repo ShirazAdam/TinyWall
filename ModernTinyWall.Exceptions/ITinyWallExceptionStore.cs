@@ -1,12 +1,11 @@
-using ModernTinyWall.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ModernTinyWall.Services;
+namespace ModernTinyWall.Exceptions;
 
-internal interface IExceptionsService
+public interface ITinyWallExceptionStore
 {
     Task<IReadOnlyList<ExceptionRow>> GetExceptionsAsync(ExceptionQuery query, CancellationToken cancellationToken = default);
     Task<ExceptionMutationResult> AddExceptionAsync(ExceptionEditRequest request, CancellationToken cancellationToken = default);

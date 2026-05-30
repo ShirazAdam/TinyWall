@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System.Threading.Tasks;

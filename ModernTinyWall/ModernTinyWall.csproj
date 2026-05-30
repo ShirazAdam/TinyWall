@@ -22,6 +22,7 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\TinyWall.Core\TinyWall.Core.csproj" />
+	<ProjectReference Include="..\ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj" />
 	  <ProjectReference Include="..\ModernTinyWall.Windows.Services\ModernTinyWall.Windows.Services.csproj" />
   </ItemGroup>
 
