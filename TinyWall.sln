@@ -35,6 +35,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernTinyWall.Windows.WFP"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernTinyWall.Exceptions", "ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj", "{07F9CB9A-0B5A-B42D-883E-107482150AF2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installer", "Installer", "{3993C5B5-2F9F-4292-B64B-B868B98EC77C}"
+	ProjectSection(SolutionItems) = preProject
+		Installer\README.md = Installer\README.md
+		Installer\TinyWall.iss = Installer\TinyWall.iss
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +195,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FCC40604-B187-4249-95B3-3CD5C10DC32D} = {13DB36F0-9AAE-42DE-B349-E27E474620ED}
+		{3993C5B5-2F9F-4292-B64B-B868B98EC77C} = {1E9D516C-C8F7-439C-A312-1214E92001F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A40C2CCE-1135-460A-8946-9BF82CE071EF}
