@@ -109,9 +109,9 @@ namespace ModernTinyWall.TinyWall
                     Utils.SafeNativeMethods.WerAddExcludedApplication(Utils.ExecutablePath, true);
 
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
+                System.Diagnostics.Debug.WriteLine($"Could not register the application with Windows Error Reporting exclusions: {ex.Message}");
             }
 
             // Parse comman-line options

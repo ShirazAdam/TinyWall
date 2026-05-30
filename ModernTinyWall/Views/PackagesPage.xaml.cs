@@ -28,7 +28,14 @@ public sealed partial class PackagesPage : Page
 
     private async void PackagesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.RefreshCommand.ExecuteAsync(null);
+        try
+        {
+            await ViewModel.RefreshCommand.ExecuteAsync(null);
+        }
+        catch (Exception ex)
+        {
+            await _dialogueService.ShowMessageAsync(XamlRoot, "Packages", ex.Message);
+        }
     }
 
     private async Task ApplyPackageExceptionAsync(PackageRowViewModel? package, ExceptionEntryPolicy policy)

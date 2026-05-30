@@ -44,8 +44,9 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
                     serviceConfig?.ActiveProfile.AllowLocalSubnet ?? false,
                     serviceConfig?.Blocklists.EnableHostsBlocklist == true && serviceConfig.Blocklists.EnableBlocklists);
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Could not refresh tray state snapshot: {ex}");
                 return new TrayStateSnapshot("Traffic rate unavailable", "unknown", false, false, false);
             }
         }, cancellationToken);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -238,12 +239,13 @@ internal sealed partial class TrayIconService : ITrayIconService
         catch (OperationCanceledException)
         {
         }
-        catch (ObjectDisposedException)
+        catch (ObjectDisposedException ex)
         {
+            Debug.WriteLine($"Tray traffic refresh skipped because the tray service was disposed: {ex.Message}");
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Debug.WriteLine($"Tray traffic refresh failed: {ex}");
         }
         finally
         {

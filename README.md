@@ -25,7 +25,7 @@ Now enabled to run natively on x86, x64, and ARM.
 ## Current development focus
 
 - Targeting .NET 10 for the actively modernised projects.
-- Adding the new `Modern TinyWall` desktop client alongside the existing `TinyWall` application.
+- Adding the new `ModernTinyWall` desktop client alongside the existing `TinyWall` application.
 - Moving expensive UI-triggered operations off the UI thread where possible.
 - Improving tray responsiveness and modernising tray command handling.
 - Preserving existing TinyWall firewall behaviour while modernising the surrounding application code.
@@ -48,7 +48,7 @@ You're welcome to hack and slash at it. Enjoy!
 ### To build the application
 
 1. Open the solution file in Visual Studio.
-1. Build `Modern TinyWall` to run the modernised .NET 10 client.
+1. Build `ModernTinyWall` to run the modernised .NET 10 client.
 1. Build `TinyWall` to run the legacy WinForms application.
 1. The referenced projects are built automatically by Visual Studio as needed.
 1. Done.
