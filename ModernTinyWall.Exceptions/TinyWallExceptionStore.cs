@@ -1,4 +1,5 @@
 using ModernTinyWall.TinyWall;
+using ModernTinyWall.Exceptions.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
 
     public Task<ExceptionMutationResult> AddExceptionAsync(ExceptionEditRequest request, CancellationToken cancellationToken = default)
     {
-        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Add(CreateException(request)), "Exception added.", cancellationToken), cancellationToken);
+        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Add(CreateException(request)), ExceptionStoreStrings.ExceptionAdded, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> AddExecutableExceptionsAsync(string executablePath, CancellationToken cancellationToken = default)
@@ -38,7 +39,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return Task.Run(() => MutateExceptions(config =>
         {
             config.ActiveProfile.AddExceptions(AppExceptionFactory.CreateForExecutable(executablePath));
-        }, "Executable exceptions added.", cancellationToken), cancellationToken);
+        }, ExceptionStoreStrings.ExecutableExceptionsAdded, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> AddServiceExceptionAsync(string executablePath, string serviceName, CancellationToken cancellationToken = default)
@@ -46,7 +47,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return Task.Run(() => MutateExceptions(config =>
         {
             config.ActiveProfile.AddExceptions(AppExceptionFactory.CreateForService(executablePath, serviceName));
-        }, "Service exception added.", cancellationToken), cancellationToken);
+        }, ExceptionStoreStrings.ServiceExceptionAdded, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> AddPackageExceptionAsync(string packageSid, string displayName, string publisherId, string publisher, CancellationToken cancellationToken = default)
@@ -54,7 +55,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return Task.Run(() => MutateExceptions(config =>
         {
             config.ActiveProfile.AddExceptions(AppExceptionFactory.CreateForPackage(packageSid, displayName, publisherId, publisher));
-        }, "Package exception added.", cancellationToken), cancellationToken);
+        }, ExceptionStoreStrings.PackageExceptionAdded, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionActionResult> PrepareEntryActionAsync(ExceptionEntryActionRequest request, CancellationToken cancellationToken = default)
@@ -74,17 +75,17 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
             var index = config.ActiveProfile.AppExceptions.FindIndex(ex => ex.Id == exceptionId);
             if (index >= 0)
                 config.ActiveProfile.AppExceptions[index] = CreateException(request);
-        }, "Exception updated.", cancellationToken), cancellationToken);
+        }, ExceptionStoreStrings.ExceptionUpdated, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> RemoveExceptionAsync(Guid exceptionId, CancellationToken cancellationToken = default)
     {
-        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.RemoveAll(ex => ex.Id == exceptionId), "Exception removed.", cancellationToken), cancellationToken);
+        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.RemoveAll(ex => ex.Id == exceptionId), ExceptionStoreStrings.ExceptionRemoved, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> RemoveAllExceptionsAsync(CancellationToken cancellationToken = default)
     {
-        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Clear(), "All exceptions removed.", cancellationToken), cancellationToken);
+        return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Clear(), ExceptionStoreStrings.AllExceptionsRemoved, cancellationToken), cancellationToken);
     }
 
     private List<ExceptionRow> BuildExceptions(ExceptionQuery query, CancellationToken cancellationToken)
@@ -98,7 +99,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         foreach (var exception in serviceConfig.ActiveProfile.AppExceptions)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var row = CreateRow(exception);
+            var row = ExceptionDescriptor.CreateRow(exception);
 
             if (!string.IsNullOrWhiteSpace(query.SearchText)
                 && !row.Name.Contains(query.SearchText, StringComparison.CurrentCultureIgnoreCase)
@@ -115,58 +116,6 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return [.. rows.OrderBy(row => row.Name, StringComparer.CurrentCultureIgnoreCase)];
     }
 
-    private static ExceptionRow CreateRow(FirewallExceptionV3 exception)
-    {
-        var (name, subjectType, details) = DescribeSubject(exception.Subject);
-        return new ExceptionRow(
-            exception.Id,
-            name,
-            subjectType,
-            details,
-            DescribePolicy(exception.Policy),
-            exception.CreationDate.ToString("yyyy/MM/dd HH:mm"));
-    }
-
-    private static (string Name, string SubjectType, string Details) DescribeSubject(ExceptionSubject subject)
-    {
-        return subject switch
-        {
-            ExecutableSubject executable => (executable.ExecutableName, "Executable", executable.ExecutablePath),
-            AppContainerSubject appContainer => (appContainer.DisplayName, "UWP app", $"{appContainer.PublisherId}, {appContainer.Publisher}"),
-            GlobalSubject => ("All applications", "Global", string.Empty),
-            _ => (subject.ToString() ?? string.Empty, subject.SubjectType.ToString(), string.Empty)
-        };
-    }
-
-    private static string DescribePolicy(ExceptionPolicy policy)
-    {
-        return policy switch
-        {
-            HardBlockPolicy => "Hard block",
-            UnrestrictedPolicy unrestricted when unrestricted.LocalNetworkOnly => "Unrestricted, local network only",
-            UnrestrictedPolicy => "Unrestricted",
-            TcpUdpPolicy tcpUdp => DescribeTcpUdpPolicy(tcpUdp),
-            RuleListPolicy ruleList => $"Rule list ({ruleList.Rules.Count})",
-            _ => policy.PolicyType.ToString()
-        };
-    }
-
-    private static string DescribeTcpUdpPolicy(TcpUdpPolicy policy)
-    {
-        var allowedParts = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(policy.AllowedRemoteTcpConnectPorts) || !string.IsNullOrWhiteSpace(policy.AllowedLocalTcpListenerPorts))
-            allowedParts.Add("TCP");
-
-        if (!string.IsNullOrWhiteSpace(policy.AllowedRemoteUdpConnectPorts) || !string.IsNullOrWhiteSpace(policy.AllowedLocalUdpListenerPorts))
-            allowedParts.Add("UDP");
-
-        if (allowedParts.Count == 0)
-            return "TCP/UDP";
-
-        return string.Join("/", allowedParts);
-    }
-
     private ExceptionMutationResult MutateExceptions(Action<ServerConfiguration> mutation, string successMessage, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -174,7 +123,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         var changeset = Guid.Empty;
         var response = _controller.GetServerConfig(out var serviceConfig, out _, ref changeset);
         if (response != MessageType.GET_SETTINGS || serviceConfig is null)
-            return new ExceptionMutationResult(false, "Could not load TinyWall settings from the service.");
+            return new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotLoadSettings);
 
         mutation(serviceConfig);
 
@@ -182,10 +131,10 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return updateResponse.Type switch
         {
             MessageType.PUT_SETTINGS => new ExceptionMutationResult(true, successMessage),
-            MessageType.RESPONSE_LOCKED => new ExceptionMutationResult(false, "TinyWall is locked. Unlock it before changing application exceptions."),
-            MessageType.COM_ERROR => new ExceptionMutationResult(false, "Could not contact the TinyWall service."),
-            MessageType.RESPONSE_ERROR => new ExceptionMutationResult(false, "The TinyWall service could not update application exceptions."),
-            _ => new ExceptionMutationResult(false, $"Unexpected TinyWall service response: {updateResponse.Type}.")
+            MessageType.RESPONSE_LOCKED => new ExceptionMutationResult(false, ExceptionStoreStrings.TinyWallLocked),
+            MessageType.COM_ERROR => new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotContactService),
+            MessageType.RESPONSE_ERROR => new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotUpdateExceptions),
+            _ => new ExceptionMutationResult(false, ExceptionStoreStrings.UnexpectedServiceResponse(updateResponse.Type))
         };
     }
 
@@ -200,7 +149,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         var changeset = Guid.Empty;
         var response = _controller.GetServerConfig(out var serviceConfig, out _, ref changeset);
         if (response != MessageType.GET_SETTINGS || serviceConfig is null)
-            return new ExceptionActionResult(false, false, "Could not load TinyWall settings from the service.");
+            return new ExceptionActionResult(false, false, ExceptionStoreStrings.CouldNotLoadSettings);
 
         var subject = CreateSubject(request);
         var existing = FindExistingException(serviceConfig, subject);
@@ -210,8 +159,8 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return new ExceptionActionResult(
             true,
             true,
-            $"This {GetEntryKindDisplayName(request.Kind)} was added before as {DescribePolicy(existing.Policy).ToLowerInvariant()}. Apply the new {GetPolicyDisplayName(request.Policy).ToLowerInvariant()} requirement?",
-            DescribePolicy(existing.Policy));
+            ExceptionStoreStrings.ExistingExceptionPrompt(GetEntryKindDisplayName(request.Kind), ExceptionDescriptor.DescribePolicy(existing.Policy).ToLowerInvariant(), GetPolicyDisplayName(request.Policy).ToLowerInvariant()),
+            ExceptionDescriptor.DescribePolicy(existing.Policy));
     }
 
     private ExceptionMutationResult ApplyEntryAction(ExceptionEntryActionRequest request, bool replaceExisting, CancellationToken cancellationToken)
@@ -236,7 +185,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
             }
 
             config.ActiveProfile.AppExceptions.Add(exception);
-        }, $"{GetPolicyDisplayName(request.Policy)} exception applied.", cancellationToken);
+        }, ExceptionStoreStrings.ExceptionApplied(GetPolicyDisplayName(request.Policy)), cancellationToken);
     }
 
     private static FirewallExceptionV3? FindExistingException(ServerConfiguration config, ExceptionSubject subject)
@@ -257,15 +206,15 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
     private static string? ValidateEntryAction(ExceptionEntryActionRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
-            return $"Cannot {GetPolicyVerb(request.Policy)} this item because its name is unavailable.";
+            return ExceptionStoreStrings.CannotApplyUnnamedItem(GetPolicyVerb(request.Policy));
 
         if (string.IsNullOrWhiteSpace(request.Details))
         {
             return request.Kind switch
             {
-                ExceptionEntryKind.Service => $"Cannot {GetPolicyVerb(request.Policy)} this service because its executable path is unavailable.",
-                ExceptionEntryKind.Package => $"Cannot {GetPolicyVerb(request.Policy)} this package because its package SID is unavailable.",
-                _ => $"Cannot {GetPolicyVerb(request.Policy)} this process because its executable path is unavailable."
+                ExceptionEntryKind.Service => ExceptionStoreStrings.CannotApplyServiceWithoutPath(GetPolicyVerb(request.Policy)),
+                ExceptionEntryKind.Package => ExceptionStoreStrings.CannotApplyPackageWithoutSid(GetPolicyVerb(request.Policy)),
+                _ => ExceptionStoreStrings.CannotApplyProcessWithoutPath(GetPolicyVerb(request.Policy))
             };
         }
 

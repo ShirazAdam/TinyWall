@@ -53,3 +53,5 @@ artifacts/
 /.github/copilot-instructions.md
 /ModernTinyWall.Exceptions/bin/
 /ModernTinyWall.Exceptions/obj/
+/ModernTinyWall.Exceptions.Tests/obj/
+/ModernTinyWall.Exceptions.Tests/bin/

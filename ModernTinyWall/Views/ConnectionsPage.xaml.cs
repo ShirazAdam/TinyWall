@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
@@ -10,7 +11,7 @@ namespace ModernTinyWall.Views;
 public sealed partial class ConnectionsPage : Page
 {
     private readonly IDialogueService _dialogueService = new DialogueService();
-    private readonly IExceptionsService _exceptionsService = new ExceptionsService();
+    private readonly ITinyWallExceptionStore _exceptionStore = App.Services.GetRequiredService<ITinyWallExceptionStore>();
     internal ConnectionsPageViewModel ViewModel { get; } = new();
 
     public ConnectionsPage()
@@ -58,7 +59,7 @@ public sealed partial class ConnectionsPage : Page
     private async Task ApplyConnectionExceptionAsync(ConnectionRowViewModel connection, ExceptionEntryPolicy policy)
     {
         var request = new ExceptionEntryActionRequest(ExceptionEntryKind.Executable, policy, connection.Application, connection.ExecutablePath);
-        var prepareResult = await _exceptionsService.PrepareEntryActionAsync(request);
+        var prepareResult = await _exceptionStore.PrepareEntryActionAsync(request);
         if (!prepareResult.Success)
         {
             await _dialogueService.ShowMessageAsync(XamlRoot, "Application exception", prepareResult.Message);
@@ -73,7 +74,7 @@ public sealed partial class ConnectionsPage : Page
                 return;
         }
 
-        var result = await _exceptionsService.ApplyEntryActionAsync(request, replaceExisting);
+        var result = await _exceptionStore.ApplyEntryActionAsync(request, replaceExisting);
         await _dialogueService.ShowMessageAsync(XamlRoot, "Application exception", result.Message);
     }
 }

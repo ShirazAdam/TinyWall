@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
-using ModernTinyWall.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,7 +12,7 @@ namespace ModernTinyWall.ViewModels;
 
 internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
 {
-    private readonly IExceptionsService _exceptionsService;
+    private readonly ITinyWallExceptionStore _exceptionStore;
     private readonly AsyncRelayCommand _refreshCommand;
     private readonly AsyncRelayCommand _clearCommand;
     private bool _isRefreshing;
@@ -21,7 +21,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     private ExceptionRowViewModel? _selectedException;
 
     public ExceptionsPageViewModel()
-        : this(new ExceptionsService())
+        : this(App.Services.GetRequiredService<ITinyWallExceptionStore>())
     {
     }
 
@@ -30,7 +30,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.AddServiceExceptionAsync(executablePath, serviceName);
+            var result = await _exceptionStore.AddServiceExceptionAsync(executablePath, serviceName);
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -46,7 +46,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.AddPackageExceptionAsync(packageSid, displayName, publisherId, publisher);
+            var result = await _exceptionStore.AddPackageExceptionAsync(packageSid, displayName, publisherId, publisher);
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -62,7 +62,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.AddExecutableExceptionsAsync(executablePath);
+            var result = await _exceptionStore.AddExecutableExceptionsAsync(executablePath);
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -73,9 +73,11 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    internal ExceptionsPageViewModel(IExceptionsService exceptionsService)
+    internal ExceptionsPageViewModel(ITinyWallExceptionStore exceptionStore)
     {
-        _exceptionsService = exceptionsService;
+        ArgumentNullException.ThrowIfNull(exceptionStore);
+
+        _exceptionStore = exceptionStore;
         _refreshCommand = new AsyncRelayCommand(RefreshAsync, CanRunCommand);
         _clearCommand = new AsyncRelayCommand(ClearAsync, CanRunCommand);
     }
@@ -120,7 +122,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
 
         try
         {
-            var rows = await _exceptionsService.GetExceptionsAsync(new ExceptionQuery(searchText));
+            var rows = await _exceptionStore.GetExceptionsAsync(new ExceptionQuery(searchText));
             Exceptions.Clear();
             SelectedException = null;
             foreach (var row in rows)
@@ -162,7 +164,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.AddExceptionAsync(new ExceptionEditRequest(subjectType, name, details, policy, remoteTcpPorts, localTcpPorts, remoteUdpPorts, localUdpPorts));
+            var result = await _exceptionStore.AddExceptionAsync(new ExceptionEditRequest(subjectType, name, details, policy, remoteTcpPorts, localTcpPorts, remoteUdpPorts, localUdpPorts));
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -184,7 +186,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.UpdateExceptionAsync(SelectedException.Id, new ExceptionEditRequest(subjectType, name, details, policy, remoteTcpPorts, localTcpPorts, remoteUdpPorts, localUdpPorts));
+            var result = await _exceptionStore.UpdateExceptionAsync(SelectedException.Id, new ExceptionEditRequest(subjectType, name, details, policy, remoteTcpPorts, localTcpPorts, remoteUdpPorts, localUdpPorts));
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -206,7 +208,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.RemoveExceptionAsync(SelectedException.Id);
+            var result = await _exceptionStore.RemoveExceptionAsync(SelectedException.Id);
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
@@ -222,7 +224,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionsService.RemoveAllExceptionsAsync();
+            var result = await _exceptionStore.RemoveAllExceptionsAsync();
             StatusMessage = result.Message;
             if (result.Success)
                 await RefreshAsync(SearchText);
