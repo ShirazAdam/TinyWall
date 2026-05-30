@@ -75,7 +75,6 @@ public sealed partial class MainWindow
 
     private Task ShowTrayContextMenuAsync()
     {
-        RefreshTraySnapshotInBackground();
         _trayIconService.ShowContextMenu(_controllerCommandService.GetTrayStateSnapshotAsync);
         return Task.CompletedTask;
     }

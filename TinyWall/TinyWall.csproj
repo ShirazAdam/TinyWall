@@ -65,15 +65,25 @@
 	<PackageReference Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
 	<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
 
-	<Reference Include="Interop.NetFwTypeLib">
-	  <HintPath>Interop\Interop.NetFwTypeLib.dll</HintPath>
-	  <EmbedInteropTypes>true</EmbedInteropTypes>
-	</Reference>
+	<COMReference Include="NetFwTypeLib">
+		<WrapperTool>tlbimp</WrapperTool>
+		<VersionMinor>0</VersionMinor>
+		<VersionMajor>1</VersionMajor>
+		<Guid>58fbcf7c-e7a9-467c-80b3-fc65e8fcca08</Guid>
+		<Lcid>0</Lcid>
+		<Isolated>false</Isolated>
+		<EmbedInteropTypes>true</EmbedInteropTypes>
+	</COMReference>
 
-	<Reference Include="Interop.TaskScheduler">
-	  <HintPath>Interop\Interop.TaskScheduler.dll</HintPath>
-	  <EmbedInteropTypes>true</EmbedInteropTypes>
-	</Reference>
+	<COMReference Include="TaskScheduler">
+		<WrapperTool>tlbimp</WrapperTool>
+		<VersionMinor>0</VersionMinor>
+		<VersionMajor>1</VersionMajor>
+		<Guid>e34cb9f1-c7f7-424c-be29-027dcc09363a</Guid>
+		<Lcid>0</Lcid>
+		<Isolated>false</Isolated>
+		<EmbedInteropTypes>true</EmbedInteropTypes>
+	</COMReference>
 
 	<EmbeddedResource Update="AppFinderForm.ar.resx">
 	  <DependentUpon>AppFinderForm.cs</DependentUpon>
