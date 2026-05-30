@@ -61,7 +61,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     private IntPtr _iconHandle;
     private bool _ownsIconHandle;
     private bool _isVisible;
-    private string _tooltip = "ModernTinyWall";
+    private const string TooltipText = "Modern TinyWall";
     private readonly Dictionary<uint, string> _menuCommandMap = [];
     private TrayStateSnapshot _snapshot = new("Traffic rate unavailable", "unknown", false, false, false);
     private IntPtr _activeMenu;
@@ -288,7 +288,6 @@ internal sealed partial class TrayIconService : ITrayIconService
 
     public void SetStatus(string tooltip)
     {
-        _tooltip = tooltip;
         if (_isVisible)
             UpdateIcon(NimModify);
     }
@@ -336,7 +335,7 @@ internal sealed partial class TrayIconService : ITrayIconService
 
         unsafe
         {
-            CopyString(data.szTip, 128, _tooltip);
+            CopyString(data.szTip, 128, TooltipText);
             _ = Shell_NotifyIcon(message, &data);
         }
     }
