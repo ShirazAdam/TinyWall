@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_6FE314A45FCE4ADC8B5CFC8E226A6EBC"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_BD68CFAA43D54F0EA07E7E5EFFD83FBA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -69,6 +75,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
@@ -86,6 +100,16 @@
         {
             "LaunchCondition"
             {
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_0808C0184F3C4425B7295265C8886D39"
+                {
+                "Name" = "8:.NET Core"
+                "Message" = "8:[VSDNETCOREMSG]"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:https://dotnet.microsoft.com/download/dotnet-core/[NetCoreVerMajorDotMinor]"
+                "IsNETCore" = "11:TRUE"
+                "Architecture" = "2:0"
+                "Runtime" = "2:0"
+                }
             }
         }
         "File"
@@ -167,7 +191,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TinyWall"
         "ProductCode" = "8:{98FDA3B6-5E3E-4981-9006-72CD5DDBE169}"
-        "PackageCode" = "8:{AF5A674D-06F9-43F4-ABCB-38F6771C90E9}"
+        "PackageCode" = "8:{A0F01750-8CA8-4EC8-B94F-DC0FB63BE449}"
         "UpgradeCode" = "8:{1AAB1576-7FE1-4E1B-97EF-752836D76325}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -287,6 +311,34 @@
         }
         "Shortcut"
         {
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7497CC8B9BD9425FAB02D3A79AC7046C"
+            {
+            "Name" = "8:Shortcut to %sPublish Items from TinyWall (Active)"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_1EC65DAA887A4708AC5D0BFBA0B17F8F"
+            "Folder" = "8:_080FEA96B8D944CCABDA982BC749BD65"
+            "WorkingFolder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_AE0951F8686C4CF1A749C1D3595CC94C"
+            {
+            "Name" = "8:Shortcut to %sPublish Items from ModernTinyWall (Active)"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_6FE314A45FCE4ADC8B5CFC8E226A6EBC"
+            "Folder" = "8:_080FEA96B8D944CCABDA982BC749BD65"
+            "WorkingFolder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
         }
         "UserInterface"
         {
@@ -688,7 +740,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_1EC65DAA887A4708AC5D0BFBA0B17F8F"
             {
-            "SourcePath" = "8:"
+            "SourcePath" = "8:..\\TinyWall\\obj\\Debug\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
@@ -709,6 +761,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{16CD254D-9D71-4EA4-ABB4-9DC0AB52E6D2}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6FE314A45FCE4ADC8B5CFC8E226A6EBC"
+            {
+            "SourcePath" = "8:..\\ModernTinyWall\\obj\\Debug\\net10.0-windows10.0.26100.0\\apphost.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{64CF0CCE-BAC3-59A3-DD34-1B9C9548660B}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
