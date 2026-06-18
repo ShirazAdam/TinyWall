@@ -1,19 +1,15 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ModernTinyWall.TinyWall
 {
     public class TwRequest
     {
         private TwMessage? _response;
-        private readonly TaskCompletionSource<TwMessage> _responseTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private object ResponseSyncRoot => this;
 
         public TwMessage Request { get; init; }
-
-        public Task<TwMessage> ResponseAsync => _responseTask.Task;
 
         public TwMessage Response
         {
@@ -35,7 +31,6 @@ namespace ModernTinyWall.TinyWall
                     if (_response is not null)
                         throw new InvalidOperationException("Repeated assignment to Response property is not allowed.");
                     _response = value;
-                    _responseTask.TrySetResult(value);
                     Monitor.Pulse(ResponseSyncRoot);
                 }
             }

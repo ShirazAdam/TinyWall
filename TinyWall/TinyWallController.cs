@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ModernTinyWall.TinyWall
@@ -18,7 +17,7 @@ namespace ModernTinyWall.TinyWall
     {
         #region Form-Designer generated code
 
-        private Container _components = new();
+        private IContainer components = new Container();
 
         [MemberNotNull(nameof(Tray),
             nameof(TrayMenu),
@@ -47,10 +46,10 @@ namespace ModernTinyWall.TinyWall
         )]
         private void InitializeComponent()
         {
-            _components = new Container();
-            ComponentResourceManager resources = new(typeof(TinyWallController));
-            Tray = new NotifyIcon(_components);
-            TrayMenu = new ContextMenuStrip(_components);
+            components = new Container();
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(TinyWallController));
+            Tray = new NotifyIcon(components);
+            TrayMenu = new ContextMenuStrip(components);
             mnuTrafficRate = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
             mnuMode = new ToolStripMenuItem();
@@ -134,59 +133,59 @@ namespace ModernTinyWall.TinyWall
             //
             mnuModeNormal.Name = "mnuModeNormal";
             resources.ApplyResources(mnuModeNormal, "mnuModeNormal");
-            mnuModeNormal.Click += MnuModeNormal_Click;
+            mnuModeNormal.Click += mnuModeNormal_Click;
             //
             // mnuModeBlockAll
             //
             mnuModeBlockAll.Name = "mnuModeBlockAll";
             resources.ApplyResources(mnuModeBlockAll, "mnuModeBlockAll");
-            mnuModeBlockAll.Click += MnuModeBlockAll_Click;
+            mnuModeBlockAll.Click += mnuModeBlockAll_Click;
             //
             // mnuModeAllowOutgoing
             //
             mnuModeAllowOutgoing.Name = "mnuModeAllowOutgoing";
             resources.ApplyResources(mnuModeAllowOutgoing, "mnuModeAllowOutgoing");
-            mnuModeAllowOutgoing.Click += MnuAllowOutgoing_Click;
+            mnuModeAllowOutgoing.Click += mnuAllowOutgoing_Click;
             //
             // mnuModeDisabled
             //
             mnuModeDisabled.Name = "mnuModeDisabled";
             resources.ApplyResources(mnuModeDisabled, "mnuModeDisabled");
-            mnuModeDisabled.Click += MnuModeDisabled_Click;
+            mnuModeDisabled.Click += mnuModeDisabled_Click;
             //
             // mnuModeLearn
             //
             mnuModeLearn.Name = "mnuModeLearn";
             resources.ApplyResources(mnuModeLearn, "mnuModeLearn");
-            mnuModeLearn.Click += MnuModeLearn_Click;
+            mnuModeLearn.Click += mnuModeLearn_Click;
             //
             // mnuManage
             //
             mnuManage.Image = Resources.Icons.manage;
             mnuManage.Name = "mnuManage";
             resources.ApplyResources(mnuManage, "mnuManage");
-            mnuManage.Click += MnuManage_Click;
+            mnuManage.Click += mnuManage_Click;
             //
             // mnuConnections
             //
             mnuConnections.Image = Resources.Icons.connections;
             mnuConnections.Name = "mnuConnections";
             resources.ApplyResources(mnuConnections, "mnuConnections");
-            mnuConnections.Click += MnuConnections_Click;
+            mnuConnections.Click += mnuConnections_Click;
             //
             // mnuLock
             //
             mnuLock.Image = Resources.Icons.lock_small;
             mnuLock.Name = "mnuLock";
             resources.ApplyResources(mnuLock, "mnuLock");
-            mnuLock.Click += MnuLock_Click;
+            mnuLock.Click += mnuLock_Click;
             //
             // mnuElevate
             //
             mnuElevate.Image = Resources.Icons.w7uacshield;
             mnuElevate.Name = "mnuElevate";
             resources.ApplyResources(mnuElevate, "mnuElevate");
-            mnuElevate.Click += MnuElevate_Click;
+            mnuElevate.Click += mnuElevate_Click;
             //
             // toolStripMenuItem2
             //
@@ -197,13 +196,13 @@ namespace ModernTinyWall.TinyWall
             //
             mnuAllowLocalSubnet.Name = "mnuAllowLocalSubnet";
             resources.ApplyResources(mnuAllowLocalSubnet, "mnuAllowLocalSubnet");
-            mnuAllowLocalSubnet.Click += MnuAllowLocalSubnet_Click;
+            mnuAllowLocalSubnet.Click += mnuAllowLocalSubnet_Click;
             //
             // mnuEnableHostsBlocklist
             //
             mnuEnableHostsBlocklist.Name = "mnuEnableHostsBlocklist";
             resources.ApplyResources(mnuEnableHostsBlocklist, "mnuEnableHostsBlocklist");
-            mnuEnableHostsBlocklist.Click += MnuEnableHostsBlocklist_Click;
+            mnuEnableHostsBlocklist.Click += mnuEnableHostsBlocklist_Click;
             //
             // toolStripMenuItem3
             //
@@ -215,21 +214,21 @@ namespace ModernTinyWall.TinyWall
             mnuWhitelistByExecutable.Image = Resources.Icons.executable;
             mnuWhitelistByExecutable.Name = "mnuWhitelistByExecutable";
             resources.ApplyResources(mnuWhitelistByExecutable, "mnuWhitelistByExecutable");
-            mnuWhitelistByExecutable.Click += MnuWhitelistByExecutable_Click;
+            mnuWhitelistByExecutable.Click += mnuWhitelistByExecutable_Click;
             //
             // mnuWhitelistByProcess
             //
             mnuWhitelistByProcess.Image = Resources.Icons.process;
             mnuWhitelistByProcess.Name = "mnuWhitelistByProcess";
             resources.ApplyResources(mnuWhitelistByProcess, "mnuWhitelistByProcess");
-            mnuWhitelistByProcess.Click += MnuWhitelistByProcess_Click;
+            mnuWhitelistByProcess.Click += mnuWhitelistByProcess_Click;
             //
             // mnuWhitelistByWindow
             //
             mnuWhitelistByWindow.Image = Resources.Icons.window;
             mnuWhitelistByWindow.Name = "mnuWhitelistByWindow";
             resources.ApplyResources(mnuWhitelistByWindow, "mnuWhitelistByWindow");
-            mnuWhitelistByWindow.Click += MnuWhitelistByWindow_Click;
+            mnuWhitelistByWindow.Click += mnuWhitelistByWindow_Click;
             //
             // toolStripMenuItem5
             //
@@ -241,7 +240,7 @@ namespace ModernTinyWall.TinyWall
             mnuQuit.Image = Resources.Icons.exit;
             mnuQuit.Name = "mnuQuit";
             resources.ApplyResources(mnuQuit, "mnuQuit");
-            mnuQuit.Click += MnuQuit_Click;
+            mnuQuit.Click += mnuQuit_Click;
             //
             // ofd
             //
@@ -350,7 +349,7 @@ namespace ModernTinyWall.TinyWall
             _mouseInterceptor.MouseLButtonDown += MouseInterceptor_MouseLButtonDown;
             _trafficTimer = new System.Threading.Timer(TrafficTimerTick, null, Timeout.Infinite, Timeout.Infinite);
             _updateTimer = new System.Threading.Timer(UpdateTimerTick, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(240));
-            _serviceTimer = new System.Windows.Forms.Timer(_components);
+            _serviceTimer = new System.Windows.Forms.Timer(components);
 
             Application.Idle += Application_Idle;
             using var p = Process.GetCurrentProcess();
@@ -373,7 +372,7 @@ namespace ModernTinyWall.TinyWall
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (_components != null))
+            if (disposing && (components != null))
             {
                 // Manually added
                 _hotKeyWhitelistExecutable?.Dispose();
@@ -394,7 +393,7 @@ namespace ModernTinyWall.TinyWall
                 }
                 _trafficMonitor?.Dispose();
 
-                _components.Dispose();
+                components.Dispose();
                 PathMapper.Instance.Dispose();
             }
 
@@ -448,7 +447,7 @@ namespace ModernTinyWall.TinyWall
 
             try
             {
-                _trafficMonitor!.Update();
+                _trafficMonitor.Update();
                 UpdateTrafficRateText(_trafficMonitor.BytesReceivedPerSec, _trafficMonitor.BytesSentPerSec);
                 TrafficRateVisible = true;
             }
@@ -521,15 +520,27 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void StartUpdate(object sender, AnyEventArgs e) => Updater.StartUpdate();
+        private void StartUpdate(object sender, AnyEventArgs e)
+        {
+            Updater.StartUpdate();
+        }
 
-        private void HotKeyWhitelistProcess_Pressed(object sender, HandledEventArgs e) => MnuWhitelistByProcess_Click(this, EventArgs.Empty);
+        private void HotKeyWhitelistProcess_Pressed(object sender, HandledEventArgs e)
+        {
+            mnuWhitelistByProcess_Click(this, EventArgs.Empty);
+        }
 
-        private void HotKeyWhitelistExecutable_Pressed(object sender, HandledEventArgs e) => MnuWhitelistByExecutable_Click(this, EventArgs.Empty);
+        private void HotKeyWhitelistExecutable_Pressed(object sender, HandledEventArgs e)
+        {
+            mnuWhitelistByExecutable_Click(this, EventArgs.Empty);
+        }
 
-        private void HotKeyWhitelistWindow_Pressed(object sender, HandledEventArgs e) => MnuWhitelistByWindow_Click(this, EventArgs.Empty);
+        private void HotKeyWhitelistWindow_Pressed(object sender, HandledEventArgs e)
+        {
+            mnuWhitelistByWindow_Click(this, EventArgs.Empty);
+        }
 
-        private void MnuQuit_Click(object sender, EventArgs e)
+        private void mnuQuit_Click(object sender, EventArgs e)
         {
             Tray.Visible = false;
             ExitThread();
@@ -578,6 +589,7 @@ namespace ModernTinyWall.TinyWall
                     firewallModeName = Resources.Messages.FirewallModeUnknown;
                     break;
                 default:
+                    //throw new ArgumentOutOfRangeException();
                     break;
             }
 
@@ -595,17 +607,6 @@ namespace ModernTinyWall.TinyWall
         private void SetMode(FirewallMode mode)
         {
             var resp = GlobalInstances.Controller!.SwitchFirewallMode(mode);
-            HandleSetModeResponse(resp, mode);
-        }
-
-        private async Task SetModeAsync(FirewallMode mode)
-        {
-            var resp = await GlobalInstances.Controller!.SwitchFirewallModeAsync(mode);
-            HandleSetModeResponse(resp, mode);
-        }
-
-        private void HandleSetModeResponse(MessageType resp, FirewallMode mode)
-        {
             var userMessage = mode switch
             {
                 FirewallMode.Normal => Resources.Messages.TheFirewallIsNowOperatingAsRecommended,
@@ -649,46 +650,46 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private async void MnuModeDisabled_Click(object sender, EventArgs e)
+        private void mnuModeDisabled_Click(object sender, EventArgs e)
         {
-            if (!await EnsureUnlockedServerAsync())
+            if (!EnsureUnlockedServer())
                 return;
 
-            await SetModeAsync(FirewallMode.Disabled);
+            SetMode(FirewallMode.Disabled);
             UpdateDisplay();
         }
 
-        private async void MnuModeNormal_Click(object sender, EventArgs e)
+        private void mnuModeNormal_Click(object sender, EventArgs e)
         {
-            if (!await EnsureUnlockedServerAsync())
+            if (!EnsureUnlockedServer())
                 return;
 
-            await SetModeAsync(FirewallMode.Normal);
+            SetMode(FirewallMode.Normal);
             UpdateDisplay();
         }
 
-        private async void MnuModeBlockAll_Click(object sender, EventArgs e)
+        private void mnuModeBlockAll_Click(object sender, EventArgs e)
         {
-            if (!await EnsureUnlockedServerAsync())
+            if (!EnsureUnlockedServer())
                 return;
 
-            await SetModeAsync(FirewallMode.BlockAll);
+            SetMode(FirewallMode.BlockAll);
             UpdateDisplay();
         }
 
-        private async void MnuAllowOutgoing_Click(object sender, EventArgs e)
+        private void mnuAllowOutgoing_Click(object sender, EventArgs e)
         {
-            if (!await EnsureUnlockedServerAsync())
+            if (!EnsureUnlockedServer())
                 return;
 
-            await SetModeAsync(FirewallMode.AllowOutgoing);
+            SetMode(FirewallMode.AllowOutgoing);
             UpdateDisplay();
         }
 
         // Returns true if the local copy of the settings have been updated.
         private bool LoadSettingsFromServer()
         {
-            return LoadSettingsFromServer(out var comError, false) && comError;
+            return LoadSettingsFromServer(out var comError, false);
         }
 
         // Returns true if the local copy of the settings have been updated.
@@ -762,50 +763,6 @@ namespace ModernTinyWall.TinyWall
             return updated;
         }
 
-        private async Task<bool> LoadSettingsFromServerAsync(bool force = false)
-        {
-            Guid inChangeset = force ? Guid.Empty : GlobalInstances.ClientChangeset;
-            var (ret, config, state, outChangeset) = await GlobalInstances.Controller!.GetServerConfigAsync(inChangeset);
-
-            bool updated = (inChangeset != outChangeset);
-
-            if (MessageType.GET_SETTINGS == ret)
-            {
-                // Update our config based on what we received
-                GlobalInstances.ClientChangeset = outChangeset;
-                if (config is not null)
-                    ActiveConfig.Service = config;
-                if (state is not null)
-                    _firewallState = state;
-            }
-            else if (MessageType.COM_ERROR != ret)
-            {
-                ActiveConfig.Controller = new ControllerSettings();
-                ActiveConfig.Service = new ServerConfiguration
-                {
-                    ActiveProfileName = Resources.Messages.Default
-                };
-            }
-
-            // See if there is a new notification for the client
-            foreach (var t in _firewallState.ClientNotifs)
-            {
-                switch (t)
-                {
-                    case MessageType.DATABASE_UPDATED:
-                        await LoadDatabaseAsync();
-                        break;
-                }
-            }
-
-            _firewallState.ClientNotifs.Clear();
-
-            if (updated)
-                UpdateDisplay();
-
-            return updated;
-        }
-
         private void TrayMenu_Opening(object sender, CancelEventArgs e)
         {
             e.Cancel = false;
@@ -825,7 +782,7 @@ namespace ModernTinyWall.TinyWall
             UpdateDisplay();
         }
 
-        private void MnuWhitelistByExecutable_Click(object sender, EventArgs e)
+        private void mnuWhitelistByExecutable_Click(object sender, EventArgs e)
         {
             if (FlashIfOpen(typeof(SettingsForm)))
                 return;
@@ -870,7 +827,7 @@ namespace ModernTinyWall.TinyWall
 
                 foreach (var subj in from subj in subjects let found = exceptions.Any(ex => ex.Subject.Equals(subj)) where !found select subj)
                 {
-                    // Try to recognise app based on this file
+                    // Try to recognize app based on this file
                     exceptions.AddRange(GlobalInstances.AppDatabase!.GetExceptionsForApp(subj, true, out _));
                 }
             }
@@ -878,7 +835,7 @@ namespace ModernTinyWall.TinyWall
             AddExceptions(exceptions);
         }
 
-        private void MnuWhitelistByProcess_Click(object sender, EventArgs e)
+        private void mnuWhitelistByProcess_Click(object sender, EventArgs e)
         {
             if (FlashIfOpen(typeof(SettingsForm)))
                 return;
@@ -964,62 +921,6 @@ namespace ModernTinyWall.TinyWall
             return resp;
         }
 
-        internal async Task<TwMessage> ApplyFirewallSettingsAsync(ServerConfiguration srvConfig, bool showUi = true)
-        {
-            if (!await EnsureUnlockedServerAsync(showUi))
-                return TwMessageLocked.Instance;
-
-            var resp = await GlobalInstances.Controller!.SetServerConfigAsync(srvConfig, GlobalInstances.ClientChangeset);
-
-            switch (resp.Type)
-            {
-                case MessageType.PUT_SETTINGS:
-                    var respArgs = (TwMessagePutSettings)resp;
-                    if (respArgs.State is not null)
-                        _firewallState = respArgs.State;
-                    ActiveConfig.Service = respArgs.Config;
-                    GlobalInstances.ClientChangeset = respArgs.Changeset;
-                    if (showUi)
-                    {
-                        if (respArgs.Warning)
-                            ShowBalloonTip(Resources.Messages.SettingHaveChangedRetry, ToolTipIcon.Warning);
-                        else
-                            ShowBalloonTip(Resources.Messages.TheFirewallSettingsHaveBeenUpdated, ToolTipIcon.Info);
-                    }
-                    break;
-                case MessageType.RESPONSE_ERROR:
-                    if (showUi)
-                        ShowBalloonTip(Resources.Messages.CouldNotApplySettingsInternalError, ToolTipIcon.Warning);
-                    break;
-                case MessageType.INVALID_COMMAND:
-                case MessageType.RESPONSE_LOCKED:
-                case MessageType.COM_ERROR:
-                case MessageType.GET_SETTINGS:
-                case MessageType.GET_PROCESS_PATH:
-                case MessageType.READ_FW_LOG:
-                case MessageType.IS_LOCKED:
-                case MessageType.UNLOCK:
-                case MessageType.MODE_SWITCH:
-                case MessageType.REINIT:
-                case MessageType.LOCK:
-                case MessageType.SET_PASSPHRASE:
-                case MessageType.STOP_SERVICE:
-                case MessageType.MINUTE_TIMER:
-                case MessageType.REENUMERATE_ADDRESSES:
-                case MessageType.DATABASE_UPDATED:
-                case MessageType.ADD_TEMPORARY_EXCEPTION:
-                case MessageType.RELOAD_WFP_FILTERS:
-                case MessageType.DISPLAY_POWER_EVENT:
-                default:
-                    if (showUi)
-                        DefaultPopups(resp.Type);
-                    await LoadSettingsFromServerAsync();
-                    break;
-            }
-
-            return resp;
-        }
-
         private void DefaultPopups(MessageType op)
         {
             switch (op)
@@ -1070,11 +971,14 @@ namespace ModernTinyWall.TinyWall
 
             return false;
         }
-        public bool FlashIfOpen(Form frm) => FlashIfOpen(frm.GetType());
-
-        private async void MnuManage_Click(object sender, EventArgs e)
+        public bool FlashIfOpen(Form frm)
         {
-            if (!await EnsureUnlockedServerAsync())
+            return FlashIfOpen(frm.GetType());
+        }
+
+        private void mnuManage_Click(object sender, EventArgs e)
+        {
+            if (!EnsureUnlockedServer())
                 return;
 
             // The settings form should not be used with other windows at the same time
@@ -1084,7 +988,7 @@ namespace ModernTinyWall.TinyWall
                 return;
             }
 
-            await LoadSettingsFromServerAsync();
+            LoadSettingsFromServer();
 
             using var sf = new SettingsForm(Utils.DeepClone(ActiveConfig.Service), Utils.DeepClone(ActiveConfig.Controller));
             _activeForms.Add(sf);
@@ -1097,15 +1001,15 @@ namespace ModernTinyWall.TinyWall
                 // Save settings
                 ActiveConfig.Controller = sf.TmpConfig.Controller;
                 ActiveConfig.Controller.Save();
-                await ApplyFirewallSettingsAsync(sf.TmpConfig.Service);
+                ApplyFirewallSettings(sf.TmpConfig.Service);
 
                 // Handle password change request
-                var newPassword = sf.NewPassword;
+                string? newPassword = sf.NewPassword;
                 if (newPassword is not null)
                 {
                     // If the new password is empty, we do not hash it because an empty password
                     // is a special value signalizing the non-existence of a password.
-                    MessageType resp = await GlobalInstances.Controller!.SetPassphraseAsync(string.IsNullOrEmpty(newPassword) ? string.Empty : Hasher.HashString(newPassword));
+                    MessageType resp = GlobalInstances.Controller!.SetPassphrase(string.IsNullOrEmpty(newPassword) ? string.Empty : Hasher.HashString(newPassword));
                     if (resp != MessageType.SET_PASSPHRASE)
                     {
                         // Only display a popup for setting the password if it did not succeed
@@ -1133,7 +1037,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void MnuWhitelistByWindow_Click(object sender, EventArgs e)
+        private void mnuWhitelistByWindow_Click(object sender, EventArgs e)
         {
             if (!EnsureUnlockedServer())
                 return;
@@ -1343,57 +1247,7 @@ namespace ModernTinyWall.TinyWall
             return false;
         }
 
-        internal async Task<bool> EnsureUnlockedServerAsync(bool showUi = true)
-        {
-            Locked = await GlobalInstances.Controller!.IsServerLockedAsync();
-            if (!Locked)
-                return true;
-
-            using var pf = new PasswordForm();
-            pf.BringToFront();
-            pf.Activate();
-            if (pf.ShowDialog() != DialogResult.OK) return false;
-
-            MessageType resp = await GlobalInstances.Controller.TryUnlockServerAsync(pf.PassHash);
-            switch (resp)
-            {
-                case MessageType.UNLOCK:
-                    Locked = false;
-                    return true;
-                case MessageType.RESPONSE_ERROR:
-                    if (showUi)
-                        ShowBalloonTip(Resources.Messages.UnlockFailed, ToolTipIcon.Error);
-                    break;
-                case MessageType.INVALID_COMMAND:
-                case MessageType.RESPONSE_LOCKED:
-                case MessageType.COM_ERROR:
-                case MessageType.GET_SETTINGS:
-                case MessageType.GET_PROCESS_PATH:
-                case MessageType.READ_FW_LOG:
-                case MessageType.IS_LOCKED:
-                case MessageType.MODE_SWITCH:
-                case MessageType.REINIT:
-                case MessageType.PUT_SETTINGS:
-                case MessageType.LOCK:
-                case MessageType.SET_PASSPHRASE:
-                case MessageType.STOP_SERVICE:
-                case MessageType.MINUTE_TIMER:
-                case MessageType.REENUMERATE_ADDRESSES:
-                case MessageType.DATABASE_UPDATED:
-                case MessageType.ADD_TEMPORARY_EXCEPTION:
-                case MessageType.RELOAD_WFP_FILTERS:
-                case MessageType.DISPLAY_POWER_EVENT:
-                    break;
-                default:
-                    if (showUi)
-                        DefaultPopups(resp);
-                    break;
-            }
-
-            return false;
-        }
-
-        private void MnuLock_Click(object sender, EventArgs e)
+        private void mnuLock_Click(object sender, EventArgs e)
         {
             MessageType lockResp = GlobalInstances.Controller!.LockServer();
 
@@ -1405,7 +1259,7 @@ namespace ModernTinyWall.TinyWall
             UpdateDisplay();
         }
 
-        private void MnuAllowLocalSubnet_Click(object sender, EventArgs e)
+        private void mnuAllowLocalSubnet_Click(object sender, EventArgs e)
         {
             if (!EnsureUnlockedServer())
                 return;
@@ -1420,7 +1274,7 @@ namespace ModernTinyWall.TinyWall
             mnuAllowLocalSubnet.Checked = ActiveConfig.Service.ActiveProfile.AllowLocalSubnet;
         }
 
-        private void MnuEnableHostsBlocklist_Click(object sender, EventArgs e)
+        private void mnuEnableHostsBlocklist_Click(object sender, EventArgs e)
         {
             if (!EnsureUnlockedServer())
                 return;
@@ -1470,7 +1324,7 @@ namespace ModernTinyWall.TinyWall
             SetHotkey(resources, ref _hotKeyWhitelistProcess, HotKeyWhitelistProcess_Pressed, Keys.P, mnuWhitelistByProcess, "mnuWhitelistByProcess");
         }
 
-        private void MnuElevate_Click(object sender, EventArgs e)
+        private void mnuElevate_Click(object sender, EventArgs e)
         {
             try
             {
@@ -1483,7 +1337,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void MnuConnections_Click(object sender, EventArgs e)
+        private void mnuConnections_Click(object sender, EventArgs e)
         {
             if (FlashIfOpen(typeof(SettingsForm)))
                 return;
@@ -1511,7 +1365,7 @@ namespace ModernTinyWall.TinyWall
                     Utils.SafeNativeMethods.DoMouseRightClick();
                     break;
                 case MouseButtons.Middle:
-                    MnuConnections_Click(sender, e);
+                    mnuConnections_Click(sender, e);
                     break;
                 case MouseButtons.None:
                 case MouseButtons.Right:
@@ -1519,7 +1373,7 @@ namespace ModernTinyWall.TinyWall
                 case MouseButtons.XButton2:
                     break;
                 default:
-                    break;
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -1550,26 +1404,6 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private async Task LoadDatabaseAsync()
-        {
-            try
-            {
-                GlobalInstances.AppDatabase = await Task.Run(() => DatabaseClasses.AppDatabase.Load());
-            }
-            catch
-            {
-                GlobalInstances.AppDatabase = new DatabaseClasses.AppDatabase();
-                if (_syncCtx != null)
-                {
-                    Utils.Invoke(_syncCtx, delegate
-                    {
-                        ShowBalloonTip(Resources.Messages.DatabaseIsMissingOrCorrupt, ToolTipIcon.Warning);
-                    });
-                }
-                throw;
-            }
-        }
-
         private void AutoWhitelist()
         {
             // Copy, so that settings are not changed if they cannot be saved
@@ -1578,7 +1412,7 @@ namespace ModernTinyWall.TinyWall
             ApplyFirewallSettings(confCopy);
         }
 
-        private void MnuModeLearn_Click(object sender, EventArgs e)
+        private void mnuModeLearn_Click(object sender, EventArgs e)
         {
             if (!EnsureUnlockedServer())
                 return;

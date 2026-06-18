@@ -2,6 +2,7 @@ using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -221,7 +222,7 @@ namespace ModernTinyWall.TinyWall
             {
                 case PolicyType.HardBlock:
                     radBlock.Checked = true;
-                    RadRestriction_CheckedChanged(this, EventArgs.Empty);
+                    radRestriction_CheckedChanged(this, EventArgs.Empty);
                     break;
                 case PolicyType.RuleList:
                     radBlock.Enabled = false;
@@ -255,7 +256,7 @@ namespace ModernTinyWall.TinyWall
                         radOnlySpecifiedPorts.Checked = true;
                     }
 
-                    RadRestriction_CheckedChanged(this, EventArgs.Empty);
+                    radRestriction_CheckedChanged(this, EventArgs.Empty);
                     chkRestrictToLocalNetwork.Checked = pol.LocalNetworkOnly;
                     txtOutboundPortTCP.Text = (pol.AllowedRemoteTcpConnectPorts is null) ? string.Empty : pol.AllowedRemoteTcpConnectPorts.Replace(",", ", ");
                     txtOutboundPortUDP.Text = (pol.AllowedRemoteUdpConnectPorts is null) ? string.Empty : pol.AllowedRemoteUdpConnectPorts.Replace(",", ", ");
@@ -265,7 +266,7 @@ namespace ModernTinyWall.TinyWall
                 case PolicyType.Unrestricted:
                     UnrestrictedPolicy upol = (UnrestrictedPolicy)ExceptionSettings[index].Policy;
                     radUnrestricted.Checked = true;
-                    RadRestriction_CheckedChanged(this, EventArgs.Empty);
+                    radRestriction_CheckedChanged(this, EventArgs.Empty);
                     chkRestrictToLocalNetwork.Checked = upol.LocalNetworkOnly;
                     break;
                 case PolicyType.Invalid:
@@ -322,7 +323,7 @@ namespace ModernTinyWall.TinyWall
             return res;
         }
 
-        private async void BtnOK_Click(object sender, EventArgs e)
+        private async void btnOK_Click(object sender, EventArgs e)
         {
             Parallel.For(0, ExceptionSettings.Count - 1, (i, _) =>
             {
@@ -385,15 +386,15 @@ namespace ModernTinyWall.TinyWall
                 ExceptionSettings[i].CreationDate = dateTimeNow;
             });
 
-            DialogResult = DialogResult.OK;
+            this.DialogResult = DialogResult.OK;
         }
 
-        private void BtnCancel_Click(object sender, EventArgs e)
+        private void btnCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            this.DialogResult = DialogResult.Cancel;
         }
 
-        private void BtnProcess_Click(object sender, EventArgs e)
+        private void btnProcess_Click(object sender, EventArgs e)
         {
             var procList = new List<ProcessInfo>();
 
@@ -416,14 +417,14 @@ namespace ModernTinyWall.TinyWall
             ReinitFormFromSubject(subject);
         }
 
-        private void BtnBrowse_Click(object sender, EventArgs e)
+        private void btnBrowse_Click(object sender, EventArgs e)
         {
             if (ofd.ShowDialog(this) != DialogResult.OK) return;
 
             ReinitFormFromSubject(new ExecutableSubject(PathMapper.Instance.ConvertPathIgnoreErrors(ofd.FileName, PathFormat.Win32)));
         }
 
-        private void BtnChooseService_Click(object sender, EventArgs e)
+        private void btnChooseService_Click(object sender, EventArgs e)
         {
             ServiceSubject? subject = ServicesForm.ChooseService(this);
 
@@ -432,32 +433,32 @@ namespace ModernTinyWall.TinyWall
             ReinitFormFromSubject(subject);
         }
 
-        private void BtnSelectUwpApp_Click(object sender, EventArgs e)
+        private void btnSelectUwpApp_Click(object sender, EventArgs e)
         {
             var packageList = UwpPackagesForm.ChoosePackage(this, false);
 
-            if (packageList.Count == 0) return;
+            if (!packageList.Any()) return;
 
             ReinitFormFromSubject(new AppContainerSubject(packageList[0]));
         }
 
         private void ReinitFormFromSubject(ExceptionSubject subject)
         {
-            List<FirewallExceptionV3> exceptions = GlobalInstances.AppDatabase!.GetExceptionsForApp(subject, true, out _);
+            List<FirewallExceptionV3> exceptions = GlobalInstances.AppDatabase.GetExceptionsForApp(subject, true, out _);
 
-            if (exceptions.Count == 0 || ExceptionSettings.Exists(e => e.Subject.Equals(exceptions[0].Subject))) return;
+            if (!exceptions.Any() || ExceptionSettings.Exists(e => e.Subject.Equals(exceptions[0].Subject))) return;
 
             ExceptionSettings.AddRange(exceptions);
 
             UpdateUi();
         }
 
-        private void CmbTimer_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmbTimer_SelectedIndexChanged(object sender, EventArgs e)
         {
             ExceptionSettings[0].Timer = ((KeyValuePair<string, AppExceptionTimer>)cmbTimer.SelectedItem).Value;
         }
 
-        private void RadRestriction_CheckedChanged(object sender, EventArgs e)
+        private void radRestriction_CheckedChanged(object sender, EventArgs e)
         {
             if (radBlock.Checked)
             {
@@ -519,7 +520,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void BtnRemoveSoftware_Click(object sender, EventArgs e)
+        private void btnRemoveSoftware_Click(object sender, EventArgs e)
         {
             if (listViewAppPath.Items.Count <= 0 || listViewAppPath.SelectedItems.Count <= 0)
             {

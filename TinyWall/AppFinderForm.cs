@@ -32,7 +32,7 @@ namespace ModernTinyWall.TinyWall
             btnSelectImportant.Visible = false;
         }
 
-        private void BtnStartDetection_Click(object sender, EventArgs e)
+        private void btnStartDetection_Click(object sender, EventArgs e)
         {
             if (!_runSearch)
             {
@@ -95,7 +95,10 @@ namespace ModernTinyWall.TinyWall
         {
             _searchResult.Clear();
 
-            foreach (DatabaseClasses.Application app in GlobalInstances.AppDatabase!.KnownApplications)
+            // ------------------------------------
+            //       First, do a fast search
+            // ------------------------------------
+            foreach (DatabaseClasses.Application app in GlobalInstances.AppDatabase.KnownApplications)
             {
                 if (app.HasFlag("TWUI:Special"))
                     continue;
@@ -262,13 +265,13 @@ namespace ModernTinyWall.TinyWall
             _searcherThread?.Join();
         }
 
-        private void BtnCancel_Click(object sender, EventArgs e)
+        private void btnCancel_Click(object sender, EventArgs e)
         {
             WaitForThread();
             DialogResult = DialogResult.Cancel;
         }
 
-        private void BtnSelectImportant_Click(object sender, EventArgs e)
+        private void btnSelectImportant_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem li in list.Items)
             {
@@ -278,7 +281,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void BtnSelectAll_Click(object sender, EventArgs e)
+        private void btnSelectAll_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem li in list.Items)
             {
@@ -286,7 +289,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void BtnDeselectAll_Click(object sender, EventArgs e)
+        private void btnDeselectAll_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem li in list.Items)
             {
@@ -294,7 +297,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void BtnOK_Click(object sender, EventArgs e)
+        private void btnOK_Click(object sender, EventArgs e)
         {
             WaitForThread();
 
@@ -306,7 +309,7 @@ namespace ModernTinyWall.TinyWall
                 var appFoundFiles = _searchResult.GetFoundComponents(app);
                 foreach (ExecutableSubject subject in appFoundFiles)
                 {
-                    app = GlobalInstances.AppDatabase!.TryGetApp(subject, out FirewallExceptionV3? fwex, false);
+                    app = GlobalInstances.AppDatabase.TryGetApp(subject, out FirewallExceptionV3? fwex, false);
                     if ((fwex != null) && (app != null) && (!subject.IsSigned || subject.CertValid))
                     {
                         SelectedExceptions.Add(fwex);
@@ -321,7 +324,7 @@ namespace ModernTinyWall.TinyWall
         {
             Activate();
             BringToFront();
-            BtnStartDetection_Click(btnStartDetection, EventArgs.Empty);
+            btnStartDetection_Click(btnStartDetection, EventArgs.Empty);
             Utils.SetDoubleBuffering(list, true);
         }
     }
