@@ -5,36 +5,25 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using pylorak.TinyWall.Resources;
+using pylorak.Windows;
 
 namespace ModernTinyWall.TinyWall
 {
     internal partial class SettingsForm : Form
     {
-        private class IdWithName
-        {
-            internal readonly string Id;
-            internal string Name;
-
-            internal IdWithName(string id, string name)
-            {
-                Id = id;
-                Name = name;
-            }
-
-            public override string ToString()
-            {
-                return Name;
-            }
-        }
-
-        internal ConfigContainer TmpConfig;
-
         private readonly List<ListViewItem> _exceptionItems = new();
         private readonly List<ListViewItem> _filteredExceptionItems = new();
+
+        private Size _iconSize = new((int)Math.Round(16 * Utils.DpiScalingFactor),
+            (int)Math.Round(16 * Utils.DpiScalingFactor));
+
         private bool _loadingSettings;
-        private string? _mNewPassword;
-        private Size _iconSize = new((int)Math.Round(16 * Utils.DpiScalingFactor), (int)Math.Round(16 * Utils.DpiScalingFactor));
+
+        internal ConfigContainer TmpConfig;
 
         internal SettingsForm(ServerConfiguration service, ControllerSettings controller)
         {
@@ -62,35 +51,38 @@ namespace ModernTinyWall.TinyWall
             TmpConfig.Service.ActiveProfile.Normalise();
         }
 
-        private void ListApplications_DragDrop(object sender, DragEventArgs e)
-        {
-            List<FirewallExceptionV3> list = new List<FirewallExceptionV3>();
+        internal string? NewPassword { get; private set; }
 
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            foreach (string file in files)
+        private async void ListApplications_DragDrop(object sender, DragEventArgs e)
+        {
+            try
             {
-                try
-                {
-                    list.AddRange(GlobalInstances.AppDatabase.GetExceptionsForApp(new ExecutableSubject(file), true, out _));
-                }
-                catch
-                {
-                    // ignored
-                }
+                List<FirewallExceptionV3> list = new();
+
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                foreach (var file in files)
+                    try
+                    {
+                        list.AddRange(
+                            GlobalInstances.AppDatabase!.GetExceptionsForApp(new ExecutableSubject(file), true, out _));
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+
+                TmpConfig.Service.ActiveProfile.AddExceptions(list);
+                await RebuildExceptionsList();
             }
-
-            TmpConfig.Service.ActiveProfile.AddExceptions(list);
-            RebuildExceptionsList();
+            catch
+            {
+                // ignored
+            }
         }
 
-        private void ListApplications_DragEnter(object sender, DragEventArgs e)
-        {
-            e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.All : DragDropEffects.None;
-        }
+        private void ListApplications_DragEnter(object sender, DragEventArgs e) => e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.All : DragDropEffects.None;
 
-        internal string? NewPassword => _mNewPassword;
-
-        private void InitSettingsUi()
+        private async Task InitSettingsUi()
         {
             _loadingSettings = true;
             try
@@ -101,9 +93,9 @@ namespace ModernTinyWall.TinyWall
                 chkEnableHotkeys.Checked = TmpConfig.Controller.EnableGlobalHotkeys;
                 comboLanguages.SelectedIndex = 0;
 
-                for (int i = 0; i < comboLanguages.Items.Count; ++i)
+                for (var i = 0; i < comboLanguages.Items.Count; ++i)
                 {
-                    IdWithName item = (IdWithName)comboLanguages.Items[i];
+                    var item = (IdWithName)comboLanguages.Items[i];
 
                     if (!item.Id.Equals(TmpConfig.Controller.Language, StringComparison.OrdinalIgnoreCase)) continue;
 
@@ -117,34 +109,37 @@ namespace ModernTinyWall.TinyWall
                 chkHostsBlocklist.Checked = TmpConfig.Service.Blocklists.EnableHostsBlocklist;
                 chkBlockMalwarePorts.Checked = TmpConfig.Service.Blocklists.EnablePortBlocklist;
                 chkEnableBlocklists.Checked = TmpConfig.Service.Blocklists.EnableBlocklists;
-                chkEnableBlocklists_CheckedChanged(this, EventArgs.Empty);
+                ChkEnableBlocklists_CheckedChanged(this, EventArgs.Empty);
 
                 // Fill lists of special exceptions
                 listRecommendedGlobalProfiles.BeginUpdate();
                 listOptionalGlobalProfiles.BeginUpdate();
                 listRecommendedGlobalProfiles.Items.Clear();
                 listOptionalGlobalProfiles.Items.Clear();
-                foreach (DatabaseClasses.Application app in GlobalInstances.AppDatabase.KnownApplications)
+                foreach (var app in GlobalInstances.AppDatabase!.KnownApplications)
                 {
                     if (!app.HasFlag("TWUI:Special") || app.HasFlag("TWUI:Hidden")) continue;
 
                     // Get localised name
-                    IdWithName item = new IdWithName(app.Name, app.LocalisedName);
+                    IdWithName item = new(app.Name, app.LocalisedName);
 
                     // Construct default name in case no localization exists
                     if (string.IsNullOrEmpty(item.Name))
                         item.Name = item.Id.Replace('_', ' ');
 
-                    CheckedListBox listBox = app.HasFlag("TWUI:Recommended") ? listRecommendedGlobalProfiles : listOptionalGlobalProfiles;
-                    int itemIdx = listBox.Items.Add(item);
-                    listBox.SetItemChecked(itemIdx, TmpConfig.Service.ActiveProfile.SpecialExceptions.Contains(item.Id));
+                    var listBox = app.HasFlag("TWUI:Recommended")
+                        ? listRecommendedGlobalProfiles
+                        : listOptionalGlobalProfiles;
+                    var itemIdx = listBox.Items.Add(item);
+                    listBox.SetItemChecked(itemIdx,
+                        TmpConfig.Service.ActiveProfile.SpecialExceptions.Contains(item.Id));
                 }
 
                 listRecommendedGlobalProfiles.EndUpdate();
                 listOptionalGlobalProfiles.EndUpdate();
 
                 // Fill list of applications
-                RebuildExceptionsList();
+                await RebuildExceptionsList();
             }
             finally
             {
@@ -152,15 +147,13 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void RebuildExceptionsList()
+        private async Task RebuildExceptionsList()
         {
-            var packageList = new UwpPackageList();
+            var packageList = await Task.Run(() => new UwpPackageList());
             _exceptionItems.Clear();
 
             foreach (var ex in TmpConfig.Service.ActiveProfile.AppExceptions)
-            {
                 _exceptionItems.Add(ListItemFromAppException(ex, packageList));
-            }
 
             _exceptionItems.Sort(listApplications.ListViewItemSorter as ListViewItemComparer);
 
@@ -169,35 +162,26 @@ namespace ModernTinyWall.TinyWall
 
         private void ApplyExceptionFilter()
         {
-            string filter = txtExceptionListFilter.Text.Trim().ToUpperInvariant();
+            var filter = txtExceptionListFilter.Text.Trim().ToUpperInvariant();
             _filteredExceptionItems.Clear();
 
             if (string.IsNullOrEmpty(filter))
-            {
                 // No filter, add everything
                 foreach (var t in _exceptionItems)
+                    _filteredExceptionItems.Add(t);
+            else
+                // Apply filter
+                foreach (var t in from t in _exceptionItems let sub0 = t.SubItems[0].Text.ToUpperInvariant() let sub1 = t.SubItems[1].Text.ToUpperInvariant() where sub0.Contains(filter) || sub1.Contains(filter) select t)
                 {
                     _filteredExceptionItems.Add(t);
                 }
-            }
-            else
-            {
-                // Apply filter
-                foreach (var t in _exceptionItems)
-                {
-                    string sub0 = t.SubItems[0].Text.ToUpperInvariant();
-                    string sub1 = t.SubItems[1].Text.ToUpperInvariant();
-                    if (sub0.Contains(filter) || sub1.Contains(filter))
-                        _filteredExceptionItems.Add(t);
-                }
-            }
 
             // Update visible list
             listApplications.VirtualListSize = _filteredExceptionItems.Count;
             listApplications.Refresh();
 
             // Update buttons
-            listApplications_SelectedIndexChanged(listApplications, EventArgs.Empty);
+            ListApplications_SelectedIndexChanged(listApplications, EventArgs.Empty);
         }
 
         private ListViewItem ListItemFromAppException(FirewallExceptionV3 ex, UwpPackageList packageList)
@@ -212,23 +196,23 @@ namespace ModernTinyWall.TinyWall
             {
                 case SubjectType.Executable:
                     li.Text = exeSubj!.ExecutableName;
-                    li.SubItems.Add(Resources.Messages.SubjectTypeExecutable);
+                    li.SubItems.Add(Messages.SubjectTypeExecutable);
                     li.SubItems.Add(exeSubj.ExecutablePath);
                     break;
                 case SubjectType.Service:
                     li.Text = srvSubj!.ServiceName;
-                    li.SubItems.Add(Resources.Messages.SubjectTypeService);
+                    li.SubItems.Add(Messages.SubjectTypeService);
                     li.SubItems.Add(srvSubj.ExecutablePath);
                     break;
                 case SubjectType.Global:
-                    li.Text = Resources.Messages.AllApplications;
-                    li.SubItems.Add(Resources.Messages.SubjectTypeGlobal);
+                    li.Text = Messages.AllApplications;
+                    li.SubItems.Add(Messages.SubjectTypeGlobal);
                     li.SubItems.Add(string.Empty);
                     li.ImageIndex = IconList.Images.IndexOfKey("window");
                     break;
                 case SubjectType.AppContainer:
                     li.Text = uwpSubj!.DisplayName;
-                    li.SubItems.Add(Resources.Messages.SubjectTypeUwpApp);
+                    li.SubItems.Add(Messages.SubjectTypeUwpApp);
                     li.SubItems.Add(uwpSubj.PublisherId + ", " + uwpSubj.Publisher);
                     li.ImageIndex = IconList.Images.IndexOfKey("store");
                     break;
@@ -239,65 +223,59 @@ namespace ModernTinyWall.TinyWall
 
             li.SubItems.Add(ex.CreationDate.ToString("yyyy/MM/dd HH:mm"));
 
-            if (ex.Policy.PolicyType == PolicyType.HardBlock)
-            {
-                li.BackColor = Color.LightPink;
-            }
+            if (ex.Policy.PolicyType == PolicyType.HardBlock) li.BackColor = Color.LightPink;
 
             if (uwpSubj is not null)
-            {
                 if (!packageList.FindPackage(uwpSubj.Sid).HasValue)
                 {
                     li.ImageIndex = IconList.Images.IndexOfKey("deleted");
                     li.BackColor = Color.LightGray;
                 }
-            }
 
-            if (exeSubj is not null)
+            if (exeSubj is null) return li;
+
+            if (NetworkPath.IsNetworkPath(exeSubj.ExecutablePath))
             {
-                if (NetworkPath.IsNetworkPath(exeSubj.ExecutablePath))
-                {
-                    /* We do not load icons from network drives, to avoid 30s timeout if the drive is unavailable.
-					 * If this is ever changed in the future, also remember that .Net's Icon.ExtractAssociatedIcon()
-					 * does not work with UNC paths. For workaround see:
-					 * http://stackoverflow.com/questions/1842226/how-to-get-the-associated-icon-from-a-network-share-file
-					 */
-                    li.ImageIndex = IconList.Images.IndexOfKey("network-drive");
-                }
-                else if (File.Exists(exeSubj.ExecutablePath))
-                {
-                    if (!IconList.Images.ContainsKey(exeSubj.ExecutablePath))
-                        IconList.Images.Add(exeSubj.ExecutablePath, Utils.GetIconContained(exeSubj.ExecutablePath, _iconSize.Width, _iconSize.Height));
-                    li.ImageIndex = IconList.Images.IndexOfKey(exeSubj.ExecutablePath);
-                }
-                else if (exeSubj.ExecutablePath == "System")
-                {
-                    li.ImageIndex = IconList.Images.IndexOfKey("system");
-                }
-                else
-                {
-                    li.ImageIndex = IconList.Images.IndexOfKey("deleted");
-                    li.BackColor = Color.LightGray;
-                }
+                /* We do not load icons from network drives, to avoid 30s timeout if the drive is unavailable.
+                     * If this is ever changed in the future, also remember that .Net's Icon.ExtractAssociatedIcon()
+                     * does not work with UNC paths. For workaround see:
+                     * http://stackoverflow.com/questions/1842226/how-to-get-the-associated-icon-from-a-network-share-file
+                     */
+                li.ImageIndex = IconList.Images.IndexOfKey("network-drive");
+            }
+            else if (File.Exists(exeSubj.ExecutablePath))
+            {
+                if (!IconList.Images.ContainsKey(exeSubj.ExecutablePath))
+                    IconList.Images.Add(exeSubj.ExecutablePath,
+                        Utils.GetIconContained(exeSubj.ExecutablePath, _iconSize.Width, _iconSize.Height));
+                li.ImageIndex = IconList.Images.IndexOfKey(exeSubj.ExecutablePath);
+            }
+            else if (exeSubj.ExecutablePath == "System")
+            {
+                li.ImageIndex = IconList.Images.IndexOfKey("system");
+            }
+            else
+            {
+                li.ImageIndex = IconList.Images.IndexOfKey("deleted");
+                li.BackColor = Color.LightGray;
             }
 
             return li;
         }
 
-        private void btnOK_Click(object sender, EventArgs e)
+        private void BtnOK_Click(object sender, EventArgs e)
         {
             // Check password input
             if (chkChangePassword.Checked)
-            {
                 if (txtPassword.Text != txtPasswordAgain.Text)
                 {
-                    MessageBox.Show(this, Resources.Messages.PasswordFieldsDoNotMatch, Resources.Messages.TinyWall, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(this, Messages.PasswordFieldsDoNotMatch, Messages.TinyWall, MessageBoxButtons.OK,
+                        MessageBoxIcon.Exclamation);
                     return;
                 }
-            }
 
             // Set password
-            _mNewPassword = chkChangePassword.Checked ? txtPassword.Text : null;
+            NewPassword = chkChangePassword.Checked ? txtPassword.Text : null;
 
             // Save settings
             TmpConfig.Controller.AskForExceptionDetails = chkAskForExceptionDetails.Checked;
@@ -315,12 +293,12 @@ namespace ModernTinyWall.TinyWall
             DialogResult = DialogResult.OK;
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void BtnCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
         }
 
-        private void listRecommendedGlobalProfiles_ItemCheck(object sender, ItemCheckEventArgs e)
+        private void ListRecommendedGlobalProfiles_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             if (_loadingSettings) return;
 
@@ -328,22 +306,18 @@ namespace ModernTinyWall.TinyWall
             var item = (IdWithName)clb.Items[e.Index];
 
             if (e.NewValue == CheckState.Checked)
-            {
                 TmpConfig.Service.ActiveProfile.SpecialExceptions.Add(item.Id);
-            }
             else
-            {
                 TmpConfig.Service.ActiveProfile.SpecialExceptions.Remove(item.Id);
-            }
         }
 
-        private void listOptionalGlobalProfiles_ItemCheck(object sender, ItemCheckEventArgs e)
+        private void ListOptionalGlobalProfiles_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             // The code is exactly the same as for listRecommendedGlobalProfiles
-            listRecommendedGlobalProfiles_ItemCheck(sender, e);
+            ListRecommendedGlobalProfiles_ItemCheck(sender, e);
         }
 
-        private void btnAppRemove_Click(object sender, EventArgs e)
+        private async void BtnAppRemove_Click(object sender, EventArgs e)
         {
             for (var i = listApplications.SelectedIndices.Count - 1; i >= 0; --i)
             {
@@ -352,57 +326,79 @@ namespace ModernTinyWall.TinyWall
             }
 
             listApplications.SelectedIndices.Clear();
-            RebuildExceptionsList();
+            await RebuildExceptionsList();
         }
 
-        private void btnAppRemoveAll_Click(object sender, EventArgs e)
+        private async void BtnAppRemoveAll_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show(this, Resources.Messages.AreYouSureYouWantToRemoveAllExceptions, Resources.Messages.TinyWall, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
-                return;
-
-            TmpConfig.Service.ActiveProfile.AppExceptions.Clear();
-            RebuildExceptionsList();
-        }
-
-        private void btnAppModify_Click(object sender, EventArgs e)
-        {
-            var li = _filteredExceptionItems[listApplications.SelectedIndices[0]];
-            var oldEx = (FirewallExceptionV3)li.Tag;
-            var newEx = Utils.DeepClone(oldEx);
-            newEx.RegenerateId();
-
-            using (var f = new ApplicationExceptionForm(newEx))
+            try
             {
-                if (f.ShowDialog(this) == DialogResult.OK)
-                {
-                    // Remove old rule
-                    TmpConfig.Service.ActiveProfile.AppExceptions.Remove(oldEx);
-                    // Add new rule
-                    TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
-                    RebuildExceptionsList();
-                }
+                if (MessageBox.Show(this, Messages.AreYouSureYouWantToRemoveAllExceptions, Messages.TinyWall,
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
+                    return;
+
+                TmpConfig.Service.ActiveProfile.AppExceptions.Clear();
+                await RebuildExceptionsList();
             }
-
-            listApplications.Focus();
+            catch
+            {
+                // ignored
+            }
         }
 
-        private void btnAppAdd_Click(object sender, EventArgs e)
+        private async void BtnAppModify_Click(object sender, EventArgs e)
         {
-            //using var f = new ApplicationExceptionForm(FirewallExceptionV3.Default);
-            using var f = new ApplicationExceptionForm();
+            try
+            {
+                var li = _filteredExceptionItems[listApplications.SelectedIndices[0]];
+                var oldEx = (FirewallExceptionV3)li.Tag;
+                var newEx = Utils.DeepClone(oldEx);
+                newEx.RegenerateId();
 
-            if (f.ShowDialog(this) != DialogResult.OK) return;
+                using (var f = new ApplicationExceptionForm(newEx))
+                {
+                    if (f.ShowDialog(this) == DialogResult.OK)
+                    {
+                        // Remove old rule
+                        TmpConfig.Service.ActiveProfile.AppExceptions.Remove(oldEx);
+                        // Add new rule
+                        TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
+                        await RebuildExceptionsList();
+                    }
+                }
 
-            TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
-            RebuildExceptionsList();
+                listApplications.Focus();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
-        private void chkEnablePassword_CheckedChanged(object sender, EventArgs e)
+        private async void BtnAppAdd_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                //using var f = new ApplicationExceptionForm(FirewallExceptionV3.Default);
+                using var f = new ApplicationExceptionForm();
+
+                if (f.ShowDialog(this) != DialogResult.OK) return;
+
+                TmpConfig.Service.ActiveProfile.AddExceptions(f.ExceptionSettings);
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void ChkEnablePassword_CheckedChanged(object sender, EventArgs e)
         {
             txtPassword.Enabled = txtPasswordAgain.Enabled = chkChangePassword.Checked;
         }
 
-        private void btnSubmitAssoc_Click(object sender, EventArgs e)
+        private void BtnSubmitAssoc_Click(object sender, EventArgs e)
         {
             /* Not implemented */
         }
@@ -418,26 +414,19 @@ namespace ModernTinyWall.TinyWall
             if (listApplications.SelectedIndices.Count == 0)
                 return;
 
-            btnAppModify_Click(this, EventArgs.Empty);
+            BtnAppModify_Click(this, EventArgs.Empty);
         }
 
-        private void btnUpdate_Click(object sender, EventArgs e)
+        private async void BtnAppAutoDetect_Click(object sender, EventArgs e)
         {
-            Updater.StartUpdate();
-        }
+            try
+            {
+                using var aff = new AppFinderForm();
 
-        private void btnAppAutoDetect_Click(object sender, EventArgs e)
-        {
-            using var aff = new AppFinderForm();
-
-            if (aff.ShowDialog(this) != DialogResult.OK) return;
-
-            TmpConfig.Service.ActiveProfile.AddExceptions(aff.SelectedExceptions);
-            RebuildExceptionsList();
-        }
+                if (aff.ShowDialog(this) != DialogResult.OK) return;
 
 
-        private void lblLinkLicense_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void LblLinkLicense_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             try
             {
@@ -457,35 +446,18 @@ namespace ModernTinyWall.TinyWall
         {
             ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*", Resources.Messages.TinyWallSettingsFileFilter, Resources.Messages.AllFilesFileFilter);
 
-            if (ofd.ShowDialog(this) != DialogResult.OK) return;
+                await Task.Run(() => SerialisationHelper.SerialiseToFile(TmpConfig, sfd.FileName));
 
-            try
-            {
-                TmpConfig = SerialisationHelper.DeserialiseFromFile(ofd.FileName, new ConfigContainer(), true);
+                MessageBox.Show(this, Messages.ConfigurationHasBeenExported, Messages.TinyWallSettingsFileFilter,
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch
             {
-                // Fail import.
-                MessageBox.Show(this, Resources.Messages.ConfigurationImportError, Resources.Messages.TinyWall, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            InitSettingsUi();
-            MessageBox.Show(this, Resources.Messages.ConfigurationHasBeenImported, Resources.Messages.TinyWall, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void btnExport_Click(object sender, EventArgs e)
-        {
-            ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*", Resources.Messages.TinyWallSettingsFileFilter, Resources.Messages.AllFilesFileFilter);
-            sfd.DefaultExt = "tws";
-            if (sfd.ShowDialog(this) == DialogResult.OK)
-            {
-                SerialisationHelper.SerialiseToFile(this.TmpConfig, sfd.FileName);
-                MessageBox.Show(this, Resources.Messages.ConfigurationHasBeenExported, Resources.Messages.TinyWallSettingsFileFilter, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // ignored
             }
         }
 
-        private void SettingsForm_Load(object sender, EventArgs e)
+        private async void SettingsForm_Load(object sender, EventArgs e)
         {
 #if DEBUG
             //DataCollection.StartProfile(ProfileLevel.Global, DataCollection.CurrentId);
@@ -498,82 +470,87 @@ namespace ModernTinyWall.TinyWall
                 Utils.FixupFormPosition(this);
             }
 
-            foreach (ColumnHeader col in listApplications.Columns)
-            {
-                if (ActiveConfig.Controller.SettingsFormAppListColumnWidths.TryGetValue((string)col.Tag, out int width))
-                    col.Width = width;
-            }
+                foreach (ColumnHeader col in listApplications.Columns)
+                    if (ActiveConfig.Controller.SettingsFormAppListColumnWidths.TryGetValue((string)col.Tag, out var width))
+                        col.Width = width;
 
-            Utils.SetDoubleBuffering(listApplications, true);
-            listApplications.ListViewItemSorter = new ListViewItemComparer(0, IconList);
-            tabControl1.SelectedIndex = TmpConfig.Controller.SettingsTabIndex;
+                Utils.SetDoubleBuffering(listApplications, true);
+                listApplications.ListViewItemSorter = new ListViewItemComparer(0, IconList);
+                tabControl1.SelectedIndex = TmpConfig.Controller.SettingsTabIndex;
 
-            comboLanguages.Items.Add(new IdWithName("auto", "Automatic"));
-            comboLanguages.Items.Add(new IdWithName("bg", "български"));
-            comboLanguages.Items.Add(new IdWithName("cs", "Čeština"));
-            comboLanguages.Items.Add(new IdWithName("de", "Deutsch"));
-            comboLanguages.Items.Add(new IdWithName("en", "English"));
-            comboLanguages.Items.Add(new IdWithName("es", "Español"));
-            comboLanguages.Items.Add(new IdWithName("fr", "Français"));
-            comboLanguages.Items.Add(new IdWithName("it", "Italiano"));
-            comboLanguages.Items.Add(new IdWithName("hu", "Magyar"));
-            comboLanguages.Items.Add(new IdWithName("nl", "Nederlands"));
-            comboLanguages.Items.Add(new IdWithName("pl", "Polski"));
-            comboLanguages.Items.Add(new IdWithName("pt-BR", "Português Brasileiro"));
-            comboLanguages.Items.Add(new IdWithName("ru", "Русский"));
-            comboLanguages.Items.Add(new IdWithName("tr", "Türkçe"));
-            comboLanguages.Items.Add(new IdWithName("ja", "日本語"));
-            comboLanguages.Items.Add(new IdWithName("ko", "한국어"));
-            comboLanguages.Items.Add(new IdWithName("zh", "汉语"));
+                comboLanguages.Items.Add(new IdWithName("auto", "Automatic"));
+                comboLanguages.Items.Add(new IdWithName("bg", "български"));
+                comboLanguages.Items.Add(new IdWithName("cs", "Čeština"));
+                comboLanguages.Items.Add(new IdWithName("de", "Deutsch"));
+                comboLanguages.Items.Add(new IdWithName("en", "English"));
+                comboLanguages.Items.Add(new IdWithName("es", "Español"));
+                comboLanguages.Items.Add(new IdWithName("fr", "Français"));
+                comboLanguages.Items.Add(new IdWithName("it", "Italiano"));
+                comboLanguages.Items.Add(new IdWithName("hu", "Magyar"));
+                comboLanguages.Items.Add(new IdWithName("nl", "Nederlands"));
+                comboLanguages.Items.Add(new IdWithName("pl", "Polski"));
+                comboLanguages.Items.Add(new IdWithName("pt-BR", "Português Brasileiro"));
+                comboLanguages.Items.Add(new IdWithName("ru", "Русский"));
+                comboLanguages.Items.Add(new IdWithName("tr", "Türkçe"));
+                comboLanguages.Items.Add(new IdWithName("ja", "日本語"));
+                comboLanguages.Items.Add(new IdWithName("ko", "한국어"));
+                comboLanguages.Items.Add(new IdWithName("zh", "汉语"));
 
-            IconList.Images.Add("deleted", Resources.Icons.delete);
-            IconList.Images.Add("network-drive", Resources.Icons.network_drive_small);
-            IconList.Images.Add("window", Resources.Icons.window);
-            IconList.Images.Add("store", Resources.Icons.store);
-            IconList.Images.Add("system", Resources.Icons.windows_small);
+                IconList.Images.Add("deleted", Icons.delete);
+                IconList.Images.Add("network-drive", Icons.network_drive_small);
+                IconList.Images.Add("window", Icons.window);
+                IconList.Images.Add("store", Icons.store);
+                IconList.Images.Add("system", Icons.windows_small);
 
-            lblVersion.Text = string.Format(CultureInfo.CurrentCulture, @"{0} {1}", lblVersion.Text, Application.ProductVersion);
+                lblVersion.Text = string.Format(CultureInfo.CurrentCulture, @"{0} {1}", lblVersion.Text,
+                    Application.ProductVersion);
 
-            InitSettingsUi();
-
-#if DEBUG
-            //          DataCollection.StopProfile(ProfileLevel.Global, DataCollection.CurrentId);
-#endif
+                await InitSettingsUi();
 
 #if !DEBUG
-			// TODO: Make submissions work
-			btnSubmitAssoc.Visible = false;
+                // TODO: Make submissions work
+                btnSubmitAssoc.Visible = false;
 #endif
-            //            loadingDone.Value = true;
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
-        private void txtExceptionListFilter_TextChanged(object sender, EventArgs e)
+        private void TxtExceptionListFilter_TextChanged(object sender, EventArgs e) => ApplyExceptionFilter();
+
+        private async void ListApplications_ColumnClick(object sender, ColumnClickEventArgs e)
         {
-            ApplyExceptionFilter();
+            try
+            {
+                var oldSorter = (ListViewItemComparer)listApplications.ListViewItemSorter;
+                ListViewItemComparer newSorter = new(e.Column, IconList);
+                if (oldSorter != null && oldSorter.Column == newSorter.Column)
+                    newSorter.Ascending = !oldSorter.Ascending;
+
+                listApplications.ListViewItemSorter = newSorter;
+                await RebuildExceptionsList();
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
-        private void listApplications_ColumnClick(object sender, ColumnClickEventArgs e)
-        {
-            ListViewItemComparer oldSorter = (ListViewItemComparer)listApplications.ListViewItemSorter;
-            ListViewItemComparer newSorter = new ListViewItemComparer(e.Column, IconList);
-            if ((oldSorter != null) && (oldSorter.Column == newSorter.Column))
-                newSorter.Ascending = !oldSorter.Ascending;
-
-            listApplications.ListViewItemSorter = newSorter;
-            RebuildExceptionsList();
-        }
-
-        private void chkEnableBlocklists_CheckedChanged(object sender, EventArgs e)
+        private void ChkEnableBlocklists_CheckedChanged(object sender, EventArgs e)
         {
             chkHostsBlocklist.Enabled = chkEnableBlocklists.Checked;
             chkBlockMalwarePorts.Enabled = chkEnableBlocklists.Checked;
         }
 
-        private void lblLinkAttributions_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void LblLinkAttributions_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             try
             {
-                var psi = new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(), "Attributions.txt")) { UseShellExecute = true };
+                var psi = new ProcessStartInfo(Path.Combine(
+                    Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(),
+                    "Attributions.txt")) { UseShellExecute = true };
                 Process.Start(psi);
             }
             catch
@@ -584,11 +561,10 @@ namespace ModernTinyWall.TinyWall
 
         private void SettingsForm_KeyDown(object sender, KeyEventArgs e)
         {
-            if (listApplications.Focused && (e.KeyCode == Keys.Delete))
-            {
-                btnAppRemove_Click(btnAppRemove, EventArgs.Empty);
-                e.Handled = true;
-            }
+            if (!listApplications.Focused || e.KeyCode != Keys.Delete) return;
+
+            BtnAppRemove_Click(btnAppRemove, EventArgs.Empty);
+            e.Handled = true;
         }
 
         private void SettingsForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -610,29 +586,39 @@ namespace ModernTinyWall.TinyWall
             ActiveConfig.Controller.Save();
         }
 
-        private void listApplications_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
-        {
-            e.Item = _filteredExceptionItems[e.ItemIndex];
-        }
+        private void ListApplications_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e) => e.Item = _filteredExceptionItems[e.ItemIndex];
 
-        private void listApplications_VirtualItemsSelectionRangeChanged(object sender, ListViewVirtualItemsSelectionRangeChangedEventArgs e)
-        {
-            listApplications_SelectedIndexChanged(sender, EventArgs.Empty);
-        }
+        private void ListApplications_VirtualItemsSelectionRangeChanged(object sender,
+            ListViewVirtualItemsSelectionRangeChangedEventArgs e) =>
+            ListApplications_SelectedIndexChanged(sender, EventArgs.Empty);
 
-        private void listApplications_SelectedIndexChanged(object sender, EventArgs e)
+        private void ListApplications_SelectedIndexChanged(object sender, EventArgs e)
         {
-            bool anyItemSelected = listApplications.SelectedIndices.Count != 0;
-            bool singleItemSelected = listApplications.SelectedIndices.Count == 1;
+            var anyItemSelected = listApplications.SelectedIndices.Count != 0;
+            var singleItemSelected = listApplications.SelectedIndices.Count == 1;
             btnAppModify.Enabled = singleItemSelected;
             btnAppRemove.Enabled = anyItemSelected;
             btnSubmitAssoc.Enabled = anyItemSelected;
         }
 
-        private void btnGithub_Click(object sender, EventArgs e)
+        private void BtnGithub_Click(object sender, EventArgs e)
         {
             var psi = new ProcessStartInfo(@"https://github.com/ShirazAdam/tinywall") { UseShellExecute = true };
             Process.Start(psi);
+        }
+
+        private class IdWithName
+        {
+            internal readonly string Id;
+            internal string Name;
+
+            internal IdWithName(string id, string name)
+            {
+                Id = id;
+                Name = name;
+            }
+
+            public override string ToString() => Name;
         }
     }
 }

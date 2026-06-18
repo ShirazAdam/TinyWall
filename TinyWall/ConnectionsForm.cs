@@ -35,12 +35,12 @@ namespace ModernTinyWall.TinyWall
             this.IconList.Images.Add("network-drive", Resources.Icons.network_drive_small);
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        private string GetPathFromPidCached(Dictionary<uint, string> cache, uint pid)
+        private static string GetPathFromPidCached(Dictionary<uint, string> cache, uint pid)
         {
             if (cache.TryGetValue(pid, out var cached))
                 return cached;
@@ -117,7 +117,10 @@ namespace ModernTinyWall.TinyWall
                 entries.Add(CreateConnectionListEntry(pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), now, RuleDirection.Invalid));
             }
 
-            tcpTable = NetStat.GetExtendedTcp6Table(false);
+                        var path = GetPathFromPidCachedBackground(procCache, tcpRow.ProcessId);
+                        var pi = ProcessInfo.Create(tcpRow.ProcessId, path, pkgList, svcPids);
+                        ConstructListItemBackground(itemList, pi, "TCP", tcpRow.LocalEndPoint, tcpRow.RemoteEndPoint, tcpRow.State.ToString(), timestamp, RuleDirection.Invalid);
+                    }
 
             foreach (TcpRow tcpRow in tcpTable)
             {
@@ -134,14 +137,20 @@ namespace ModernTinyWall.TinyWall
                 var dummyEp = new IPEndPoint(0, 0);
                 var udpTable = NetStat.GetExtendedUdp4Table(false);
 
-                foreach (UdpRow udpRow in udpTable)
+                // Process firewall log entries on background thread if showing blocked
+                if (showBlocked && fwLog.Length > 0)
                 {
                     var path = GetPathFromPidCached(procCache, udpRow.ProcessId);
                     var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
                     entries.Add(CreateConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
                 }
 
-                udpTable = NetStat.GetExtendedUdp6Table(false);
+                            if (entry is { LocalIp: not null, RemoteIp: not null })
+                                ConstructListItemBackground(logItems, pi, entry.Protocol.ToString(),
+                                    new IPEndPoint(IPAddress.Parse(entry.LocalIp), entry.LocalPort),
+                                    new IPEndPoint(IPAddress.Parse(entry.RemoteIp), entry.RemotePort), "Blocked",
+                                    entry.Timestamp, entry.Direction);
+                        }
 
                 foreach (UdpRow udpRow in udpTable)
                 {
@@ -149,7 +158,6 @@ namespace ModernTinyWall.TinyWall
                     var pi = ProcessInfo.Create(udpRow.ProcessId, path, packageList, servicePids);
                     entries.Add(CreateConnectionListEntry(pi, "UDP", udpRow.LocalEndPoint, dummyEp, "Listen", now, RuleDirection.Invalid));
                 }
-            }
 
             // Finished reading tables, continue with log processing.
             var fwLog = Controller.EndReadFwLog(fwLogRequest.Response);
@@ -227,7 +235,14 @@ namespace ModernTinyWall.TinyWall
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+                li.SubItems.Add(ts.ToString("dd/MM/yyyy HH:mm:ss"));
+                itemColl.Add(li);
             }
+            catch
+            {
+                // Process ID may have become invalid
+            }
+        }
 
             foreach (var entry in filteredLog)
             {
@@ -321,7 +336,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void list_ColumnClick(object sender, ColumnClickEventArgs e)
+        private void List_ColumnClick(object sender, ColumnClickEventArgs e)
         {
             var oldSorter = (ListViewItemComparer)list.ListViewItemSorter;
             var newSorter = new ListViewItemComparer(e.Column);
@@ -332,22 +347,22 @@ namespace ModernTinyWall.TinyWall
             list.ListViewItemSorter = newSorter;
         }
 
-        private async void btnRefresh_Click(object sender, EventArgs e)
+        private async void BtnRefresh_Click(object sender, EventArgs e)
         {
             await UpdateListAsync();
         }
 
-        private async void chkShowListen_CheckedChanged(object sender, EventArgs e)
+        private async void ChkShowListen_CheckedChanged(object sender, EventArgs e)
         {
             await UpdateListAsync();
         }
 
-        private async void chkShowBlocked_CheckedChanged(object sender, EventArgs e)
+        private async void ChkShowBlocked_CheckedChanged(object sender, EventArgs e)
         {
             await UpdateListAsync();
         }
 
-        private async void chkShowActive_CheckedChanged(object sender, EventArgs e)
+        private async void ChkShowActive_CheckedChanged(object sender, EventArgs e)
         {
             await UpdateListAsync();
         }
@@ -403,7 +418,7 @@ namespace ModernTinyWall.TinyWall
             await UpdateListAsync();
         }
 
-        private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        private void ContextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (list.SelectedIndices.Count < 1)
                 e.Cancel = true;
@@ -414,7 +429,7 @@ namespace ModernTinyWall.TinyWall
             mnuCloseProcess.Enabled = hasPid;
         }
 
-        private async void mnuCloseProcess_Click(object sender, EventArgs e)
+        private async void MnuCloseProcess_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem li in list.SelectedItems)
             {
@@ -455,7 +470,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void mnuUnblock_Click(object sender, EventArgs e)
+        private void MnuUnblock_Click(object sender, EventArgs e)
         {
             if (!_controller.EnsureUnlockedServer())
                 return;
@@ -465,12 +480,12 @@ namespace ModernTinyWall.TinyWall
             _controller.WhitelistProcesses(selection);
         }
 
-        private void mnuCopyRemoteAddress_Click(object sender, EventArgs e)
+        private void MnuCopyRemoteAddress_Click(object sender, EventArgs e)
         {
             ListViewItem li = list.SelectedItems[0];
             var clipboardData = li.SubItems[6].Text;
 
-            IDataObject dataObject = new DataObject();
+            var dataObject = new DataObject();
             dataObject.SetData(DataFormats.UnicodeText, false, clipboardData);
 
             try
@@ -501,7 +516,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void mnuProcessLibrary_Click(object sender, EventArgs e)
+        private void MnuProcessLibrary_Click(object sender, EventArgs e)
         {
             try
             {
@@ -518,7 +533,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void mnuFileNameOnTheWeb_Click(object sender, EventArgs e)
+        private void MnuFileNameOnTheWeb_Click(object sender, EventArgs e)
         {
             try
             {
@@ -535,7 +550,7 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        private void mnuRemoteAddressOnTheWeb_Click(object sender, EventArgs e)
+        private void MnuRemoteAddressOnTheWeb_Click(object sender, EventArgs e)
         {
             try
             {
@@ -556,37 +571,23 @@ namespace ModernTinyWall.TinyWall
         {
             if (e.KeyData != Keys.F5) return;
 
-            btnRefresh_Click(btnRefresh, EventArgs.Empty);
+            BtnRefresh_Click(btnRefresh, EventArgs.Empty);
             e.Handled = true;
         }
 
-        private async void btnSearch_Click(object sender, EventArgs e)
+        private async void BtnSearch_Click(object sender, EventArgs e)
         {
-            try
-            {
-                _searchText = txtSearch.Text.ToLower();
-                await UpdateListAsync();
-            }
-            catch
-            {
-                //throw; // TODO handle exception
-            }
+            _searchText = txtSearch.Text.ToLower();
+            await UpdateListAsync();
         }
 
         private async void BtnClear_Click(object sender, EventArgs e)
         {
-            try
-            {
-                _searchText = string.Empty;
-                await UpdateListAsync();
-            }
-            catch
-            {
-                //throw; // TODO handle exception
-            }
+            _searchText = string.Empty;
+            await UpdateListAsync();
         }
 
-        private void txtSearch_KeyDown(object sender, KeyEventArgs e)
+        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData is Keys.Enter or Keys.Return)
             {
