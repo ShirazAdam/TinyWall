@@ -2,9 +2,9 @@ name: .NET 10 Desktop
 
 on:
   push:
-    branches: [ "upgrade-to-NET10" ]
+    branches: [ "upgrade-to-NET10", "master" ]
   pull_request:
-    branches: [ "upgrade-to-NET10" ]
+    branches: [ "upgrade-to-NET10", "master" ]
 
 permissions:
   contents: read
