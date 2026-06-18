@@ -1,10 +1,10 @@
-﻿using pylorak.Utilities;
+using ModernTinyWall.Utilities;
 using System;
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal delegate TwMessage PipeDataReceived(TwMessage req);
 
@@ -67,7 +67,7 @@ namespace pylorak.TinyWall
                 try
                 {
                     // Create pipe server
-                    using var pipeServer = new NamedPipeServerStream(_mPipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.WriteThrough, 2048 * 10, 2048 * 10, ps);
+                    using var pipeServer = NamedPipeServerStreamAcl.Create(_mPipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.WriteThrough, 2048 * 10, 2048 * 10, ps);
                     if (!pipeServer.IsConnected)
                     {
                         pipeServer.WaitForConnection();
@@ -96,7 +96,7 @@ namespace pylorak.TinyWall
 
             string clientFilePath = Utils.GetPathOfProcess((uint)clientPid);
 
-            return clientFilePath.Equals(pylorak.Windows.ProcessManager.ExecutablePath, StringComparison.OrdinalIgnoreCase);
+            return clientFilePath.Equals(ModernTinyWall.Windows.ProcessManager.ExecutablePath, StringComparison.OrdinalIgnoreCase);
 #else
             return true;
 #endif

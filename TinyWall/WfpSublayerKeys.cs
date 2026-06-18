@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public static class WfpSublayerKeys
     {

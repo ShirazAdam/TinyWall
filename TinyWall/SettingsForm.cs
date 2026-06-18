@@ -1,4 +1,5 @@
-﻿using System;
+using ModernTinyWall.Windows;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,7 +11,7 @@ using System.Windows.Forms;
 using pylorak.TinyWall.Resources;
 using pylorak.Windows;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class SettingsForm : Form
     {
@@ -29,7 +30,7 @@ namespace pylorak.TinyWall
             InitializeComponent();
             Utils.SetRightToLeft(this);
             IconList.ImageSize = _iconSize;
-            Icon = Icons.firewall;
+            Icon = Resources.Icons.firewall;
             btnOK.Image = GlobalInstances.ApplyBtnIcon;
             btnCancel.Image = GlobalInstances.CancelBtnIcon;
             btnAppAutoDetect.Image = GlobalInstances.UninstallBtnIcon;
@@ -40,6 +41,7 @@ namespace pylorak.TinyWall
             btnSubmitAssoc.Image = GlobalInstances.SubmitBtnIcon;
             btnImport.Image = GlobalInstances.ImportBtnIcon;
             btnExport.Image = GlobalInstances.ExportBtnIcon;
+            btnUpdate.Image = GlobalInstances.UpdateBtnIcon;
 
             listApplications.AllowDrop = true;
             listApplications.DragEnter += ListApplications_DragEnter;
@@ -407,7 +409,7 @@ namespace pylorak.TinyWall
             Activate();
         }
 
-        private void ListApplications_DoubleClick(object sender, EventArgs e)
+        private void listApplications_DoubleClick(object sender, EventArgs e)
         {
             if (listApplications.SelectedIndices.Count == 0)
                 return;
@@ -423,22 +425,12 @@ namespace pylorak.TinyWall
 
                 if (aff.ShowDialog(this) != DialogResult.OK) return;
 
-                TmpConfig.Service.ActiveProfile.AddExceptions(aff.SelectedExceptions);
-                await RebuildExceptionsList();
-            }
-            catch
-            {
-                // ignored
-            }
-        }
 
         private void LblLinkLicense_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             try
             {
-                var psi = new ProcessStartInfo(Path.Combine(
-                    Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(),
-                    "Licence.rtf"))
+                var psi = new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(Utils.ExecutablePath) ?? throw new InvalidOperationException(), "Licence.rtf"))
                 {
                     UseShellExecute = true
                 };
@@ -450,46 +442,9 @@ namespace pylorak.TinyWall
             }
         }
 
-        private async void BtnImport_Click(object sender, EventArgs e)
+        private void btnImport_Click(object sender, EventArgs e)
         {
-            try
-            {
-                ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*",
-                    Messages.TinyWallSettingsFileFilter, Messages.AllFilesFileFilter);
-
-                if (ofd.ShowDialog(this) != DialogResult.OK) return;
-
-                try
-                {
-                    TmpConfig = SerialisationHelper.DeserialiseFromFile(ofd.FileName, new ConfigContainer(), true);
-                }
-                catch
-                {
-                    // Fail import.
-                    MessageBox.Show(this, Messages.ConfigurationImportError, Messages.TinyWall, MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                    return;
-                }
-
-                await InitSettingsUi();
-                MessageBox.Show(this, Messages.ConfigurationHasBeenImported, Messages.TinyWall, MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
-        private async void BtnExport_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*",
-                    Messages.TinyWallSettingsFileFilter, Messages.AllFilesFileFilter);
-                sfd.DefaultExt = "tws";
-
-                if (sfd.ShowDialog(this) != DialogResult.OK) return;
+            ofd.Filter = string.Format(CultureInfo.CurrentCulture, @"{0} (*.tws)|*.tws|{1} (*)|*", Resources.Messages.TinyWallSettingsFileFilter, Resources.Messages.AllFilesFileFilter);
 
                 await Task.Run(() => SerialisationHelper.SerialiseToFile(TmpConfig, sfd.FileName));
 
@@ -504,15 +459,16 @@ namespace pylorak.TinyWall
 
         private async void SettingsForm_Load(object sender, EventArgs e)
         {
-            try
+#if DEBUG
+            //DataCollection.StartProfile(ProfileLevel.Global, DataCollection.CurrentId);
+#endif
+            if (TmpConfig.Controller.SettingsFormWindowSize.Width != 0)
+                Size = TmpConfig.Controller.SettingsFormWindowSize;
+            if (TmpConfig.Controller.SettingsFormWindowLoc.X != 0)
             {
-                if (TmpConfig.Controller.SettingsFormWindowSize.Width != 0)
-                    Size = TmpConfig.Controller.SettingsFormWindowSize;
-                if (TmpConfig.Controller.SettingsFormWindowLoc.X != 0)
-                {
-                    Location = TmpConfig.Controller.SettingsFormWindowLoc;
-                    Utils.FixupFormPosition(this);
-                }
+                Location = TmpConfig.Controller.SettingsFormWindowLoc;
+                Utils.FixupFormPosition(this);
+            }
 
                 foreach (ColumnHeader col in listApplications.Columns)
                     if (ActiveConfig.Controller.SettingsFormAppListColumnWidths.TryGetValue((string)col.Tag, out var width))
@@ -620,6 +576,7 @@ namespace pylorak.TinyWall
 
             TmpConfig.Controller.SettingsFormAppListColumnWidths.Clear();
             ActiveConfig.Controller.SettingsFormAppListColumnWidths.Clear();
+
             foreach (ColumnHeader col in listApplications.Columns)
             {
                 TmpConfig.Controller.SettingsFormAppListColumnWidths.Add((string)col.Tag, col.Width);

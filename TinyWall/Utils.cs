@@ -1,5 +1,5 @@
-﻿using Microsoft.Samples;
-using pylorak.Windows;
+using Microsoft.Samples;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal static class ExtensionMethods
     {
@@ -56,52 +56,55 @@ namespace pylorak.TinyWall
         }
     }
 
-    internal static class Utils
+    internal static partial class Utils
     {
         [SuppressUnmanagedCodeSecurity]
-        internal static class SafeNativeMethods
+        internal static partial class SafeNativeMethods
         {
-            [DllImport("user32.dll")]
-            internal static extern IntPtr WindowFromPoint(Point pt);
+            internal static IntPtr WindowFromPoint(Point pt)
+            {
+                return WindowFromPointCore(new NativePoint(pt.X, pt.Y));
+            }
 
-            [DllImport("user32.dll", SetLastError = true)]
-            internal static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+            [LibraryImport("user32.dll", EntryPoint = "WindowFromPoint")]
+            private static partial IntPtr WindowFromPointCore(NativePoint pt);
 
-            [DllImport("user32.dll")]
-            internal static extern IntPtr GetForegroundWindow();
+            [LibraryImport("user32.dll", EntryPoint = "GetWindowThreadProcessId", SetLastError = true)]
+            internal static partial int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-            [DllImport("user32.dll", SetLastError = true)]
+            [LibraryImport("user32.dll", EntryPoint = "GetForegroundWindow")]
+            internal static partial IntPtr GetForegroundWindow();
+
+            [LibraryImport("user32.dll", EntryPoint = "IsImmersiveProcess", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool IsImmersiveProcess(IntPtr hProcess);
+            internal static partial bool IsImmersiveProcess(IntPtr hProcess);
 
-            [DllImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")]
-            internal static extern uint DnsFlushResolverCache();
+            [LibraryImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")]
+            internal static partial uint DnsFlushResolverCache();
 
-            [DllImport("User32.dll", SetLastError = true)]
-            internal static extern int GetSystemMetrics(int nIndex);
+            [LibraryImport("User32.dll", EntryPoint = "GetSystemMetrics", SetLastError = true)]
+            internal static partial int GetSystemMetrics(int nIndex);
 
-            [DllImport("kernel32.dll", SetLastError = true)]
+            [LibraryImport("kernel32.dll", EntryPoint = "GetNamedPipeClientProcessId", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool GetNamedPipeClientProcessId(IntPtr pipe, out ulong clientProcessId);
+            internal static partial bool GetNamedPipeClientProcessId(IntPtr pipe, out ulong clientProcessId);
 
-            [DllImport("Wer.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-            internal static extern void WerAddExcludedApplication(
-                [MarshalAs(UnmanagedType.LPWStr)]
+            [LibraryImport("Wer.dll", EntryPoint = "WerAddExcludedApplication", StringMarshalling = StringMarshalling.Utf16)]
+            internal static partial int WerAddExcludedApplication(
                 string pwzExeName,
                 [MarshalAs(UnmanagedType.Bool)]
                 bool bAllUsers
             );
 
-            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-            [return: MarshalAs(UnmanagedType.U4)]
-            internal static extern int GetLongPathName(
-                [MarshalAs(UnmanagedType.LPWStr)]
-                string lpszShortPath,
-                [MarshalAs(UnmanagedType.LPWStr)]
-                StringBuilder lpszLongPath,
-                [MarshalAs(UnmanagedType.U4)]
-                int cchBuffer
-            );
+            [LibraryImport("kernel32.dll", EntryPoint = "GetLongPathNameW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+            internal static unsafe partial int GetLongPathName(string lpszShortPath, char* lpszLongPath, int cchBuffer);
+
+            [StructLayout(LayoutKind.Sequential)]
+            private readonly struct NativePoint(int x, int y)
+            {
+                private readonly int _x = x;
+                private readonly int _y = y;
+            }
 
             #region IsMetroActive
             [ComImport, Guid("2246EA2D-CAEA-4444-A3C4-6DE827E44313"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -141,8 +144,9 @@ namespace pylorak.TinyWall
             #endregion
 
             #region DoMouseRightClick
-            [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-            public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, IntPtr dwExtraInfo);
+            [LibraryImport("user32.dll", EntryPoint = "mouse_event")]
+            [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
+            public static partial void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, IntPtr dwExtraInfo);
             //private const uint MOUSEEVENTF_LEFTDOWN = 0x02;
             //private const uint MOUSEEVENTF_LEFTUP = 0x04;
             private const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
@@ -326,20 +330,28 @@ namespace pylorak.TinyWall
             if (IsNullOrEmpty(shortPath))
                 return string.Empty;
 
-            var builder = new StringBuilder(255);
-            var result = SafeNativeMethods.GetLongPathName(shortPath, builder, builder.Capacity);
+            const int InitialBufferLength = 255;
 
-            switch (result)
+            unsafe
             {
-                case > 0 when (result < builder.Capacity):
-                    return builder.ToString(0, result);
-                case > 0:
-                    builder = new StringBuilder(result);
-                    result = SafeNativeMethods.GetLongPathName(shortPath, builder, builder.Capacity);
-                    return builder.ToString(0, result);
-                default:
-                    // Path not found or other error
-                    return shortPath;
+                var initialBuffer = stackalloc char[InitialBufferLength];
+                var result = SafeNativeMethods.GetLongPathName(shortPath, initialBuffer, InitialBufferLength);
+
+                switch (result)
+                {
+                    case > 0 when result < InitialBufferLength:
+                        return new string(initialBuffer, 0, result);
+                    case > 0:
+                        var expandedBuffer = new char[result];
+                        fixed (char* expandedBufferPointer = expandedBuffer)
+                        {
+                            result = SafeNativeMethods.GetLongPathName(shortPath, expandedBufferPointer, expandedBuffer.Length);
+                            return result > 0 ? new string(expandedBufferPointer, 0, result) : shortPath;
+                        }
+                    default:
+                        // Path not found or other error
+                        return shortPath;
+                }
             }
         }
 
@@ -598,7 +610,7 @@ namespace pylorak.TinyWall
 
         internal static void SplitFirstLine(string str, out string firstLine, out string restLines)
         {
-            var lines = str.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var lines = str.Split([Environment.NewLine], StringSplitOptions.None);
 
             firstLine = lines[0];
             restLines = string.Empty;
@@ -610,11 +622,11 @@ namespace pylorak.TinyWall
                 restLines += Environment.NewLine + lines[i];
         }
 
-        internal static DialogResult ShowMessageBox(string msg, string title, TaskDialogCommonButtons buttons, TaskDialogIcon icon, IWin32Window? parent = null)
+        internal static DialogResult ShowMessageBox(string msg, string title, TaskDialogCommonButtons buttons, Microsoft.Samples.TaskDialogIcon icon, IWin32Window? parent = null)
         {
             SplitFirstLine(msg, out var firstLine, out var contentLines);
 
-            var taskDialogue = new TaskDialog
+            var taskDialogue = new Microsoft.Samples.TaskDialog
             {
                 WindowTitle = title,
                 MainInstruction = firstLine,
@@ -652,11 +664,11 @@ namespace pylorak.TinyWall
                 {
                     // First, remove deprecated log files if any is found
                     // TODO: This can probably be removed in the future
-                    string[] oldLogs = {
+                    string[] oldLogs = [
                         Path.Combine(AppDataPath, "errorlog"),
                         Path.Combine(AppDataPath, "service.log"),
                         Path.Combine(AppDataPath, "client.log"),
-                    };
+                    ];
 
                     foreach (var file in oldLogs)
                     {

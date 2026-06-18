@@ -1,9 +1,9 @@
-﻿using NeoSmart.AsyncLock;
+using NeoSmart.AsyncLock;
 using System;
 using System.IO.Pipes;
 using System.Threading.Tasks;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class PipeClientEndpoint
     {

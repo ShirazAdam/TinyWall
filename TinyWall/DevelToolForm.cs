@@ -1,19 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Resources;
 using System.Text;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class DevelToolForm : Form
     {
-        private static readonly string[] SigningFilePatterns = { "*.dll", "*.exe", "*.msi" };
+        private static readonly string[] SigningFilePatterns = ["*.dll", "*.exe", "*.msi"];
 
         // Key - The primary resource
         // Value - List of satellite resources
@@ -119,7 +120,10 @@ namespace pylorak.TinyWall
 
             try
             {
-                Assembly a = Assembly.ReflectionOnlyLoadFrom(ofd.FileName);
+                var runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
+                var resolver = new PathAssemblyResolver(runtimeAssemblies.Append(ofd.FileName));
+                using var metadataContext = new MetadataLoadContext(resolver);
+                Assembly a = metadataContext.LoadFromAssemblyPath(ofd.FileName);
                 txtStrongName.Text = a.FullName;
             }
             catch

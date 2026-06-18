@@ -1,15 +1,15 @@
-﻿using Microsoft.Samples;
-using pylorak.Windows;
+using Microsoft.Samples;
+using ModernTinyWall.Windows;
 using System;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
 
     internal class Updater
@@ -32,7 +32,7 @@ namespace pylorak.TinyWall
             var descriptor = new UpdateDescriptor();
             updater._state = UpdaterState.GettingDescriptor;
 
-            var dialogue = new TaskDialog
+            var dialogue = new Microsoft.Samples.TaskDialog
             {
                 CustomMainIcon = Resources.Icons.firewall,
                 WindowTitle = Resources.Messages.TinyWall,
@@ -46,33 +46,30 @@ namespace pylorak.TinyWall
                 CallbackTimer = true
             };
 
-            var updateThread = new Thread(() =>
+            using var updateCancellation = new CancellationTokenSource();
+            var updateTask = Task.Run(async () =>
             {
                 try
                 {
-                    descriptor = UpdateChecker.GetDescriptor();
+                    descriptor = await UpdateChecker.GetDescriptorAsync(updateCancellation.Token).ConfigureAwait(false);
                     updater._state = UpdaterState.DescriptorReady;
                 }
                 catch
                 {
                     updater._errorMsg = Resources.Messages.ErrorCheckingForUpdates;
                 }
-            });
-
-            updateThread.Start();
+            }, updateCancellation.Token);
 
             switch (dialogue.Show())
             {
                 case (int)DialogResult.Cancel:
-                    updateThread.Interrupt();
-                    if (!updateThread.Join(500))
-                        updateThread.Abort();
+                    updateCancellation.Cancel();
                     break;
                 case (int)DialogResult.OK:
                     updater.CheckVersion(descriptor);
                     break;
                 case (int)DialogResult.Abort:
-                    Utils.ShowMessageBox(updater._errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, TaskDialogIcon.Error);
+                    Utils.ShowMessageBox(updater._errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, Microsoft.Samples.TaskDialogIcon.Error);
                     break;
             }
         }
@@ -90,20 +87,20 @@ namespace pylorak.TinyWall
             if (windowsNewAnyTwUpdate || windowsOldTwMinorFixOnly)
             {
                 var prompt = string.Format(CultureInfo.CurrentCulture, Resources.Messages.UpdateAvailable, updateModule.ComponentVersion);
-                if (Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No, TaskDialogIcon.Warning) == DialogResult.Yes)
+                if (Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No, Microsoft.Samples.TaskDialogIcon.Warning) == DialogResult.Yes)
                     DownloadUpdate(updateModule);
             }
             else
             {
                 var prompt = Resources.Messages.NoUpdateAvailable;
-                Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Ok, TaskDialogIcon.Information);
+                Utils.ShowMessageBox(prompt, Resources.Messages.TinyWallUpdater, TaskDialogCommonButtons.Ok, Microsoft.Samples.TaskDialogIcon.Information);
             }
         }
 
         private void DownloadUpdate(UpdateModule mainModule)
         {
             _errorMsg = string.Empty;
-            var dialogue = new TaskDialog
+            var dialogue = new Microsoft.Samples.TaskDialog
             {
                 CustomMainIcon = Resources.Icons.firewall,
                 WindowTitle = Resources.Messages.TinyWall,
@@ -122,21 +119,32 @@ namespace pylorak.TinyWall
 
             var tmpFile = Path.GetTempFileName() + ".msi";
             var updateUrl = new Uri(mainModule.UpdateUrl!);
-            using var httpClient = new WebClient();
-            httpClient.DownloadFileCompleted += Updater_DownloadFinished;
-            httpClient.DownloadProgressChanged += Updater_DownloadProgressChanged;
-            httpClient.DownloadFileAsync(updateUrl, tmpFile, tmpFile);
+
+            using var downloadCancellation = new CancellationTokenSource();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await UpdateChecker.DownloadUpdateAsync(updateUrl, tmpFile, downloadCancellation.Token).ConfigureAwait(false);
+                    _downloadProgress = 100;
+                    _state = UpdaterState.UpdateDownloadReady;
+                }
+                catch
+                {
+                    _errorMsg = Resources.Messages.ErrorCheckingForUpdates;
+                }
+            }, downloadCancellation.Token);
 
             switch (dialogue.Show())
             {
                 case (int)DialogResult.Cancel:
-                    httpClient.CancelAsync();
+                    downloadCancellation.Cancel();
                     break;
                 case (int)DialogResult.OK:
                     InstallUpdate(tmpFile);
                     break;
                 case (int)DialogResult.Abort:
-                    Utils.ShowMessageBox(_errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, TaskDialogIcon.Error);
+                    Utils.ShowMessageBox(_errorMsg, Resources.Messages.TinyWall, TaskDialogCommonButtons.Ok, Microsoft.Samples.TaskDialogIcon.Error);
                     break;
             }
         }
@@ -144,22 +152,6 @@ namespace pylorak.TinyWall
         private static void InstallUpdate(string localFilePath)
         {
             Utils.StartProcess(localFilePath, string.Empty, false);
-        }
-
-        private void Updater_DownloadFinished(object sender, AsyncCompletedEventArgs e)
-        {
-            if (e.Cancelled || (e.Error != null))
-            {
-                _errorMsg = Resources.Messages.DownloadInterrupted;
-                return;
-            }
-
-            _state = UpdaterState.UpdateDownloadReady;
-        }
-
-        private void Updater_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            _downloadProgress = e.ProgressPercentage;
         }
 
         private bool DownloadTickCallback(ActiveTaskDialogue taskDialogue, TaskDialogueNotificationArgs args, object? callbackData)
@@ -191,20 +183,25 @@ namespace pylorak.TinyWall
 
     internal static class UpdateChecker
     {
+        private static readonly HttpClient HttpClient = new();
         private const int UPDATER_VERSION = 6;
         private const string URL_UPDATE_DESCRIPTOR = @"https://tinywall.pados.hu/updates/UpdVer{0}/update.json";
 
-        internal static UpdateDescriptor GetDescriptor()
+        internal static async Task<UpdateDescriptor> GetDescriptorAsync(CancellationToken cancellationToken = default)
         {
             var url = string.Format(CultureInfo.InvariantCulture, URL_UPDATE_DESCRIPTOR, UPDATER_VERSION);
             var tmpFile = Path.GetTempFileName();
 
             try
             {
-                using (var httpClient = new WebClient())
+                using (var httpClient = new HttpClient())
                 {
-                    httpClient.Headers.Add("TW-Version", Application.ProductVersion);
-                    httpClient.DownloadFile(url, tmpFile);
+                    httpClient.DefaultRequestHeaders.Add("TW-Version", Application.ProductVersion);
+                    using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    await using var sourceStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    await using var destinationStream = new FileStream(tmpFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await sourceStream.CopyToAsync(destinationStream, cancellationToken).ConfigureAwait(false);
                 }
 
                 var descriptor = SerialisationHelper.DeserialiseFromFile(tmpFile, new UpdateDescriptor());
@@ -215,6 +212,13 @@ namespace pylorak.TinyWall
             {
                 File.Delete(tmpFile);
             }
+        }
+
+        internal static async Task DownloadUpdateAsync(Uri updateUrl, string targetFile, CancellationToken cancellationToken = default)
+        {
+            await using var downloadStream = await HttpClient.GetStreamAsync(updateUrl, cancellationToken).ConfigureAwait(false);
+            await using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
+            await downloadStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
         }
 
         internal static UpdateModule? GetUpdateModule(UpdateDescriptor descriptor, string moduleName)

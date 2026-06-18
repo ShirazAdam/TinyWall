@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace pylorak.TinyWall.Parser
+namespace ModernTinyWall.TinyWall.Parser
 {
     public abstract class ParserVariable
     {

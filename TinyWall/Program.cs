@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using pylorak.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using ModernTinyWall.Utilities;
 using System;
 using System.IO;
-using System.Net;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     static class Program
     {
@@ -39,10 +38,10 @@ namespace pylorak.TinyWall
             }
 
 #if DEBUG
-            tw.Start(Array.Empty<string>());
+            tw.Start([]);
             tw.StartedEvent.WaitOne();
 #else
-            pylorak.Windows.Services.ServiceBase.Run(tw);
+            ModernTinyWall.Windows.Services.ServiceBase.Run(tw);
 #endif
         }
 
@@ -50,6 +49,7 @@ namespace pylorak.TinyWall
         {
             // Start controller application
             System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.SystemAware);
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
             do
@@ -109,25 +109,9 @@ namespace pylorak.TinyWall
                     Utils.SafeNativeMethods.WerAddExcludedApplication(Utils.ExecutablePath, true);
 
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
-            }
-
-            // Setup TLS 1.2 & 1.3 support, if supported
-            if (ServicePointManager.SecurityProtocol != 0)
-            {
-                try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12; }
-                catch
-                {
-                    // ignored
-                }
-
-                try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls13; }
-                catch
-                {
-                    // ignored
-                }
+                System.Diagnostics.Debug.WriteLine($"Could not register the application with Windows Error Reporting exclusions: {ex.Message}");
             }
 
             // Parse comman-line options
@@ -214,7 +198,7 @@ namespace pylorak.TinyWall
                     using (var srv = new TinyWallService())
                     {
 #if !DEBUG
-                        pylorak.Windows.PathMapper.Instance.AutoUpdate = false;
+                        ModernTinyWall.Windows.PathMapper.Instance.AutoUpdate = false;
 #endif
                         StartService(srv);
 #if DEBUG

@@ -1,8 +1,8 @@
-﻿using pylorak.TinyWall.DatabaseClasses;
+using ModernTinyWall.TinyWall.DatabaseClasses;
 using System;
 using System.Drawing;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal static class GlobalInstances
     {

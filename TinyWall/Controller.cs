@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public sealed class Controller
     {
@@ -50,6 +48,10 @@ namespace pylorak.TinyWall
         {
             if (twResp is TwMessageReadFwLog fwLog)
                 return fwLog.Entries;
+            else
+                // TODO: Do we want to show an error to the user?
+                return [];
+        }
 
             // TODO: Do we want to show an error to the user?
             return Array.Empty<FirewallLogEntry>();

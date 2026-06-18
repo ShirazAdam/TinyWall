@@ -1,4 +1,4 @@
-﻿using pylorak.Windows;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 using System.Security;
 using Windows.Management.Deployment;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
-    public class UwpPackageList : IReadOnlyList<UwpPackageList.Package>
+    public partial class UwpPackageList : IReadOnlyList<UwpPackageList.Package>
     {
         public enum TamperedState
         {
@@ -18,13 +18,13 @@ namespace pylorak.TinyWall
             Yes
         }
 
-        public readonly struct Package : IEquatable<Package>
+        public readonly partial struct Package : IEquatable<Package>
         {
             [SuppressUnmanagedCodeSecurity]
-            private static class NativeMethods
+            private static partial class NativeMethods
             {
-                [DllImport("Userenv", CharSet = CharSet.Unicode)]
-                public static extern int DeriveAppContainerSidFromAppContainerName(string pszAppContainerName, out SafeSidHandle ppsidAppContainerSid);
+                [LibraryImport("Userenv", EntryPoint = "DeriveAppContainerSidFromAppContainerName", StringMarshalling = StringMarshalling.Utf16)]
+                public static partial int DeriveAppContainerSidFromAppContainerName(string pszAppContainerName, out SafeSidHandle ppsidAppContainerSid);
             }
 
             public readonly string Name;

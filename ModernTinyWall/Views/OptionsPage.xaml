@@ -1,0 +1,34 @@
+<Page
+    x:Class="ModernTinyWall.Views.OptionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Padding="24" Spacing="16">
+        <StackPanel Spacing="6">
+            <TextBlock Text="Options" FontSize="28" FontWeight="SemiBold" />
+            <TextBlock Text="Choose how ModernTinyWall behaves when using the title-bar buttons." TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ToggleSwitch
+            x:Name="MinimiseToTraySwitch"
+            Header="Minimise to tray"
+            OffContent="Minimise to taskbar"
+            OnContent="Hide the window and keep ModernTinyWall running in the tray"
+            Toggled="OptionsSwitch_Toggled" />
+
+        <ToggleSwitch
+            x:Name="CloseToTraySwitch"
+            Header="Close to tray"
+            OffContent="Close the application"
+            OnContent="Hide the window and keep ModernTinyWall running in the tray"
+            Toggled="OptionsSwitch_Toggled" />
+
+        <InfoBar
+            IsOpen="True"
+            Severity="Informational"
+            Title="Tray behaviour"
+            Message="The tray icon remains available while ModernTinyWall is hidden. Use the tray menu or the terminate button below to fully exit." />
+
+        <Button Content="Terminate application" Click="TerminateButton_Click" HorizontalAlignment="Left" />
+    </StackPanel>
+</Page>

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     // Implements the manual sorting of items by columns.
     internal class ListViewItemComparer : IComparer<ListViewItem>, IComparer

@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+	<LangVersion>14.0</LangVersion>
+	<Nullable>enable</Nullable>
+	<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	<NeutralLanguage>en-GB</NeutralLanguage>
+	<EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>

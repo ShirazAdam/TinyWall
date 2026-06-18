@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal sealed partial class AppFinderForm : Form
     {
@@ -117,15 +117,15 @@ namespace pylorak.TinyWall
             // ------------------------------------
 
             // List of all possible paths to search
-            string[] searchPaths = new string[]{
+            string[] searchPaths = [
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                 Utils.ProgramFilesx86(),
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
-            };
+            ];
 
             // Make sure we do not search the same path twice
-            searchPaths = searchPaths.Distinct().ToArray();
+            searchPaths = [.. searchPaths.Distinct()];
 
             // Construct a list of all file extensions we are looking for
             var exts = new HashSet<string>();

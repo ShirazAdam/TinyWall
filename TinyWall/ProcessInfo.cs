@@ -1,7 +1,7 @@
-﻿using pylorak.Windows;
+using ModernTinyWall.Windows;
 using System.Collections.Generic;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal class ProcessInfo
     {

@@ -1,17 +1,17 @@
-﻿using pylorak.Windows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class ProcessesForm : Form
     {
-        internal readonly List<ProcessInfo> Selection = new();
+        internal readonly List<ProcessInfo> Selection = [];
 
         private readonly Size _iconSize = new((int)Math.Round(16 * Utils.DpiScalingFactor),
             (int)Math.Round(16 * Utils.DpiScalingFactor));
@@ -63,21 +63,28 @@ namespace pylorak.TinyWall
 
         private async void ProcessesForm_Load(object sender, EventArgs ev)
         {
-            Icon = Resources.Icons.firewall;
-            if (ActiveConfig.Controller.ProcessesFormWindowSize.Width != 0)
-                Size = ActiveConfig.Controller.ProcessesFormWindowSize;
-            if (ActiveConfig.Controller.ProcessesFormWindowLoc.X != 0)
+            try
             {
-                Location = ActiveConfig.Controller.ProcessesFormWindowLoc;
-                Utils.FixupFormPosition(this);
+                Icon = Resources.Icons.firewall;
+                if (ActiveConfig.Controller.ProcessesFormWindowSize.Width != 0)
+                    Size = ActiveConfig.Controller.ProcessesFormWindowSize;
+                if (ActiveConfig.Controller.ProcessesFormWindowLoc.X != 0)
+                {
+                    Location = ActiveConfig.Controller.ProcessesFormWindowLoc;
+                    Utils.FixupFormPosition(this);
+                }
+
+                WindowState = ActiveConfig.Controller.ProcessesFormWindowState;
+
+                await UpdateListAsync();
             }
-
-            WindowState = ActiveConfig.Controller.ProcessesFormWindowState;
-
-            await UpdateListAsync();
+            catch
+            {
+                // ignored
+            }
         }
 
-        private Task UpdateListAsync()
+        private async Task UpdateListAsync()
         {
             lblPleaseWait.Visible = true;
             Enabled = false;
@@ -88,14 +95,63 @@ namespace pylorak.TinyWall
                     col.Width = width;
             }
 
-            List<ListViewItem> itemColl = new List<ListViewItem>();
+            var searchItem = _searchItem;
+
+            try
+            {
+                var processes = await Task.Run(() => BuildProcessEntries(searchItem));
+                var itemColl = new List<ListViewItem>(processes.Count);
+
+                foreach (var entry in processes)
+                {
+                    var li = new ListViewItem(entry.DisplayName);
+                    li.SubItems.Add(string.Join(", ", entry.Process.Services.ToArray()));
+                    li.SubItems.Add(entry.Process.Path);
+                    li.Tag = entry.Process;
+                    itemColl.Add(li);
+
+                    if (entry.PathMetadata.ImageKey is not null)
+                    {
+                        if ((entry.PathMetadata.IconPng is not null) && !IconList.Images.ContainsKey(entry.PathMetadata.ImageKey))
+                        {
+                            using var iconStream = new MemoryStream(entry.PathMetadata.IconPng);
+                            IconList.Images.Add(entry.PathMetadata.ImageKey, Image.FromStream(iconStream));
+                        }
+
+                        li.ImageKey = entry.PathMetadata.ImageKey;
+                    }
+                }
+
+                Utils.SetDoubleBuffering(listView, true);
+                listView.BeginUpdate();
+                try
+                {
+                    listView.Items.Clear();
+                    listView.ListViewItemSorter = new ListViewItemComparer(0);
+                    listView.Items.AddRange([.. itemColl]);
+                }
+                finally
+                {
+                    listView.EndUpdate();
+                }
+            }
+            finally
+            {
+                lblPleaseWait.Visible = false;
+                Enabled = true;
+            }
+        }
+
+        private static List<ProcessListEntry> BuildProcessEntries(string searchItem)
+        {
+            var entries = new List<ProcessListEntry>();
             var packageList = new UwpPackageList();
-            ServicePidMap servicePids = new ServicePidMap();
+            var servicePids = new ServicePidMap();
 
             Process[] procs = Process.GetProcesses();
 
-            if (!string.IsNullOrWhiteSpace(_searchItem))
-                procs = procs.Where(p => p.ProcessName.ToLower().Contains(_searchItem.ToLower())).ToArray();
+            if (!string.IsNullOrWhiteSpace(searchItem))
+                procs = [.. procs.Where(p => p.ProcessName.Contains(searchItem, StringComparison.CurrentCultureIgnoreCase))];
 
             foreach (var t in procs)
             {
@@ -103,45 +159,21 @@ namespace pylorak.TinyWall
                 try
                 {
                     var pid = unchecked((uint)p.Id);
-                    var e = ProcessInfo.Create(pid, packageList, servicePids);
+                    var processInfo = ProcessInfo.Create(pid, packageList, servicePids);
 
-                    if (string.IsNullOrEmpty(e.Path))
+                    if (string.IsNullOrEmpty(processInfo.Path))
                         continue;
 
-                    // Scan list of already added items to prevent duplicates
-                    bool skip = itemColl.Select(t1 => (ProcessInfo)t1.Tag).Any(opi =>
-                        (e.Package == opi.Package) && (e.Path == opi.Path) && (e.Services.SetEquals(opi.Services)));
+                    // Scan list of already added items to prevent duplicates.
+                    bool skip = entries.Select(t1 => t1.Process).Any(opi =>
+                        (processInfo.Package == opi.Package) && (processInfo.Path == opi.Path) && (processInfo.Services.SetEquals(opi.Services)));
 
                     if (skip)
                         continue;
 
-                    // Add list item
-                    ListViewItem li = new ListViewItem(e.Package.HasValue ? e.Package.Value.Name : p.ProcessName);
-                    li.SubItems.Add(string.Join(", ", e.Services.ToArray()));
-                    li.SubItems.Add(e.Path);
-                    li.Tag = e;
-                    itemColl.Add(li);
-
-                    // Add icon
-                    if (e.Package.HasValue)
-                    {
-                        li.ImageKey = @"store";
-                    }
-                    else if (e.Path == "System")
-                    {
-                        li.ImageKey = @"system";
-                    }
-                    else if (NetworkPath.IsNetworkPath(e.Path))
-                    {
-                        li.ImageKey = @"network-drive";
-                    }
-                    else if (System.IO.Path.IsPathRooted(e.Path) && System.IO.File.Exists(e.Path))
-                    {
-                        if (!IconList.Images.ContainsKey(e.Path))
-                            IconList.Images.Add(e.Path,
-                                Utils.GetIconContained(e.Path, _iconSize.Width, _iconSize.Height));
-                        li.ImageKey = e.Path;
-                    }
+                    var displayName = processInfo.Package.HasValue ? processInfo.Package.Value.Name : p.ProcessName;
+                    var pathMetadata = PathMetadataCache.Get(processInfo.Path, processInfo.Package.HasValue, 16, 16);
+                    entries.Add(new ProcessListEntry(processInfo, displayName, pathMetadata));
                 }
                 catch
                 {
@@ -149,30 +181,10 @@ namespace pylorak.TinyWall
                 }
             }
 
-            Utils.SetDoubleBuffering(listView, true);
-            listView.BeginUpdate();
-            listView.Items.Clear();
-            listView.ListViewItemSorter = new ListViewItemComparer(0);
-
-            //if (!string.IsNullOrWhiteSpace(_searchItem))
-            //    itemColl = itemColl.Where(item =>
-            //        {
-            //            var subItem = item.SubItems;
-
-            //            return (subItem[0].Text.ToLower().Contains(_searchItem) ||
-            //                    subItem[1].Text.ToLower().Contains(_searchItem) ||
-            //                    subItem[2].Text.ToLower().Contains(_searchItem));
-            //        })
-            //        .ToList();
-
-            listView.Items.AddRange(itemColl.ToArray());
-            listView.EndUpdate();
-
-            lblPleaseWait.Visible = false;
-            Enabled = true;
-
-            return Task.CompletedTask;
+            return entries;
         }
+
+        private sealed record ProcessListEntry(ProcessInfo Process, string DisplayName, PathMetadata PathMetadata);
 
         private void listView_ColumnClick(object sender, ColumnClickEventArgs e)
         {

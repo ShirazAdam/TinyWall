@@ -1,14 +1,14 @@
-﻿using Microsoft.Samples;
-using pylorak.Utilities;
-using pylorak.Windows;
+using Microsoft.Samples;
+using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
 using System;
 using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
-    internal class FirewallLogWatcher : Disposable
+    internal partial class FirewallLogWatcher : Disposable
     {
         //private readonly string FIREWALLLOG_PATH = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"LogFiles\Firewall\pfirewall.log");
         private readonly EventLogWatcher _logWatcher;
@@ -143,7 +143,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        private static class NativeMethods
+        private static partial class NativeMethods
         {
             [Flags]
             internal enum AuditingInformationEnum : uint
@@ -162,9 +162,9 @@ namespace pylorak.TinyWall
                 internal Guid AuditCategoryGuid;
             }
 
-            [DllImport("advapi32", SetLastError = true)]
+            [LibraryImport("advapi32", EntryPoint = "AuditSetSystemPolicy", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.U1)]
-            internal static extern bool AuditSetSystemPolicy([In] ref AuditPolicyInformation pAuditPolicy, uint policyCount);
+            internal static partial bool AuditSetSystemPolicy(ref AuditPolicyInformation pAuditPolicy, uint policyCount);
         }
 
         private static readonly Guid PacketLoggingAuditSubcat = new("{0CCE9225-69AE-11D9-BED3-505054503030}");

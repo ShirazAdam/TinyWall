@@ -1,4 +1,4 @@
-﻿namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     partial class DevelToolForm
     {

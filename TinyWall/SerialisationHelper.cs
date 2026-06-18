@@ -1,4 +1,4 @@
-﻿using pylorak.Utilities;
+using ModernTinyWall.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public interface ISerializable<T>
     {
@@ -169,7 +169,7 @@ namespace pylorak.TinyWall
             try
             {
                 // Construct encryptor
-                using var symmetricKey = new AesCryptoServiceProvider();
+                using var symmetricKey = Aes.Create();
                 symmetricKey.Mode = CipherMode.CBC;
                 symmetricKey.Key = Encoding.ASCII.GetBytes(key);
                 symmetricKey.IV = Encoding.ASCII.GetBytes(iv);
@@ -192,7 +192,7 @@ namespace pylorak.TinyWall
         public static void SerialiseToEncryptedFile<T>(T obj, string filePath, string key, string iv) where T : ISerializable<T>
         {
             // Construct encryptor
-            using var symmetricKey = new AesCryptoServiceProvider();
+            using var symmetricKey = Aes.Create();
             symmetricKey.Mode = CipherMode.CBC;
             symmetricKey.Key = Encoding.ASCII.GetBytes(key);
             symmetricKey.IV = Encoding.ASCII.GetBytes(iv);
@@ -208,7 +208,7 @@ namespace pylorak.TinyWall
         }
 
         private static readonly Type[] KnownDataContractTypes =
-        {
+        [
             typeof(BlockListSettings),
             typeof(ServerProfileConfiguration),
             typeof(ServerConfiguration),
@@ -231,7 +231,7 @@ namespace pylorak.TinyWall
 
             typeof(UpdateModule),
             typeof(UpdateDescriptor),
-        };
+        ];
 
         public static T DeserialiseDc<T>(Stream stream)
         {
@@ -242,7 +242,7 @@ namespace pylorak.TinyWall
         public static T LoadFromEncryptedXmlFile<T>(string filepath, string key, string iv)
         {
             // Construct encryptor
-            using var symmetricKey = new AesCryptoServiceProvider();
+            using var symmetricKey = Aes.Create();
             symmetricKey.Mode = CipherMode.CBC;
             symmetricKey.Key = Encoding.ASCII.GetBytes(key);
             symmetricKey.IV = Encoding.ASCII.GetBytes(iv);

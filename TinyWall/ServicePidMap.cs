@@ -1,8 +1,8 @@
-﻿using pylorak.Windows.Services;
+using ModernTinyWall.Windows.Services;
 using System.Collections.Generic;
 using System.ServiceProcess;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class ServicePidMap
     {
@@ -28,7 +28,7 @@ namespace pylorak.TinyWall
 
         public HashSet<string> GetServicesInPid(uint pid)
         {
-            return !_cache.TryGetValue(pid, out var value) ? new HashSet<string>() : new HashSet<string>(value);
+            return !_cache.TryGetValue(pid, out var value) ? new HashSet<string>() : [.. value];
         }
     }
 }

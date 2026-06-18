@@ -1,4 +1,4 @@
-﻿using pylorak.Windows;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,11 +6,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class ApplicationExceptionForm : Form
     {
-        private static readonly char[] PortListSeparators = { ',' };
+        private static readonly char[] PortListSeparators = [','];
 
         internal List<FirewallExceptionV3> ExceptionSettings { get; } = new();
 
@@ -37,7 +37,7 @@ namespace pylorak.TinyWall
 
                 if (method != null)
                 {
-                    object[] param = { ControlStyles.SupportsTransparentBackColor, true };
+                    object[] param = [ControlStyles.SupportsTransparentBackColor, true];
                     method.Invoke(transparentLabel1, param);
                 }
             }

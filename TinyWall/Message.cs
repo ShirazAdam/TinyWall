@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class TwMessageConverter : PolymorphicJsonConverter<TwMessage>
     {
@@ -226,7 +226,7 @@ namespace pylorak.TinyWall
 
         public static TwMessageReadFwLog CreateRequest()
         {
-            return new TwMessageReadFwLog(Array.Empty<FirewallLogEntry>());
+            return new TwMessageReadFwLog([]);
         }
 
 #pragma warning disable IDE0079 // Remove unnecessary suppression
@@ -380,7 +380,7 @@ namespace pylorak.TinyWall
 #pragma warning restore IDE0079 // Remove unnecessary suppression
         public TwMessageAddTempException CreateResponse()
         {
-            return new TwMessageAddTempException(Array.Empty<FirewallExceptionV3>());
+            return new TwMessageAddTempException([]);
         }
     }
 

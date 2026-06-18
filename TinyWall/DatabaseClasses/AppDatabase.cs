@@ -1,4 +1,4 @@
-﻿using Microsoft.Samples;
+using Microsoft.Samples;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall.DatabaseClasses
+namespace ModernTinyWall.TinyWall.DatabaseClasses
 {
     [DataContract(Namespace = "TinyWall")]
     class AppDatabase : ISerializable<AppDatabase>
@@ -121,7 +121,7 @@ namespace pylorak.TinyWall.DatabaseClasses
 
                 // Now that we have the app, try to instantiate firewall exceptions
                 // for all components.
-                string pathHint = System.IO.Path.GetDirectoryName(exeSubject.ExecutablePath);
+                string? pathHint = System.IO.Path.GetDirectoryName(exeSubject.ExecutablePath);
                 foreach (SubjectIdentity id in app.Components)
                 {
                     List<ExceptionSubject> foundSubjects = id.SearchForFile(pathHint);
@@ -137,6 +137,9 @@ namespace pylorak.TinyWall.DatabaseClasses
                 }
 
                 // If we have found dependencies, ask the user what to do
+#if TINYWALL_CORE
+                _ = guiPrompt;
+#else
                 if ((exceptions.Count > 1) && guiPrompt)
                 {
 
@@ -162,7 +165,7 @@ namespace pylorak.TinyWall.DatabaseClasses
                     var button1 = new TaskDialogButton(101, Resources.Messages.UnblockAppUnblockAllRecommended);
                     var button2 = new TaskDialogButton(102, Resources.Messages.UnblockAppUnblockOnlySelected);
                     var button3 = new TaskDialogButton(103, Resources.Messages.UnblockAppCancel);
-                    dialog.Buttons = new TaskDialogButton[] { button1, button2, button3 };
+                    dialog.Buttons = [button1, button2, button3];
 
                     var fileListStr = exceptions.Aggregate(string.Empty, (current, fwex) => current + (fwex.Subject.ToString() + Environment.NewLine));
                     dialog.ExpandedInformation = fileListStr.Trim();
@@ -195,6 +198,7 @@ namespace pylorak.TinyWall.DatabaseClasses
                             break;
                     }
                 }
+#endif
             }
             else
             {

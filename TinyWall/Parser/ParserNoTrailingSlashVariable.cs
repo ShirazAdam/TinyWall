@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 
-namespace pylorak.TinyWall.Parser
+namespace ModernTinyWall.TinyWall.Parser
 {
     public sealed class ParserNoTrailingSlashVariable : ParserVariable
     {

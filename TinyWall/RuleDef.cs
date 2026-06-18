@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     [DataContract(Namespace = "TinyWall")]
     public class RuleDef

@@ -1,8 +1,8 @@
-﻿using pylorak.Utilities;
-using pylorak.Windows;
-using pylorak.Windows.Services;
-using pylorak.Windows.WFP;
-using pylorak.Windows.WFP.Interop;
+using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
+using ModernTinyWall.Windows.Services;
+using ModernTinyWall.Windows.WFP;
+using ModernTinyWall.Windows.WFP.Interop;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,11 +11,12 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public sealed class TinyWallServer : IDisposable
     {
@@ -500,12 +501,9 @@ namespace pylorak.TinyWall
             {
                 if (-1 != str.IndexOf('-'))
                 {
-                    ReadOnlySpan<char> min, max;
-                    using (var enumerator = str.Split('-'))
-                    {
-                        enumerator.MoveNext(); min = enumerator.Current;
-                        enumerator.MoveNext(); max = enumerator.Current;
-                    }
+                    var separatorIndex = str.IndexOf('-');
+                    var min = str[..separatorIndex];
+                    var max = str[(separatorIndex + 1)..];
                     return (min.DecimalToUInt16(), max.DecimalToUInt16());
                 }
                 else
@@ -561,7 +559,7 @@ namespace pylorak.TinyWall
                 Debug.Assert(!r.RemoteAddresses.Equals("*"));
 
                 var validAddressFound = false;
-                foreach (var ipStr in r.RemoteAddresses.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var ipStr in r.RemoteAddresses.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     if (ipStr.Equals(RuleDef.LOCALSUBNET_ID, StringComparison.Ordinal))
                     {
@@ -610,7 +608,7 @@ namespace pylorak.TinyWall
             if (!Utils.IsNullOrEmpty(r.LocalPorts))
             {
                 Debug.Assert(!r.LocalPorts.Equals("*"));
-                foreach (var p in r.LocalPorts.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var p in r.LocalPorts.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var (minPort, maxPort) = ParseUInt16Range(p);
                     conditions.Add(new PortFilterCondition(minPort, maxPort, RemoteOrLocal.Local));
@@ -619,7 +617,7 @@ namespace pylorak.TinyWall
             if (!Utils.IsNullOrEmpty(r.RemotePorts))
             {
                 Debug.Assert(!r.RemotePorts.Equals("*"));
-                foreach (var p in r.RemotePorts.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var p in r.RemotePorts.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var (minPort, maxPort) = ParseUInt16Range(p);
                     conditions.Add(new PortFilterCondition(minPort, maxPort, RemoteOrLocal.Remote));
@@ -630,10 +628,11 @@ namespace pylorak.TinyWall
             if (!Utils.IsNullOrEmpty(r.IcmpTypesAndCodes))
             {
                 Debug.Assert(!r.IcmpTypesAndCodes.Equals("*"));
-                foreach (var e in r.IcmpTypesAndCodes.AsSpan().Split(',', SpanSplitOptions.RemoveEmptyEntries))
+                foreach (var icmpValue in r.IcmpTypesAndCodes.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
-                    using var tc = e.Split(':');
-                    tc.MoveNext(); var icmpType = tc.Current;
+                    var e = icmpValue.AsSpan();
+                    var separatorIndex = e.IndexOf(':');
+                    var icmpType = separatorIndex < 0 ? e : e[..separatorIndex];
 
                     if (LayerIsIcmpError(layer))
                     {
@@ -642,9 +641,9 @@ namespace pylorak.TinyWall
                             conditions.Add(new IcmpErrorTypeFilterCondition(icmpTypeVal));
 
                         // ICMP Code
-                        if (!tc.MoveNext()) continue;
+                        if (separatorIndex < 0) continue;
 
-                        var icmpCode = tc.Current;
+                        var icmpCode = e[(separatorIndex + 1)..];
                         if ((icmpCode.Length != 0) && !icmpCode.Equals("*", StringComparison.Ordinal) && icmpCode.TryDecimalToUInt16(out var icmpCodeVal))
                             conditions.Add(new IcmpErrorCodeFilterCondition(icmpCodeVal));
                     }
@@ -1160,7 +1159,7 @@ namespace pylorak.TinyWall
                 if (DateTime.Now - LastUpdateCheck >= TimeSpan.FromDays(2))
                 {
                     LastUpdateCheck = DateTime.Now;
-                    update = UpdateChecker.GetDescriptor();
+                    update = UpdateChecker.GetDescriptorAsync().GetAwaiter().GetResult();
                 }
             }
             catch
@@ -1209,9 +1208,15 @@ namespace pylorak.TinyWall
             var tmpFile = Path.GetTempFileName();
             try
             {
-                using (var downloader = new WebClient())
+                using (var downloader = new HttpClient())
                 {
-                    if (module.UpdateUrl != null) downloader.DownloadFile(module.UpdateUrl, tmpCompressedPath);
+                    if (module.UpdateUrl != null)
+                    {
+                        // Keep this synchronous in the service context; async changes are limited to UI responsiveness paths.
+                        using var sourceStream = downloader.GetStreamAsync(module.UpdateUrl).GetAwaiter().GetResult();
+                        using var destinationStream = new FileStream(tmpCompressedPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        sourceStream.CopyTo(destinationStream);
+                    }
                 }
                 Utils.DecompressDeflate(tmpCompressedPath, tmpFile);
 
@@ -1362,7 +1367,7 @@ namespace pylorak.TinyWall
                 case MessageType.READ_FW_LOG:
                     {
                         var args = (TwMessageReadFwLog)req;
-                        return args.CreateResponse(GetFwLog().ToArray());
+                        return args.CreateResponse([.. GetFwLog()]);
                     }
                 case MessageType.IS_LOCKED:
                     {
@@ -1843,7 +1848,7 @@ namespace pylorak.TinyWall
                 if (newExceptions == null) return;
 
                 lock (_firewallThreadThrottler.SynchRoot) { _firewallThreadThrottler.Request(); }
-                _q.Add(new TwRequest(TwMessageAddTempException.CreateRequest(newExceptions.ToArray())));
+                _q.Add(new TwRequest(TwMessageAddTempException.CreateRequest([.. newExceptions])));
             }
             finally
             {
@@ -2026,12 +2031,12 @@ namespace pylorak.TinyWall
 
     internal sealed class TinyWallService : ServiceBase
     {
-        internal static readonly string[] SERVICE_DEPENDENCIES = new string[]
-        {
+        internal static readonly string[] SERVICE_DEPENDENCIES =
+        [
             "Schedule",
             "Winmgmt",
             "BFE"
-        };
+        ];
 
         internal const string SERVICE_NAME = "TinyWall";
 

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+	<OutputType>WinExe</OutputType>
+	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+	<TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+	<RootNamespace>ModernTinyWall</RootNamespace>
+	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<Platforms>x86;x64;ARM64;AnyCPU</Platforms>
+	<UseWinUI>true</UseWinUI>
+	<WindowsPackageType>None</WindowsPackageType>
+	<Nullable>enable</Nullable>
+	<LangVersion>14.0</LangVersion>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<NeutralLanguage>en-GB</NeutralLanguage>
+	<DefaultLanguage>en-GB</DefaultLanguage>
+	<EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <ItemGroup>
+	<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250916003" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\TinyWall.Core\TinyWall.Core.csproj" />
+	<ProjectReference Include="..\ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj" />
+	  <ProjectReference Include="..\ModernTinyWall.Windows.Services\ModernTinyWall.Windows.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Licence.rtf" Link="Licence.rtf" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Attributions.txt" Link="Attributions.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

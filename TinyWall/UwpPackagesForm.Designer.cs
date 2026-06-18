@@ -1,4 +1,4 @@
-﻿namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     partial class UwpPackagesForm
     {
@@ -46,7 +46,7 @@
             // 
             resources.ApplyResources(this.btnCancel, "btnCancel");
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Image = global::pylorak.TinyWall.Resources.Icons.cancel;
+            this.btnCancel.Image = global::ModernTinyWall.TinyWall.Resources.Icons.cancel;
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -54,7 +54,7 @@
             // btnOK
             // 
             resources.ApplyResources(this.btnOK, "btnOK");
-            this.btnOK.Image = global::pylorak.TinyWall.Resources.Icons.accept;
+            this.btnOK.Image = global::ModernTinyWall.TinyWall.Resources.Icons.accept;
             this.btnOK.Name = "btnOK";
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);

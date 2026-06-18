@@ -1,6 +1,6 @@
-﻿using Microsoft.Samples;
-using pylorak.Utilities;
-using pylorak.Windows;
+using Microsoft.Samples;
+using ModernTinyWall.Utilities;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal sealed class TinyWallController : ApplicationContext
     {
@@ -85,7 +85,7 @@ namespace pylorak.TinyWall
             //
             // TrayMenu
             //
-            TrayMenu.Items.AddRange(new ToolStripItem[] {
+            TrayMenu.Items.AddRange([
             mnuTrafficRate,
             toolStripMenuItem1,
             mnuMode,
@@ -101,7 +101,7 @@ namespace pylorak.TinyWall
             mnuWhitelistByProcess,
             mnuWhitelistByWindow,
             toolStripMenuItem5,
-            mnuQuit});
+            mnuQuit]);
             TrayMenu.Name = "TrayMenu";
             resources.ApplyResources(TrayMenu, "TrayMenu");
             TrayMenu.Opening += TrayMenu_Opening;
@@ -121,12 +121,12 @@ namespace pylorak.TinyWall
             // mnuMode
             //
             mnuMode.AccessibleRole = AccessibleRole.ButtonMenu;
-            mnuMode.DropDownItems.AddRange(new ToolStripItem[] {
+            mnuMode.DropDownItems.AddRange([
             mnuModeNormal,
             mnuModeBlockAll,
             mnuModeAllowOutgoing,
             mnuModeDisabled,
-            mnuModeLearn});
+            mnuModeLearn]);
             mnuMode.Name = "mnuMode";
             resources.ApplyResources(mnuMode, "mnuMode");
             //
@@ -1440,7 +1440,6 @@ namespace pylorak.TinyWall
             _balloonClickedCallback = balloonClicked;
             _balloonClickedCallbackArgument = handlerArg;
             Tray.ShowBalloonTip(periodMs, "TinyWall", msg, icon);
-            Thread.Sleep(500);
         }
 
         private static void SetHotkey(ComponentResourceManager resourceManager, ref Hotkey? hk, HandledEventHandler hkCallback, Keys keyCode, ToolStripMenuItem menu, string mnuName)
@@ -1586,7 +1585,7 @@ namespace pylorak.TinyWall
 
             Utils.SplitFirstLine(Resources.Messages.YouAreAboutToEnterLearningMode, out var firstLine, out var contentLines);
 
-            var dialog = new TaskDialog
+            var dialog = new Microsoft.Samples.TaskDialog
             {
                 CustomMainIcon = Resources.Icons.firewall,
                 WindowTitle = Resources.Messages.TinyWall,

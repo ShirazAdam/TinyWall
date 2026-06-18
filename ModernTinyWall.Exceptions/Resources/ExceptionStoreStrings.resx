@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ExceptionAdded" xml:space="preserve">
+    <value>Exception added.</value>
+  </data>
+  <data name="ExecutableExceptionsAdded" xml:space="preserve">
+    <value>Executable exceptions added.</value>
+  </data>
+  <data name="ServiceExceptionAdded" xml:space="preserve">
+    <value>Service exception added.</value>
+  </data>
+  <data name="PackageExceptionAdded" xml:space="preserve">
+    <value>Package exception added.</value>
+  </data>
+  <data name="ExceptionUpdated" xml:space="preserve">
+    <value>Exception updated.</value>
+  </data>
+  <data name="ExceptionRemoved" xml:space="preserve">
+    <value>Exception removed.</value>
+  </data>
+  <data name="AllExceptionsRemoved" xml:space="preserve">
+    <value>All exceptions removed.</value>
+  </data>
+  <data name="CouldNotLoadSettings" xml:space="preserve">
+    <value>Could not load TinyWall settings from the service.</value>
+  </data>
+  <data name="TinyWallLocked" xml:space="preserve">
+    <value>TinyWall is locked. Unlock it before changing application exceptions.</value>
+  </data>
+  <data name="CouldNotContactService" xml:space="preserve">
+    <value>Could not contact the TinyWall service.</value>
+  </data>
+  <data name="CouldNotUpdateExceptions" xml:space="preserve">
+    <value>The TinyWall service could not update application exceptions.</value>
+  </data>
+  <data name="UnexpectedServiceResponseFormat" xml:space="preserve">
+    <value>Unexpected TinyWall service response: {0}.</value>
+  </data>
+  <data name="ExistingExceptionPromptFormat" xml:space="preserve">
+    <value>This {0} was added before as {1}. Apply the new {2} requirement?</value>
+  </data>
+  <data name="CannotApplyUnnamedItemFormat" xml:space="preserve">
+    <value>Cannot {0} this item because its name is unavailable.</value>
+  </data>
+  <data name="CannotApplyServiceWithoutPathFormat" xml:space="preserve">
+    <value>Cannot {0} this service because its executable path is unavailable.</value>
+  </data>
+  <data name="CannotApplyPackageWithoutSidFormat" xml:space="preserve">
+    <value>Cannot {0} this package because its package SID is unavailable.</value>
+  </data>
+  <data name="CannotApplyProcessWithoutPathFormat" xml:space="preserve">
+    <value>Cannot {0} this process because its executable path is unavailable.</value>
+  </data>
+  <data name="ExceptionAppliedFormat" xml:space="preserve">
+    <value>{0} exception applied.</value>
+  </data>
+</root>

@@ -1,24 +1,24 @@
-﻿using NetFwTypeLib;
-using pylorak.Utilities;
+using NetFwTypeLib;
+using ModernTinyWall.Utilities;
 using System;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     class WindowsFirewall : Disposable
     {
         private readonly EventLogWatcher? _wfEventWatcher;
 
         // This is a list of apps that are allowed to change firewall rules
-        private static readonly string[] WhitelistedApps = {
+        private static readonly string[] WhitelistedApps = [
 #if DEBUG
             Path.Combine(Path.GetDirectoryName(Utils.ExecutablePath)!, "TinyWall.vshost.exe"),
 #endif
             Utils.ExecutablePath,
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "dllhost.exe")
-        };
+        ];
 
         public WindowsFirewall()
         {

@@ -10,7 +10,7 @@
     <_LastSelectedProfileId>C:\Users\shira_st8177f\Projects\GH\ShirazAdam\TinyWall\TinyWall\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Update="..\pylorak.Windows\TaskDialogue\TaskDialogueCommonDialogue.cs">
+    <Compile Update="..\ModernTinyWall.Windows\TaskDialogue\TaskDialogueCommonDialogue.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="Installer\ServiceInstaller.cs">

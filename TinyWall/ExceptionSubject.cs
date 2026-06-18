@@ -1,12 +1,12 @@
-﻿using pylorak.TinyWall.Parser;
-using pylorak.Windows;
+using ModernTinyWall.TinyWall.Parser;
+using ModernTinyWall.Windows;
 using System;
 using System.Runtime.Serialization;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class ExceptionSubjectConverter : PolymorphicJsonConverter<ExceptionSubject>
     {
@@ -61,7 +61,7 @@ namespace pylorak.TinyWall
         [JsonPropertyOrder(-1)]
         public abstract SubjectType SubjectType { get; }
 
-        public abstract bool Equals(ExceptionSubject other);
+        public abstract bool Equals(ExceptionSubject? other);
 
         public override bool Equals(object? obj)
         {
@@ -184,7 +184,7 @@ namespace pylorak.TinyWall
                 {
                     try
                     {
-                        X509Certificate cert = X509Certificate.CreateFromSignedFile(ExecutablePath);
+                        X509Certificate cert = X509CertificateLoader.LoadCertificateFromFile(ExecutablePath);
                         _certSubject = cert.Subject;
                     }
                     catch
@@ -247,7 +247,7 @@ namespace pylorak.TinyWall
             return new ExecutableSubject(ResolvePath(ExecutablePath));
         }
 
-        public override bool Equals(ExceptionSubject other)
+        public override bool Equals(ExceptionSubject? other)
         {
             return other switch
             {

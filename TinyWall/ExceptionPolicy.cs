@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     public class ExceptionPolicyConverter : PolymorphicJsonConverter<ExceptionPolicy>
     {
@@ -216,13 +216,13 @@ namespace pylorak.TinyWall
             // a wildcard into the new merged rule too.
             // Otherwise, we just join the two port lists.
 
-            var list1 = str1.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var list1 = str1.Split([','], StringSplitOptions.RemoveEmptyEntries);
             if (list1.Any(elem => elem.Equals("*")))
             {
                 return "*";
             }
 
-            var list2 = str2.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var list2 = str2.Split([','], StringSplitOptions.RemoveEmptyEntries);
             if (list2.Any(elem => elem.Equals("*")))
             {
                 return "*";

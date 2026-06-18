@@ -1,4 +1,4 @@
-﻿using pylorak.Utilities;
+using ModernTinyWall.Utilities;
 #if !DEBUG
 using System;
 #endif
@@ -9,7 +9,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/PKSoft")]
     public sealed class ControllerSettings : ISerializable<ControllerSettings>
@@ -108,7 +108,7 @@ namespace pylorak.TinyWall
 
         internal static string FilePath => Path.Combine(UserDataPath, "ControllerConfig");
 
-        internal void Save()
+        public void Save()
         {
             try
             {
@@ -120,7 +120,7 @@ namespace pylorak.TinyWall
             }
         }
 
-        internal static ControllerSettings Load()
+        public static ControllerSettings Load()
         {
             try
             {

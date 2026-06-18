@@ -1,4 +1,4 @@
-﻿namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     // Actually valid protocol numbers and interpretations can be found on:
     // http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xml

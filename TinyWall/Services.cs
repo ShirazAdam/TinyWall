@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace pylorak.TinyWall
+namespace ModernTinyWall.TinyWall
 {
     internal partial class ServicesForm : Form
     {
@@ -111,7 +111,7 @@ namespace pylorak.TinyWall
             await UpdateListAsync();
         }
 
-        private Task UpdateListAsync()
+        private async Task UpdateListAsync()
         {
             foreach (ColumnHeader col in listView.Columns)
             {
@@ -119,49 +119,63 @@ namespace pylorak.TinyWall
                     col.Width = width;
             }
 
-            var itemColl = new List<ListViewItem>();
+            var searchItem = _searchItem;
+            var services = await Task.Run(() => BuildServiceEntries(searchItem));
+            var itemColl = new List<ListViewItem>(services.Count);
 
+            foreach (var service in services)
+            {
+                var li = new ListViewItem(service.DisplayName);
+                li.SubItems.Add(service.ServiceName);
+                li.SubItems.Add(service.ExecutablePath);
+                itemColl.Add(li);
+            }
+
+            Utils.SetDoubleBuffering(listView, true);
+            listView.BeginUpdate();
+            try
+            {
+                listView.Items.Clear();
+                listView.ListViewItemSorter = new ListViewItemComparer(0);
+                listView.Items.AddRange([.. itemColl]);
+            }
+            finally
+            {
+                listView.EndUpdate();
+            }
+        }
+
+        private static List<ServiceListEntry> BuildServiceEntries(string searchItem)
+        {
+            var entries = new List<ServiceListEntry>();
             ServiceController[] services = ServiceController.GetServices();
 
-            if (!string.IsNullOrWhiteSpace(_searchItem))
-                services = services.Where(s =>
-                    s.ServiceName.ToLower().Contains(_searchItem.ToLower())
-                    || s.DisplayName.ToLower().Contains(_searchItem.ToLower())
-                ).ToArray();
+            if (!string.IsNullOrWhiteSpace(searchItem))
+                services = [.. services.Where(s =>
+                    s.ServiceName.Contains(searchItem, StringComparison.CurrentCultureIgnoreCase)
+                    || s.DisplayName.Contains(searchItem, StringComparison.CurrentCultureIgnoreCase)
+                )];
 
             foreach (var srv in services)
             {
                 try
                 {
-                    var li = new ListViewItem(srv.DisplayName);
-                    li.SubItems.Add(srv.ServiceName);
-                    li.SubItems.Add(GetServiceExecutable(srv.ServiceName));
-                    itemColl.Add(li);
+                    entries.Add(new ServiceListEntry(srv.DisplayName, srv.ServiceName, GetServiceExecutable(srv.ServiceName)));
                 }
                 catch
                 {
                     // ignored
                 }
+                finally
+                {
+                    srv.Dispose();
+                }
             }
 
-            Utils.SetDoubleBuffering(listView, true);
-            listView.BeginUpdate();
-            listView.ListViewItemSorter = new ListViewItemComparer(0);
-
-            //if (!string.IsNullOrWhiteSpace(_searchItem))
-            //    itemColl = itemColl.Where(items =>
-            //    {
-            //        var subItem = items.SubItems;
-
-            //        return subItem[0].Text.ToLower().Contains(_searchItem) || subItem[1].Text.ToLower().Contains(_searchItem) ||
-            //               subItem[2].Text.ToLower().Contains(_searchItem);
-            //    }).ToList();
-
-            listView.Items.AddRange(itemColl.ToArray());
-            listView.EndUpdate();
-
-            return Task.CompletedTask;
+            return entries;
         }
+
+        private sealed record ServiceListEntry(string DisplayName, string ServiceName, string ExecutablePath);
 
         private void listView_ColumnClick(object sender, ColumnClickEventArgs e)
         {

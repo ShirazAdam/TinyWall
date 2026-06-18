@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace pylorak.TinyWall.DatabaseClasses
+namespace ModernTinyWall.TinyWall.DatabaseClasses
 {
     [DataContract(Namespace = "TinyWall")]
     public class Application : ISerializable<Application>
@@ -19,6 +19,9 @@ namespace pylorak.TinyWall.DatabaseClasses
         {
             get
             {
+#if TINYWALL_CORE
+                return Name;
+#else
                 try
                 {
                     string ret = Resources.Exceptions.ResourceManager.GetString(Name);
@@ -28,6 +31,7 @@ namespace pylorak.TinyWall.DatabaseClasses
                 {
                     return Name;
                 }
+#endif
             }
         }
 
