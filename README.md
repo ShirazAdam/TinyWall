@@ -10,6 +10,8 @@
 
 # TinyWall / Modern TinyWall
 
+<img width="1412" height="816" alt="image" src="https://github.com/user-attachments/assets/e373c109-fa36-40af-8acf-907d57264af5" />
+
 TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no noisy pop-ups, no bundled drivers, and no unnecessary background clutter.
 
 The original project suffered from a lack of updates and support. The original project also suffers from performance problems where right-clicking on the tray icon can take anywhere between 2 - 12 seconds to show the context menu. Some forms can also freeze because expensive work runs on the UI thread. This fork aims to experiment and continue the development of TinyWall, keeping it up-to-date and compatible with the latest Windows versions, while also adding new features and improvements.
