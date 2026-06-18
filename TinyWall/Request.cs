@@ -13,6 +13,10 @@ namespace ModernTinyWall.TinyWall
 
         public TwMessage Request { get; init; }
 
+        /// <summary>
+        /// Gets a task that completes when the response is available.
+        /// Use this for async/await patterns to avoid blocking the calling thread.
+        /// </summary>
         public Task<TwMessage> ResponseAsync => _responseTask.Task;
 
         public TwMessage Response

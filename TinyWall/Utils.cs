@@ -23,8 +23,8 @@ namespace ModernTinyWall.TinyWall
     {
         internal static void Append(this StringBuilder sb, ReadOnlySpan<char> str)
         {
-            foreach (var t in str)
-                sb.Append(t);
+            for (int i = 0; i < str.Length; ++i)
+                sb.Append(str[i]);
         }
 
         internal static async Task<T> WaitAsync<T>(this Task<T> task, CancellationToken ct)
