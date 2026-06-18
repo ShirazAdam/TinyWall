@@ -1,42 +1,42 @@
-name: Build TinyWall (.NET Framework 4.8.1)
-permissions:
-  contents: read
+# name: Build TinyWall (.NET Framework 4.8.1)
+# permissions:
+#   contents: read
 
-on:
-  push:
-    branches:
-      - master
+# on:
+#   push:
+#     branches:
+#       - master
 
-jobs:
-  build:
+# jobs:
+#   build:
 
-    runs-on: windows-latest
+#     runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v2.7.0
-      name: Checkout Code
+#     steps:
+#     - uses: actions/checkout@v2.7.0
+#       name: Checkout Code
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1
+#     - name: Setup MSBuild
+#       uses: microsoft/setup-msbuild@v1
 
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.1.1
+#     - name: Setup NuGet
+#       uses: NuGet/setup-nuget@v1.1.1
 
-    - name: Restore NuGet Packages
-      run: nuget restore TinyWall.sln
+#     - name: Restore NuGet Packages
+#       run: nuget restore TinyWall.sln
       
-    - name: Build Solution
-      run: |
-        msbuild.exe TinyWall.sln /p:Platform="Any CPU" /p:Configuration="Release" /p:DeployOnBuild="true" /p:PublishProfile="FolderProfile" /p:PublishProfileRootFolder="TinyWall\PublishProfiles"
+#     - name: Build Solution
+#       run: |
+#         msbuild.exe TinyWall.sln /p:Platform="Any CPU" /p:Configuration="Release" /p:DeployOnBuild="true" /p:PublishProfile="FolderProfile" /p:PublishProfileRootFolder="TinyWall\PublishProfiles"
 
-#  upload:
+# #  upload:
 
-#    runs-on: windows-latest
+# #    runs-on: windows-latest
 
-#    steps:
-#    - name: Upload Release Assets
-#      uses: alexellis/upload-assets@0.4.1
-#      with:
-#        # The paths to the assets you want to upload as a JSON array. You can use a glob pattern.
-#        asset_paths: '[".\TinyWall\TinyWallSetup\Release\*"]'
+# #    steps:
+# #    - name: Upload Release Assets
+# #      uses: alexellis/upload-assets@0.4.1
+# #      with:
+# #        # The paths to the assets you want to upload as a JSON array. You can use a glob pattern.
+# #        asset_paths: '[".\TinyWall\TinyWallSetup\Release\*"]'
           
