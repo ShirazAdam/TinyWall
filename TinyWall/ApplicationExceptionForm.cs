@@ -359,8 +359,8 @@ namespace ModernTinyWall.TinyWall
                     Utils.ShowMessageBox(
                         Resources.Messages.PortListInvalid,
                         Resources.Messages.TinyWall,
-                        Microsoft.Samples.TaskDialogCommonButtons.Ok,
-                        Microsoft.Samples.TaskDialogIcon.Warning,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning,
                         this);
 
                     return;
@@ -527,8 +527,8 @@ namespace ModernTinyWall.TinyWall
                 Utils.ShowMessageBox(
                     Resources.Messages.RemoveSoftwareDialogueText,
                     Resources.Messages.RemoveSoftwareDialogueCaption,
-                    Microsoft.Samples.TaskDialogCommonButtons.Ok,
-                    Microsoft.Samples.TaskDialogIcon.Warning,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning,
                     this);
 
                 return;

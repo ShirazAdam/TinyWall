@@ -1,4 +1,3 @@
-using Microsoft.Samples;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,6 +5,9 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+#if !TINYWALL_CORE
+using System.Windows.Forms;
+#endif
 
 namespace ModernTinyWall.TinyWall.DatabaseClasses
 {
@@ -148,54 +150,47 @@ namespace ModernTinyWall.TinyWall.DatabaseClasses
                     localisedAppName = string.IsNullOrWhiteSpace(localisedAppName) ? app.Name : localisedAppName;
 
                     Utils.SplitFirstLine(string.Format(CultureInfo.InvariantCulture, Resources.Messages.UnblockApp, localisedAppName), out string firstLine, out string contentLines);
-
-                    var dialog = new TaskDialog
-                    {
-                        CustomMainIcon = Resources.Icons.firewall,
-                        WindowTitle = Resources.Messages.TinyWall,
-                        MainInstruction = firstLine,
-                        Content = contentLines,
-                        DefaultButton = 1,
-                        ExpandedControlText = Resources.Messages.UnblockAppShowRelated,
-                        ExpandFooterArea = true,
-                        AllowDialogCancellation = false,
-                        UseCommandLinks = true
-                    };
-
-                    var button1 = new TaskDialogButton(101, Resources.Messages.UnblockAppUnblockAllRecommended);
-                    var button2 = new TaskDialogButton(102, Resources.Messages.UnblockAppUnblockOnlySelected);
-                    var button3 = new TaskDialogButton(103, Resources.Messages.UnblockAppCancel);
-                    dialog.Buttons = [button1, button2, button3];
-
+                    using var dialogIcon = new TaskDialogIcon(Resources.Icons.firewall);
                     var fileListStr = exceptions.Aggregate(string.Empty, (current, fwex) => current + (fwex.Subject.ToString() + Environment.NewLine));
-                    dialog.ExpandedInformation = fileListStr.Trim();
-
-                    switch (dialog.Show())
+                    var button1 = new TaskDialogCommandLinkButton(Resources.Messages.UnblockAppUnblockAllRecommended, string.Empty);
+                    var button2 = new TaskDialogCommandLinkButton(Resources.Messages.UnblockAppUnblockOnlySelected, string.Empty);
+                    var button3 = new TaskDialogCommandLinkButton(Resources.Messages.UnblockAppCancel, string.Empty);
+                    var dialog = new TaskDialogPage
                     {
-                        case 101:
-                            break;
-                        case 102:
-                            // Remove all exceptions with a different subject than the input argument
-                            for (var i = exceptions.Count - 1; i >= 0; --i)
-                            {
-                                if (exceptions[i].Subject is ExecutableSubject exesub)
-                                {
-                                    if (exesub.ExecutablePath.Equals(exeSubject.ExecutablePath, StringComparison.OrdinalIgnoreCase)) continue;
+                        Caption = Resources.Messages.TinyWall,
+                        Heading = firstLine,
+                        Text = contentLines,
+                        Icon = dialogIcon,
+                        DefaultButton = button1,
+                        AllowCancel = false,
+                        Expander = new TaskDialogExpander
+                        {
+                            Text = fileListStr.Trim(),
+                            CollapsedButtonText = Resources.Messages.UnblockAppShowRelated,
+                            ExpandedButtonText = Resources.Messages.UnblockAppShowRelated
+                        }
+                    };
+                    dialog.Buttons.Add(button1);
+                    dialog.Buttons.Add(button2);
+                    dialog.Buttons.Add(button3);
 
-                                    exceptions.RemoveAt(i);
-                                    continue;
-                                }
-                                else
-                                {
-                                    exceptions.RemoveAt(i);
-                                    continue;
-                                }
-                            }
-                            exceptions.RemoveRange(1, exceptions.Count - 1);
-                            break;
-                        case 103:
-                            exceptions.Clear();
-                            break;
+                    var result = TaskDialog.ShowDialog(dialog, TaskDialogStartupLocation.CenterScreen);
+                    if (result == button2)
+                    {
+                        // Remove all exceptions with a different subject than the input argument
+                        for (var i = exceptions.Count - 1; i >= 0; --i)
+                        {
+                            if (exceptions[i].Subject is ExecutableSubject exesub
+                                && exesub.ExecutablePath.Equals(exeSubject.ExecutablePath, StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            exceptions.RemoveAt(i);
+                        }
+                        exceptions.RemoveRange(1, exceptions.Count - 1);
+                    }
+                    else if (result == button3)
+                    {
+                        exceptions.Clear();
                     }
                 }
 #endif

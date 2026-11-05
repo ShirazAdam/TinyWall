@@ -1,4 +1,3 @@
-using Microsoft.Samples;
 using ModernTinyWall.Utilities;
 using ModernTinyWall.Windows;
 using System;
@@ -1417,19 +1416,20 @@ namespace ModernTinyWall.TinyWall
             if (!EnsureUnlockedServer())
                 return;
 
-            Utils.SplitFirstLine(Resources.Messages.YouAreAboutToEnterLearningMode, out var firstLine, out var contentLines);
-
-            var dialog = new Microsoft.Samples.TaskDialog
+            using var dialogIcon = new TaskDialogIcon(Resources.Icons.firewall);
+            var dialog = new TaskDialogPage
             {
-                CustomMainIcon = Resources.Icons.firewall,
-                WindowTitle = Resources.Messages.TinyWall,
-                MainInstruction = firstLine,
-                Content = contentLines,
-                AllowDialogCancellation = false,
-                CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No
+                Caption = Resources.Messages.TinyWall,
+                Heading = Resources.Messages.YouAreAboutToEnterLearningMode,
+                Icon = dialogIcon,
+                AllowCancel = false
             };
+            var yesButton = new TaskDialogButton("Yes");
+            var noButton = new TaskDialogButton("No");
+            dialog.Buttons.Add(yesButton);
+            dialog.Buttons.Add(noButton);
 
-            if (dialog.Show() != (int)DialogResult.Yes)
+            if (TaskDialog.ShowDialog(dialog, TaskDialogStartupLocation.CenterScreen) != yesButton)
                 return;
 
             SetMode(FirewallMode.Learning);
