@@ -21,6 +21,14 @@ public enum ExceptionEntryPolicy
     Block
 }
 
+public enum FirewallPromptDecision
+{
+    AllowOnce,
+    AllowAlways,
+    DenyOnce,
+    DenyAlways
+}
+
 public sealed record ExceptionEntryActionRequest(
     ExceptionEntryKind Kind,
     ExceptionEntryPolicy Policy,

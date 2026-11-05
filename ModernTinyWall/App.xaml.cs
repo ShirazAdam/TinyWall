@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Services;
 using System;
 
 namespace ModernTinyWall;
@@ -23,6 +24,7 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
         services.AddSingleton<ITinyWallExceptionStore, TinyWallExceptionStore>();
+        services.AddSingleton<FirewallPromptMonitor>();
         return services.BuildServiceProvider();
     }
 

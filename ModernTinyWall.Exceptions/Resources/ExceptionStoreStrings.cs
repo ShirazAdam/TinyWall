@@ -19,6 +19,11 @@ internal static class ExceptionStoreStrings
     internal static string CouldNotContactService => GetString(nameof(CouldNotContactService));
     internal static string CouldNotUpdateExceptions => GetString(nameof(CouldNotUpdateExceptions));
     internal static string ExceptionAlreadyExists => GetString(nameof(ExceptionAlreadyExists));
+    internal static string CannotCreateConnectionRule => GetString(nameof(CannotCreateConnectionRule));
+    internal static string ConnectionAllowedOnce => GetString(nameof(ConnectionAllowedOnce));
+    internal static string ConnectionAllowedAlways => GetString(nameof(ConnectionAllowedAlways));
+    internal static string ConnectionDeniedOnce => GetString(nameof(ConnectionDeniedOnce));
+    internal static string ConnectionDeniedAlways => GetString(nameof(ConnectionDeniedAlways));
 
     internal static string UnexpectedServiceResponse(object response)
     {
