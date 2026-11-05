@@ -48,6 +48,21 @@
   <data name="ExceptionAlreadyExists" xml:space="preserve">
     <value>An exception already exists for this item. No changes were made.</value>
   </data>
+  <data name="CannotCreateConnectionRule" xml:space="preserve">
+    <value>Could not create a connection rule because the application path or remote address is unavailable.</value>
+  </data>
+  <data name="ConnectionAllowedOnce" xml:space="preserve">
+    <value>This application is allowed to contact this destination for 5 minutes.</value>
+  </data>
+  <data name="ConnectionAllowedAlways" xml:space="preserve">
+    <value>This application is always allowed to make outbound connections.</value>
+  </data>
+  <data name="ConnectionDeniedOnce" xml:space="preserve">
+    <value>This connection attempt was denied.</value>
+  </data>
+  <data name="ConnectionDeniedAlways" xml:space="preserve">
+    <value>This application is always blocked.</value>
+  </data>
   <data name="UnexpectedServiceResponseFormat" xml:space="preserve">
     <value>Unexpected TinyWall service response: {0}.</value>
   </data>

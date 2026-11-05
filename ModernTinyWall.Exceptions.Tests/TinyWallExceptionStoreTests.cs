@@ -95,6 +95,77 @@ public sealed class TinyWallExceptionStoreTests
     }
 
     [TestMethod]
+    public async Task ApplyFirewallPromptAllowOnceThenAddsTemporaryDestinationRule()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowOnce);
+
+        Assert.IsTrue(result.Success);
+        Assert.IsTrue(client.SetConfigCalled);
+        Assert.HasCount(1, client.Config.ActiveProfile.AppExceptions);
+        var exception = client.Config.ActiveProfile.AppExceptions[0];
+        Assert.AreEqual(AppExceptionTimer.FOR_5_MINUTES, exception.Timer);
+        var policy = Assert.IsInstanceOfType<RuleListPolicy>(exception.Policy);
+        Assert.HasCount(1, policy.Rules);
+        var rule = policy.Rules[0];
+        Assert.AreEqual(RuleAction.Allow, rule.Action);
+        Assert.AreEqual(RuleDirection.Out, rule.Direction);
+        Assert.AreEqual(Protocol.TCP, rule.Protocol);
+        Assert.AreEqual("203.0.113.8", rule.RemoteAddresses);
+        Assert.AreEqual("443", rule.RemotePorts);
+    }
+
+    [TestMethod]
+    public async Task ApplyFirewallPromptAllowAlwaysThenAddsPermanentAppWideOutboundRule()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowAlways);
+
+        Assert.IsTrue(result.Success);
+        Assert.HasCount(1, client.Config.ActiveProfile.AppExceptions);
+        var exception = client.Config.ActiveProfile.AppExceptions[0];
+        Assert.AreEqual(AppExceptionTimer.Permanent, exception.Timer);
+        var policy = Assert.IsInstanceOfType<RuleListPolicy>(exception.Policy);
+        Assert.HasCount(1, policy.Rules);
+        var rule = policy.Rules[0];
+        Assert.AreEqual(RuleAction.Allow, rule.Action);
+        Assert.AreEqual(RuleDirection.Out, rule.Direction);
+        Assert.AreEqual(Protocol.Any, rule.Protocol);
+        Assert.IsNull(rule.RemoteAddresses);
+        Assert.IsNull(rule.RemotePorts);
+    }
+
+    [TestMethod]
+    public async Task ApplyFirewallPromptDenyAlwaysThenAddsAppWideBlock()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.DenyAlways);
+
+        Assert.IsTrue(result.Success);
+        Assert.HasCount(1, client.Config.ActiveProfile.AppExceptions);
+        Assert.IsInstanceOfType<HardBlockPolicy>(client.Config.ActiveProfile.AppExceptions[0].Policy);
+    }
+
+    [TestMethod]
+    public async Task ApplyFirewallPromptDenyOnceThenDoesNotPersistAnException()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.DenyOnce);
+
+        Assert.IsTrue(result.Success);
+        Assert.IsFalse(client.SetConfigCalled);
+        Assert.IsEmpty(client.Config.ActiveProfile.AppExceptions);
+    }
+
+    [TestMethod]
     public async Task UpdateExceptionWhenEntryExistsThenUpdatesIt()
     {
         const string executablePath = @"C:\Program Files\App\app.exe";
@@ -170,5 +241,20 @@ public sealed class TinyWallExceptionStoreTests
                 _ => TwMessagePutSettings.CreateRequest(clientChangeset, serverConfig)
             };
         }
-    }
+
+        }
+
+        private static FirewallLogEntry CreateBlockedOutboundEntry()
+        {
+            return new FirewallLogEntry
+            {
+                Timestamp = DateTime.UtcNow,
+                Event = EventLogEvent.BLOCKED,
+                AppPath = @"C:\Program Files\App\app.exe",
+                Protocol = Protocol.TCP,
+                Direction = RuleDirection.Out,
+                RemoteIp = "203.0.113.8",
+                RemotePort = 443
+            };
+        }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ModernTinyWall.TinyWall;
 
 namespace ModernTinyWall.Exceptions;
 
@@ -17,4 +18,5 @@ public interface ITinyWallExceptionStore
     Task<ExceptionMutationResult> UpdateExceptionAsync(Guid exceptionId, ExceptionEditRequest request, CancellationToken cancellationToken = default);
     Task<ExceptionMutationResult> RemoveExceptionAsync(Guid exceptionId, CancellationToken cancellationToken = default);
     Task<ExceptionMutationResult> RemoveAllExceptionsAsync(CancellationToken cancellationToken = default);
+    Task<ExceptionMutationResult> ApplyFirewallPromptDecisionAsync(FirewallLogEntry entry, FirewallPromptDecision decision, CancellationToken cancellationToken = default);
 }

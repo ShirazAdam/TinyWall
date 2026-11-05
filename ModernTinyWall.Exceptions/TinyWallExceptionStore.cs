@@ -93,6 +93,11 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.Clear(), ExceptionStoreStrings.AllExceptionsRemoved, cancellationToken), cancellationToken);
     }
 
+    public Task<ExceptionMutationResult> ApplyFirewallPromptDecisionAsync(FirewallLogEntry entry, FirewallPromptDecision decision, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => ApplyFirewallPromptDecision(entry, decision, cancellationToken), cancellationToken);
+    }
+
     private List<ExceptionRow> BuildExceptions(ExceptionQuery query, CancellationToken cancellationToken)
     {
         var changeset = Guid.Empty;
@@ -195,6 +200,61 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
 
         serviceConfig.ActiveProfile.AppExceptions.Add(new FirewallExceptionV3(subject, CreatePolicy(request.Policy)));
         return SaveExceptions(serviceConfig, changeset, ExceptionStoreStrings.ExceptionApplied(GetPolicyDisplayName(request.Policy)));
+    }
+
+    private ExceptionMutationResult ApplyFirewallPromptDecision(FirewallLogEntry entry, FirewallPromptDecision decision, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(entry.AppPath)
+            || string.Equals(entry.AppPath, "System", StringComparison.OrdinalIgnoreCase)
+            || !System.Net.IPAddress.TryParse(entry.RemoteIp, out var remoteAddress))
+        {
+            return new ExceptionMutationResult(false, ExceptionStoreStrings.CannotCreateConnectionRule);
+        }
+
+        if (decision == FirewallPromptDecision.DenyOnce)
+            return new ExceptionMutationResult(true, ExceptionStoreStrings.ConnectionDeniedOnce);
+
+        var subject = new ExecutableSubject(entry.AppPath);
+        var exception = decision switch
+        {
+            FirewallPromptDecision.DenyAlways => new FirewallExceptionV3(subject, HardBlockPolicy.Instance),
+            FirewallPromptDecision.AllowAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: false, specificDestination: false),
+            FirewallPromptDecision.AllowOnce => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: true),
+            _ => throw new ArgumentOutOfRangeException(nameof(decision))
+        };
+
+        return MutateExceptions(
+            config => config.ActiveProfile.AddExceptions([exception]),
+            decision switch
+            {
+                FirewallPromptDecision.AllowOnce => ExceptionStoreStrings.ConnectionAllowedOnce,
+                FirewallPromptDecision.AllowAlways => ExceptionStoreStrings.ConnectionAllowedAlways,
+                FirewallPromptDecision.DenyAlways => ExceptionStoreStrings.ConnectionDeniedAlways,
+                _ => throw new ArgumentOutOfRangeException(nameof(decision))
+            },
+            cancellationToken);
+    }
+
+    private static FirewallExceptionV3 CreateConnectionException(ExecutableSubject subject, FirewallLogEntry entry, string remoteAddress, bool temporary, bool specificDestination = true)
+    {
+        var exception = new FirewallExceptionV3(subject, new RuleListPolicy
+        {
+            Rules =
+            [
+                new RuleDef(Guid.Empty, "Connection prompt allow", subject, RuleAction.Allow, RuleDirection.Out, specificDestination ? entry.Protocol : Protocol.Any, 0)
+                {
+                    RemoteAddresses = specificDestination ? remoteAddress : null,
+                    RemotePorts = specificDestination && entry.RemotePort > 0 ? entry.RemotePort.ToString(System.Globalization.CultureInfo.InvariantCulture) : null
+                }
+            ]
+        });
+
+        if (temporary)
+            exception.Timer = AppExceptionTimer.FOR_5_MINUTES;
+
+        return exception;
     }
 
     private static FirewallExceptionV3? FindExistingException(ServerConfiguration config, ExceptionSubject subject)
