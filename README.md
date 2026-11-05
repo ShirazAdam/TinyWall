@@ -60,6 +60,7 @@ You're welcome to hack and slash at it. Enjoy!
 - `ModernTinyWall` - modern .NET 10 Windows desktop client.
 - `TinyWall` - original / legacy TinyWall application.
 - `TinyWall.Core` - shared core functionality.
+- `TinyWall.Shared` - shared source files compiled by both clients.
 - `ModernTinyWall.Windows` - Windows platform helpers and native interop wrappers.
 - `ModernTinyWall.Windows.WFP` - Windows Filtering Platform integration.
 - `ModernTinyWall.Windows.Services` - Windows service-control helpers.
