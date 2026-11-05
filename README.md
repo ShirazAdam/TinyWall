@@ -12,13 +12,15 @@
 
 <img width="1412" height="816" alt="image" src="https://github.com/user-attachments/assets/e373c109-fa36-40af-8acf-907d57264af5" />
 
-TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no noisy pop-ups, no bundled drivers, and no unnecessary background clutter.
+TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no bundled drivers and no unnecessary background clutter. Modern TinyWall can show an optional decision prompt when it detects a blocked outbound connection from an application that has not already been approved.
 
 The original project suffered from a lack of updates and support. The original project also suffers from performance problems where right-clicking on the tray icon can take anywhere between 2 - 12 seconds to show the context menu. Some forms can also freeze because expensive work runs on the UI thread. This fork aims to experiment and continue the development of TinyWall, keeping it up-to-date and compatible with the latest Windows versions, while also adding new features and improvements.
 
 This repository now contains both the legacy TinyWall application and a new **Modern TinyWall** application. Modern TinyWall is a .NET 10 Windows desktop client that modernises the user experience while reusing the existing firewall, Windows integration, package discovery, service-control, and Windows Filtering Platform functionality where practical. The goal is to keep the proven TinyWall behaviour while improving responsiveness, maintainability, and compatibility with current Windows and .NET releases.
 
 The applications provide tray-based control for managing firewall modes, application exceptions, service and process rules, Microsoft Store / packaged app rules, connection activity, blocklists, and firewall log entries. They help users allow trusted applications, block unwanted network access, and review network activity without needing to edit Windows Firewall rules manually.
+
+Modern TinyWall's outbound connection prompt displays the application's name, icon, executable path, protocol, and destination. Users can allow the destination for five minutes, always allow the application, deny the attempt, or always block the application. The initial connection attempt is blocked before the prompt appears, so the application may need to retry after it is allowed. Existing approved rules continue to work without prompting.
 
 TinyWall and Modern TinyWall focus on being practical and low-overhead. They use Windows networking and security features rather than replacing them, and aim to keep the user interface responsive while doing heavier discovery and rule-management work in the background.
 
@@ -31,6 +33,7 @@ Now enabled to run natively on x86, x64, and ARM.
 - Moving expensive UI-triggered operations off the UI thread where possible.
 - Improving tray responsiveness and modernising tray command handling.
 - Preserving existing TinyWall firewall behaviour while modernising the surrounding application code.
+- Prompting users about blocked outbound connections from unapproved applications.
 - Keeping native Windows interop explicit and source-generator friendly for modern .NET builds.
 
 You're welcome to hack and slash at it. Enjoy!
