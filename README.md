@@ -60,10 +60,19 @@ You're welcome to hack and slash at it. Enjoy!
 - `ModernTinyWall` - modern .NET 10 Windows desktop client.
 - `TinyWall` - original / legacy TinyWall application.
 - `TinyWall.Core` - shared core functionality.
+- `TinyWall.Shared` - shared source files compiled by both clients.
 - `ModernTinyWall.Windows` - Windows platform helpers and native interop wrappers.
 - `ModernTinyWall.Windows.WFP` - Windows Filtering Platform integration.
 - `ModernTinyWall.Windows.Services` - Windows service-control helpers.
 - `ModernTinyWall.Utilities` - shared utility code for the modernised projects.
+
+### To run automated tests
+
+Run the Modern TinyWall exception-store tests from the repository root:
+
+```powershell
+dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj
+```
 
 ### To update/build build the database of known applications
 

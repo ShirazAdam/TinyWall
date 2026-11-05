@@ -45,6 +45,9 @@
   <data name="CouldNotUpdateExceptions" xml:space="preserve">
     <value>The TinyWall service could not update application exceptions.</value>
   </data>
+  <data name="ExceptionAlreadyExists" xml:space="preserve">
+    <value>An exception already exists for this item. No changes were made.</value>
+  </data>
   <data name="UnexpectedServiceResponseFormat" xml:space="preserve">
     <value>Unexpected TinyWall service response: {0}.</value>
   </data>

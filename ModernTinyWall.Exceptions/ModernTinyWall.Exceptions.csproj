@@ -9,4 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\TinyWall.Core\TinyWall.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModernTinyWall.Exceptions.Tests" />
+  </ItemGroup>
 </Project>

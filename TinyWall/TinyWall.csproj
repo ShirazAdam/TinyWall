@@ -49,6 +49,7 @@
 	<Compile Include="../ModernTinyWall.Windows/TaskDialogue/*.cs" LinkBase="ModernTinyWall.Windows.TaskDialogue" />
 	<Compile Include="../ModernTinyWall.Windows.Services/*.cs" LinkBase="ModernTinyWall.Windows.Services" />
 	<Compile Include="../ModernTinyWall.Windows.WFP/*.cs" LinkBase="ModernTinyWall.Windows.WFP" />
+	<Compile Include="..\TinyWall.Shared\**\*.cs" LinkBase="TinyWall.Shared" />
 	<Compile Remove="Installer\*.cs" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
