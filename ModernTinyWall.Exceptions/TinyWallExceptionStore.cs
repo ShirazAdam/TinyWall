@@ -10,14 +10,19 @@ namespace ModernTinyWall.Exceptions;
 
 public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
 {
-    private readonly Controller _controller;
+    private readonly IExceptionSettingsClient _controller;
 
     public TinyWallExceptionStore()
-        : this(new Controller("TinyWallController"))
+        : this(new ExceptionSettingsClient(new Controller("TinyWallController")))
     {
     }
 
     public TinyWallExceptionStore(Controller controller)
+        : this(new ExceptionSettingsClient(controller))
+    {
+    }
+
+    internal TinyWallExceptionStore(IExceptionSettingsClient controller)
     {
         ArgumentNullException.ThrowIfNull(controller);
 
@@ -93,7 +98,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         var changeset = Guid.Empty;
         var response = _controller.GetServerConfig(out var serviceConfig, out _, ref changeset);
         if (response != MessageType.GET_SETTINGS || serviceConfig is null)
-            return [];
+            throw new InvalidOperationException(ExceptionStoreStrings.CouldNotLoadSettings);
 
         var rows = new List<ExceptionRow>();
         foreach (var exception in serviceConfig.ActiveProfile.AppExceptions)
@@ -126,7 +131,11 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
             return new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotLoadSettings);
 
         mutation(serviceConfig);
+        return SaveExceptions(serviceConfig, changeset, successMessage);
+    }
 
+    private ExceptionMutationResult SaveExceptions(ServerConfiguration serviceConfig, Guid changeset, string successMessage)
+    {
         var updateResponse = _controller.SetServerConfig(serviceConfig, changeset);
         return updateResponse.Type switch
         {
@@ -165,27 +174,27 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
 
     private ExceptionMutationResult ApplyEntryAction(ExceptionEntryActionRequest request, bool replaceExisting, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var validationMessage = ValidateEntryAction(request);
         if (validationMessage is not null)
             return new ExceptionMutationResult(false, validationMessage);
 
-        return MutateExceptions(config =>
-        {
-            var subject = CreateSubject(request);
-            var exception = new FirewallExceptionV3(subject, CreatePolicy(request.Policy));
-            var existing = FindExistingException(config, subject);
+        var changeset = Guid.Empty;
+        var response = _controller.GetServerConfig(out var serviceConfig, out _, ref changeset);
+        if (response != MessageType.GET_SETTINGS || serviceConfig is null)
+            return new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotLoadSettings);
 
-            if (existing is not null && replaceExisting)
-            {
-                config.ActiveProfile.AppExceptions.Remove(existing);
-            }
-            else if (existing is not null)
-            {
-                return;
-            }
+        var subject = CreateSubject(request);
+        var existing = FindExistingException(serviceConfig, subject);
+        if (existing is not null && !replaceExisting)
+            return new ExceptionMutationResult(false, ExceptionStoreStrings.ExceptionAlreadyExists);
 
-            config.ActiveProfile.AppExceptions.Add(exception);
-        }, ExceptionStoreStrings.ExceptionApplied(GetPolicyDisplayName(request.Policy)), cancellationToken);
+        if (existing is not null)
+            serviceConfig.ActiveProfile.AppExceptions.Remove(existing);
+
+        serviceConfig.ActiveProfile.AppExceptions.Add(new FirewallExceptionV3(subject, CreatePolicy(request.Policy)));
+        return SaveExceptions(serviceConfig, changeset, ExceptionStoreStrings.ExceptionApplied(GetPolicyDisplayName(request.Policy)));
     }
 
     private static FirewallExceptionV3? FindExistingException(ServerConfiguration config, ExceptionSubject subject)

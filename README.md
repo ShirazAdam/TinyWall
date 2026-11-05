@@ -65,6 +65,14 @@ You're welcome to hack and slash at it. Enjoy!
 - `ModernTinyWall.Windows.Services` - Windows service-control helpers.
 - `ModernTinyWall.Utilities` - shared utility code for the modernised projects.
 
+### To run automated tests
+
+Run the Modern TinyWall exception-store tests from the repository root:
+
+```powershell
+dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj
+```
+
 ### To update/build build the database of known applications
 
 1. Adjust the individual JSON files in the `TinyWall\Database` folder.

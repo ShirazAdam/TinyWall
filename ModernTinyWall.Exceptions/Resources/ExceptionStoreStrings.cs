@@ -18,6 +18,7 @@ internal static class ExceptionStoreStrings
     internal static string TinyWallLocked => GetString(nameof(TinyWallLocked));
     internal static string CouldNotContactService => GetString(nameof(CouldNotContactService));
     internal static string CouldNotUpdateExceptions => GetString(nameof(CouldNotUpdateExceptions));
+    internal static string ExceptionAlreadyExists => GetString(nameof(ExceptionAlreadyExists));
 
     internal static string UnexpectedServiceResponse(object response)
     {
