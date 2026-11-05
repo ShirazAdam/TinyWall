@@ -46,7 +46,6 @@
 	<Compile Include="../ModernTinyWall.Utilities/*.cs" LinkBase="ModernTinyWall.Utilities" />
 	<Compile Include="../ModernTinyWall.Windows/*.cs" LinkBase="ModernTinyWall.Windows" />
 	<Compile Include="../ModernTinyWall.Windows/NetStat/*.cs" LinkBase="ModernTinyWall.Windows.NetStat" />
-	<Compile Include="../ModernTinyWall.Windows/TaskDialogue/*.cs" LinkBase="ModernTinyWall.Windows.TaskDialogue" />
 	<Compile Include="../ModernTinyWall.Windows.Services/*.cs" LinkBase="ModernTinyWall.Windows.Services" />
 	<Compile Include="../ModernTinyWall.Windows.WFP/*.cs" LinkBase="ModernTinyWall.Windows.WFP" />
 	<Compile Include="..\TinyWall.Shared\**\*.cs" LinkBase="TinyWall.Shared" />

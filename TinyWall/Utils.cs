@@ -1,4 +1,3 @@
-using Microsoft.Samples;
 using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
@@ -593,23 +592,52 @@ namespace ModernTinyWall.TinyWall
                 restLines += Environment.NewLine + lines[i];
         }
 
-        internal static DialogResult ShowMessageBox(string msg, string title, TaskDialogCommonButtons buttons, Microsoft.Samples.TaskDialogIcon icon, IWin32Window? parent = null)
+        internal static DialogResult ShowMessageBox(string msg, string title, MessageBoxButtons buttons, MessageBoxIcon icon, IWin32Window? parent = null)
         {
             SplitFirstLine(msg, out var firstLine, out var contentLines);
 
-            var taskDialogue = new Microsoft.Samples.TaskDialog
+            var page = new TaskDialogPage
             {
-                WindowTitle = title,
-                MainInstruction = firstLine,
-                CommonButtons = buttons,
-                MainIcon = icon,
-                Content = contentLines
+                Caption = title,
+                Heading = firstLine,
+                Text = contentLines,
+                Icon = icon switch
+                {
+                    MessageBoxIcon.Error => TaskDialogIcon.Error,
+                    MessageBoxIcon.Warning => TaskDialogIcon.Warning,
+                    MessageBoxIcon.Information => TaskDialogIcon.Information,
+                    _ => TaskDialogIcon.None
+                }
             };
 
-            if (parent is null)
-                return (DialogResult)taskDialogue.Show();
+            var yesButton = new TaskDialogButton("Yes");
+            var noButton = new TaskDialogButton("No");
+            var okButton = new TaskDialogButton("OK");
+            var cancelButton = new TaskDialogButton("Cancel");
+            var abortButton = new TaskDialogButton("Abort");
+            var retryButton = new TaskDialogButton("Retry");
+            var ignoreButton = new TaskDialogButton("Ignore");
+            var buttonResults = buttons switch
+            {
+                MessageBoxButtons.OK => new[] { (okButton, DialogResult.OK) },
+                MessageBoxButtons.OKCancel => new[] { (okButton, DialogResult.OK), (cancelButton, DialogResult.Cancel) },
+                MessageBoxButtons.AbortRetryIgnore => new[] { (abortButton, DialogResult.Abort), (retryButton, DialogResult.Retry), (ignoreButton, DialogResult.Ignore) },
+                MessageBoxButtons.YesNoCancel => new[] { (yesButton, DialogResult.Yes), (noButton, DialogResult.No), (cancelButton, DialogResult.Cancel) },
+                MessageBoxButtons.YesNo => new[] { (yesButton, DialogResult.Yes), (noButton, DialogResult.No) },
+                MessageBoxButtons.RetryCancel => new[] { (retryButton, DialogResult.Retry), (cancelButton, DialogResult.Cancel) },
+                _ => throw new ArgumentOutOfRangeException(nameof(buttons))
+            };
+            foreach (var (button, _) in buttonResults)
+                page.Buttons.Add(button);
 
-            return (DialogResult)taskDialogue.Show(parent);
+            page.DefaultButton = buttonResults[0].Item1;
+            page.AllowCancel = true;
+            var result = parent is null
+                ? TaskDialog.ShowDialog(page, TaskDialogStartupLocation.CenterScreen)
+                : TaskDialog.ShowDialog(parent, page, TaskDialogStartupLocation.CenterOwner);
+
+            var selectedButton = buttonResults.FirstOrDefault(pair => pair.Item1 == result);
+            return selectedButton.Item1 is null ? DialogResult.Cancel : selectedButton.Item2;
         }
 
         internal static int GetRandomNumber()
