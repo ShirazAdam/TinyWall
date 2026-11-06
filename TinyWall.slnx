@@ -31,5 +31,7 @@
   </Project>
   <Project Path="TinyWall.Core/TinyWall.Core.csproj" />
   <Project Path="TinyWall/TinyWall.csproj" />
-  <Project Path="TinyWallSetup/TinyWallSetup.vdproj" Type="Installer" />
+  <Project Path="TinyWallSetup/TinyWallSetup.vdproj" Type="Installer">
+    <Build />
+  </Project>
 </Solution>
