@@ -10,6 +10,8 @@
 
 # TinyWall / Modern TinyWall
 
+Both applications and their shipped libraries use version **4.5.0**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.0`) when the changes are pushed to `master` and its builds pass.
+
 <img width="1412" height="816" alt="image" src="https://github.com/user-attachments/assets/e373c109-fa36-40af-8acf-907d57264af5" />
 
 TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no bundled drivers and no unnecessary background clutter. Modern TinyWall can show an optional decision prompt when it detects a blocked outbound connection from an application that has not already been approved.
