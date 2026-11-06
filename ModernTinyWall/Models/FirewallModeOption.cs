@@ -12,6 +12,16 @@ public enum ModernFirewallMode
 
 public sealed record FirewallModeOption(ModernFirewallMode Mode, string DisplayName, string Description)
 {
+    public string ModeColour => Mode switch
+    {
+        ModernFirewallMode.Normal => "#FF107C10",
+        ModernFirewallMode.AllowOutgoing => "#FF0078D4",
+        ModernFirewallMode.BlockAll => "#FFC42B1C",
+        ModernFirewallMode.Disabled => "#FF5D6570",
+        ModernFirewallMode.Learning => "#FF946200",
+        _ => "#FF5D6570"
+    };
+
     public string IconGlyph => Mode switch
     {
         ModernFirewallMode.Normal => "\uEA18",

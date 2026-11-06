@@ -157,22 +157,26 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Stretch"
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                     BorderThickness="1"
                                     Command="{Binding ViewModel.ApplyModeCommand, ElementName=PageRoot}"
                                     CommandParameter="{x:Bind}"
                                     HorizontalContentAlignment="Stretch"
                                     VerticalContentAlignment="Stretch">
-                                <Grid ColumnSpacing="12">
+                                <Button.BorderBrush>
+                                    <SolidColorBrush Color="{Binding ModeColour}" />
+                                </Button.BorderBrush>
+                                <Grid ColumnSpacing="12" VerticalAlignment="Top">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="36" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="36" Height="36" CornerRadius="10"
-                                            Background="{ThemeResource SystemControlBackgroundAccentBrush}"
                                             VerticalAlignment="Top">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding ModeColour}" />
+                                        </Border.Background>
                                         <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="18"
-                                                  Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
+                                                  Foreground="White"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="5">
