@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
@@ -9,11 +10,13 @@ using ModernTinyWall.Views;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
+using Windows.UI.ViewManagement;
 using WinRT.Interop;
 
 namespace ModernTinyWall;
@@ -34,6 +37,10 @@ public sealed partial class MainWindow
     private int _traySnapshotRefreshInProgress;
     private bool _isTerminating;
     private bool _isWindowVisible = true;
+    private readonly UISettings _uiSettings = new();
+    private Type? _pendingPageType;
+    private bool _isNavigating;
+    private CancellationTokenSource? _navigationFadeCancellation;
 
     internal event Action<bool>? WindowVisibilityChanged;
 
@@ -57,6 +64,8 @@ public sealed partial class MainWindow
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
+        _isTerminating = true;
+        _navigationFadeCancellation?.Cancel();
         _promptMonitoringCancellation.Cancel();
         _trayIconService.CommandInvoked -= TrayIconService_CommandInvoked;
         _globalHotkeyService.HotkeyPressed -= GlobalHotkeyService_HotkeyPressed;
@@ -405,7 +414,12 @@ public sealed partial class MainWindow
         if (args.SelectedItem is not NavigationViewItem { Tag: string tag })
             return;
 
-        Type pageType = tag switch
+        NavigateTo(GetPageType(tag));
+    }
+
+    private static Type GetPageType(string tag)
+    {
+        return tag switch
         {
             "DataUsage" => typeof(DataUsagePage),
             "Settings" => typeof(SettingsPage),
@@ -418,15 +432,115 @@ public sealed partial class MainWindow
             "About" => typeof(AboutPage),
             _ => typeof(OverviewPage)
         };
-
-        if (ContentFrame.CurrentSourcePageType != pageType)
-            NavigateTo(pageType);
     }
 
-    private void NavigateTo(Type pageType)
+    private async void NavigateTo(Type pageType)
     {
-        if (ContentFrame.CurrentSourcePageType != pageType)
-            ContentFrame.Navigate(pageType);
+        if (_isTerminating || (!_isNavigating && ContentFrame.CurrentSourcePageType == pageType))
+            return;
+
+        _pendingPageType = pageType;
+        if (_isNavigating)
+            return;
+
+        _isNavigating = true;
+        try
+        {
+            while (_pendingPageType is not null && !_isTerminating)
+            {
+                SynchroniseNavigationSelection(_pendingPageType);
+                if (ContentFrame.CurrentSourcePageType == _pendingPageType)
+                {
+                    _pendingPageType = null;
+                    continue;
+                }
+
+                if (ContentFrame.Content is not null)
+                    await FadeContentAsync(0, TimeSpan.FromMilliseconds(120));
+                if (_isTerminating)
+                    return;
+
+                // Use the latest selection if another item was clicked during the fade.
+                if (_pendingPageType is not { } nextPageType)
+                    return;
+                _pendingPageType = null;
+                if (ContentFrame.CurrentSourcePageType != nextPageType
+                    && !ContentFrame.Navigate(nextPageType, null, new SuppressNavigationTransitionInfo()))
+                {
+                    throw new InvalidOperationException($"Could not navigate to {nextPageType.Name}.");
+                }
+
+                await FadeContentAsync(1, TimeSpan.FromMilliseconds(180));
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not change the current view: {ex}");
+            _trayIconService.SetStatus("Could not change the current view.");
+            if (ContentFrame.CurrentSourcePageType is { } currentPageType)
+                SynchroniseNavigationSelection(currentPageType);
+        }
+        finally
+        {
+            ContentFrame.Opacity = 1;
+            _pendingPageType = null;
+            _isNavigating = false;
+        }
+    }
+
+    private void SynchroniseNavigationSelection(Type pageType)
+    {
+        foreach (var entry in ShellNavigation.MenuItems.Concat(ShellNavigation.FooterMenuItems))
+        {
+            if (entry is NavigationViewItem { Tag: string tag } item && GetPageType(tag) == pageType)
+            {
+                ShellNavigation.SelectedItem = item;
+                return;
+            }
+        }
+    }
+
+    private async Task FadeContentAsync(double opacity, TimeSpan duration)
+    {
+        if (!_isWindowVisible || !_uiSettings.AnimationsEnabled || _isTerminating)
+        {
+            ContentFrame.Opacity = opacity;
+            return;
+        }
+
+        using var cancellation = new CancellationTokenSource();
+        _navigationFadeCancellation = cancellation;
+        var animation = new DoubleAnimation
+        {
+            From = ContentFrame.Opacity,
+            To = opacity,
+            Duration = new Duration(duration),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+        };
+        Storyboard.SetTarget(animation, ContentFrame);
+        Storyboard.SetTargetProperty(animation, "Opacity");
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(animation);
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnCompleted(object? sender, object args) => completion.TrySetResult();
+        storyboard.Completed += OnCompleted;
+        using var registration = cancellation.Token.Register(() => completion.TrySetCanceled(cancellation.Token));
+        try
+        {
+            storyboard.Begin();
+            await completion.Task;
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            // Hiding or closing the window completes navigation without further animation.
+        }
+        finally
+        {
+            storyboard.Completed -= OnCompleted;
+            storyboard.Stop();
+            ContentFrame.Opacity = opacity;
+            _navigationFadeCancellation = null;
+        }
     }
 
     private void ShowPage(Type pageType)
@@ -538,6 +652,8 @@ public sealed partial class MainWindow
             return;
 
         _isWindowVisible = isVisible;
+        if (!isVisible)
+            _navigationFadeCancellation?.Cancel();
         WindowVisibilityChanged?.Invoke(isVisible);
     }
 
