@@ -6,25 +6,29 @@
 
     <NavigationView
         x:Name="ShellNavigation"
+        PaneDisplayMode="Left"
+        OpenPaneLength="248"
+        CompactPaneLength="48"
         IsBackButtonVisible="Collapsed"
         IsSettingsVisible="False"
-        PaneTitle="TinyWall"
+        PaneTitle=""
         SelectionChanged="ShellNavigation_SelectionChanged">
         <NavigationView.PaneHeader>
-            <Grid Margin="12,4,12,16" ColumnSpacing="12">
+            <Grid Margin="12,0,12,12" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Width="40" Height="40" CornerRadius="10"
+                <Border Width="36" Height="36" CornerRadius="10"
                         Background="{ThemeResource SystemControlBackgroundAccentBrush}">
-                    <FontIcon Glyph="&#xE72E;" FontSize="20"
+                    <FontIcon Glyph="&#xEA18;" FontSize="18"
                               Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
                               HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock Text="MODERN" Style="{StaticResource EyebrowStyle}" />
-                    <TextBlock Text="Firewall control" FontSize="14" FontWeight="SemiBold" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Text="TinyWall" FontSize="15" FontWeight="SemiBold" />
+                    <TextBlock Text="FIREWALL CONTROL" FontSize="10" CharacterSpacing="90"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
             </Grid>
         </NavigationView.PaneHeader>
