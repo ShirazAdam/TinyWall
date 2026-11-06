@@ -95,6 +95,18 @@ public sealed class TinyWallExceptionStoreTests
     }
 
     [TestMethod]
+    public async Task ApplyFirewallPromptWhenSettingsConflictThenReportsFailure()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS) { SettingsConflict = true };
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowAlways);
+
+        Assert.IsFalse(result.Success);
+        StringAssert.Contains(result.Message, "changed");
+    }
+
+    [TestMethod]
     public async Task ApplyFirewallPromptAllowOnceThenAddsTemporaryDestinationRule()
     {
         var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
@@ -219,6 +231,7 @@ public sealed class TinyWallExceptionStoreTests
         public bool SetConfigCalled { get; private set; }
         public bool GetConfigCalled { get; private set; }
         public MessageType SetResponse { get; set; } = MessageType.PUT_SETTINGS;
+        public bool SettingsConflict { get; set; }
 
         public MessageType GetServerConfig(
             out ServerConfiguration? serverConfig,
@@ -238,6 +251,7 @@ public sealed class TinyWallExceptionStoreTests
             {
                 MessageType.RESPONSE_LOCKED => TwMessageLocked.Instance,
                 MessageType.COM_ERROR => TwMessageComError.Instance,
+                MessageType.PUT_SETTINGS when SettingsConflict => new TwMessagePutSettings(clientChangeset, serverConfig, null, true),
                 _ => TwMessagePutSettings.CreateRequest(clientChangeset, serverConfig)
             };
         }

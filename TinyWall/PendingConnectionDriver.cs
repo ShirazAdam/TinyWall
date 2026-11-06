@@ -2,9 +2,11 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Buffers.Binary;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace ModernTinyWall.TinyWall;
 
@@ -14,7 +16,8 @@ internal sealed partial class PendingConnectionDriver : IDisposable
     internal static readonly Guid CalloutV6 = new("d6ff3c55-1924-4361-b535-c76a44337764");
     private const uint ReadIoctl = 0x80006000;
     private const uint DecideIoctl = 0x8000A004;
-    private const int Version = 1;
+    private const uint QueryIoctl = 0x80006008;
+    private const int Version = 2;
     private const int RecordSize = 2096;
     private const int MaximumRequests = 128;
     private readonly SafeFileHandle _handle;
@@ -85,6 +88,36 @@ internal sealed partial class PendingConnectionDriver : IDisposable
             if (!DeviceIoControl(_handle, DecideIoctl, input, 16, null, 0, out _, IntPtr.Zero))
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "The connection decision could not be applied; it may have timed out.");
         }
+
+        Span<byte> query = stackalloc byte[16];
+        var timer = Stopwatch.StartNew();
+        while (timer.Elapsed < TimeSpan.FromSeconds(5))
+        {
+            query.Clear();
+            BinaryPrimitives.WriteUInt64LittleEndian(query, connectionId);
+            BinaryPrimitives.WriteUInt32LittleEndian(query[8..], Version);
+            fixed (byte* input = query)
+            {
+                if (!DeviceIoControl(_handle, QueryIoctl, input, 16, input, 16, out var bytesRead, IntPtr.Zero))
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not confirm the pending connection decision.");
+                if (bytesRead != 16 || BinaryPrimitives.ReadUInt64LittleEndian(query) != connectionId
+                    || BinaryPrimitives.ReadUInt32LittleEndian(query[8..]) != Version)
+                    throw new InvalidOperationException("Invalid pending connection decision response.");
+            }
+            switch (BinaryPrimitives.ReadUInt32LittleEndian(query[12..]))
+            {
+                case 0:
+                    Thread.Sleep(50);
+                    break;
+                case 1:
+                    return;
+                case 2:
+                    throw new InvalidOperationException("The pending connection decision could not be completed.");
+                default:
+                    throw new InvalidOperationException("Unsupported pending connection decision status.");
+            }
+        }
+        throw new TimeoutException("The connection decision could not be confirmed; the application may need to retry.");
     }
 
     public void Dispose() => _handle.Dispose();

@@ -142,7 +142,7 @@ public sealed partial class MainWindow
                             Debug.WriteLine($"Could not release the pending connection: {resolutionError}");
                         }
                     }
-                    _trayIconService.SetStatus("Could not show outbound connection prompt. The connection remains blocked.");
+                    _trayIconService.SetStatus("Could not complete the outbound connection prompt. The connection status may be unknown.");
                 }
                 finally
                 {
@@ -257,14 +257,35 @@ public sealed partial class MainWindow
             _ => FirewallPromptDecision.DenyOnce
         };
 
-        var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
-        if (isPending)
+        var allow = decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways;
+        if (isPending && allow)
         {
-            var allow = mutationResult.Success && decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways;
-            var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, allow);
+            if (!FirewallPromptValidation.TryGetDestination(entry, out _, out _))
+            {
+                var invalid = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+                var denial = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
+                var message = denial.Success ? invalid.Message : $"{invalid.Message} {denial.Message}";
+                _trayIconService.SetStatus(message);
+                await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", message);
+                return false;
+            }
+            var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, true);
+            if (!resolution.Success)
+            {
+                _trayIconService.SetStatus(resolution.Message);
+                await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", resolution.Message);
+                return false;
+            }
+        }
+        var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+        if (isPending && !allow)
+        {
+            var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
             if (mutationResult.Success && !resolution.Success)
                 mutationResult = resolution;
         }
+        else if (isPending && !mutationResult.Success)
+            mutationResult = new ExceptionMutationResult(false, $"The connection decision was submitted, but the rule could not be saved: {mutationResult.Message}");
         _trayIconService.SetStatus(mutationResult.Message);
         if (!mutationResult.Success)
             await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", mutationResult.Message);

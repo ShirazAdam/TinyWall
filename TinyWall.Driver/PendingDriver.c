@@ -24,11 +24,13 @@ typedef struct TW_ENTRY {
     UINT64 Expires;
     BOOLEAN Ready;
     BOOLEAN Allow;
+    BOOLEAN RequestedAllow;
     BOOLEAN Completing;
     BOOLEAN Completed;
     BOOLEAN Reauthorised;
     BOOLEAN Injecting;
     BOOLEAN Injected;
+    BOOLEAN InjectionFailed;
 } TW_ENTRY;
 
 typedef struct TW_SEND {
@@ -288,9 +290,10 @@ static NTSTATUS NTAPI Notify(FWPS_CALLOUT_NOTIFY_TYPE type, const GUID* key, FWP
     return STATUS_SUCCESS;
 }
 
-static void InjectEntry(TW_ENTRY* entry)
+static BOOLEAN InjectEntry(TW_ENTRY* entry)
 {
     NTSTATUS status;
+    BOOLEAN submitted = FALSE;
     if (entry->Clone != NULL) {
         TW_SEND* send = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(*send), TW_TAG);
         if (send != NULL) {
@@ -303,9 +306,10 @@ static void InjectEntry(TW_ENTRY* entry)
                 entry->Request.AddressFamily == AF_INET6 ? InjectionV6 : InjectionV4,
                 NULL, entry->Endpoint, 0, &send->Parameters, (ADDRESS_FAMILY)entry->Request.AddressFamily,
                 entry->Compartment, entry->Clone, InjectComplete, send);
-            if (NT_SUCCESS(status))
+            if (NT_SUCCESS(status)) {
                 entry->Clone = NULL;
-            else {
+                submitted = TRUE;
+            } else {
                 if (send->Parameters.controlData != NULL)
                     ExFreePoolWithTag(send->Parameters.controlData, TW_TAG);
                 ExFreePoolWithTag(send, TW_TAG);
@@ -317,6 +321,7 @@ static void InjectEntry(TW_ENTRY* entry)
         FwpsFreeCloneNetBufferList0(entry->Clone, 0);
         entry->Clone = NULL;
     }
+    return submitted;
 }
 
 static void WorkerMain(void* context)
@@ -375,10 +380,11 @@ static void WorkerMain(void* context)
             continue;
         }
         if (injection != NULL) {
-            InjectEntry(injection);
+            BOOLEAN submitted = InjectEntry(injection);
             KeAcquireSpinLock(&Guard, &irql);
             injection->Injecting = FALSE;
             injection->Injected = TRUE;
+            injection->InjectionFailed = !submitted;
             KeReleaseSpinLock(&Guard, irql);
             continue;
         }
@@ -423,6 +429,7 @@ NTSTATUS Dispatch(PDEVICE_OBJECT device, PIRP irp)
                     TW_ENTRY* entry = CONTAINING_RECORD(link, TW_ENTRY, Link);
                     if (entry->Request.Id == decision->Id && !entry->Ready && !entry->Completed && KeQueryInterruptTime() < entry->Expires) {
                         entry->Allow = decision->Allow != 0;
+                        entry->RequestedAllow = entry->Allow;
                         entry->Ready = TRUE;
                         status = STATUS_SUCCESS;
                         break;
@@ -430,6 +437,31 @@ NTSTATUS Dispatch(PDEVICE_OBJECT device, PIRP irp)
                 }
                 KeReleaseSpinLock(&Guard, irql);
                 KeSetEvent(&Wake, IO_NO_INCREMENT, FALSE);
+            }
+        } else if (code == TW_IOCTL_QUERY
+            && stack->Parameters.DeviceIoControl.InputBufferLength == sizeof(TW_QUERY)
+            && stack->Parameters.DeviceIoControl.OutputBufferLength >= sizeof(TW_QUERY)) {
+            TW_QUERY* query = irp->AssociatedIrp.SystemBuffer;
+            status = STATUS_NOT_FOUND;
+            if (query->Version != TW_PROTOCOL_VERSION) {
+                status = STATUS_INVALID_PARAMETER;
+            } else {
+                KeAcquireSpinLock(&Guard, &irql);
+                for (link = Entries.Flink; link != &Entries; link = link->Flink) {
+                    TW_ENTRY* entry = CONTAINING_RECORD(link, TW_ENTRY, Link);
+                    if (entry->Request.Id == query->Id && entry->Ready) {
+                        query->State = TW_DECISION_WAITING;
+                        if (entry->Completed && !entry->Allow)
+                            query->State = entry->RequestedAllow ? TW_DECISION_FAILED : TW_DECISION_APPLIED;
+                        else if (entry->Completed && entry->Reauthorised
+                            && (entry->Request.Protocol != IPPROTO_UDP || entry->Injected))
+                            query->State = entry->InjectionFailed ? TW_DECISION_FAILED : TW_DECISION_APPLIED;
+                        status = STATUS_SUCCESS;
+                        length = sizeof(*query);
+                        break;
+                    }
+                }
+                KeReleaseSpinLock(&Guard, irql);
             }
         } else {
             status = STATUS_INVALID_DEVICE_REQUEST;

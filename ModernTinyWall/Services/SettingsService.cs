@@ -17,6 +17,7 @@ internal sealed class SettingsService : ISettingsService
     private const string EnableHostsBlocklistKey = "service.blocklists.enableHostsBlocklist";
     private const string EnablePortBlocklistKey = "service.blocklists.enablePortBlocklist";
     private const string AllowLocalSubnetKey = "service.activeProfile.allowLocalSubnet";
+    private const string EnablePendingPromptsKey = "service.enablePendingConnectionPrompts";
     private const string SpecialProfilePrefix = "service.activeProfile.specialExceptions.";
     private const string AskForExceptionDetailsKey = "controller.askForExceptionDetails";
     private const string EnableGlobalHotkeysKey = "controller.globalHotkeys";
@@ -59,6 +60,8 @@ internal sealed class SettingsService : ISettingsService
             var updateResponse = _controller.SetServerConfig(serviceConfig, changeset);
             return updateResponse.Type switch
             {
+                MessageType.PUT_SETTINGS when updateResponse is TwMessagePutSettings { Warning: true } =>
+                    new SettingsApplyResult(false, "Settings changed while your changes were being saved. Please try again."),
                 MessageType.PUT_SETTINGS => new SettingsApplyResult(true, "Settings applied."),
                 MessageType.RESPONSE_LOCKED => new SettingsApplyResult(false, "TinyWall is locked. Unlock it before changing settings."),
                 MessageType.COM_ERROR => new SettingsApplyResult(false, "Could not contact the TinyWall service."),
@@ -87,6 +90,7 @@ internal sealed class SettingsService : ISettingsService
                 [
                     new SettingsItem(DisplayOffBlockKey, "Block network when display is off", "Block selected traffic while the display is off.", serviceConfig.ActiveProfile.DisplayOffBlock, true),
                     new SettingsItem(LockHostsFileKey, "Lock hosts file", "Protect the hosts file from unwanted changes.", serviceConfig.LockHostsFile, true),
+                    new SettingsItem(EnablePendingPromptsKey, "Experimental pending connection prompts", "Hold outbound connections for a decision. Requires the separately installed driver and an isolated test VM.", serviceConfig.EnablePendingConnectionPrompts, true),
                     new SettingsItem(EnableBlocklistsKey, "Enable blocklists", "Enable configured hosts and port blocklists.", serviceConfig.Blocklists.EnableBlocklists, true),
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", serviceConfig.Blocklists.EnableHostsBlocklist, true),
                     new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", serviceConfig.Blocklists.EnablePortBlocklist, true),
@@ -130,6 +134,7 @@ internal sealed class SettingsService : ISettingsService
                 [
                     new SettingsItem(DisplayOffBlockKey, "Block network when display is off", "Block selected traffic while the display is off.", false, false),
                     new SettingsItem(LockHostsFileKey, "Lock hosts file", "Protect the hosts file from unwanted changes.", false, false),
+                    new SettingsItem(EnablePendingPromptsKey, "Experimental pending connection prompts", "Requires the separately installed driver and an isolated test VM.", false, false),
                     new SettingsItem(EnableBlocklistsKey, "Enable blocklists", "Enable configured hosts and port blocklists.", false, false),
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", false, false),
                     new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", false, false),
@@ -152,6 +157,9 @@ internal sealed class SettingsService : ISettingsService
                     break;
                 case LockHostsFileKey:
                     serviceConfig.LockHostsFile = item.IsEnabled;
+                    break;
+                case EnablePendingPromptsKey:
+                    serviceConfig.EnablePendingConnectionPrompts = item.IsEnabled;
                     break;
                 case EnableBlocklistsKey:
                     serviceConfig.Blocklists.EnableBlocklists = item.IsEnabled;

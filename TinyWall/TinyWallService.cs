@@ -6,6 +6,7 @@ using ModernTinyWall.Windows.WFP.Interop;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1095,7 +1096,23 @@ namespace ModernTinyWall.TinyWall
             _visibleState.Mode = ActiveConfig.Service.StartupMode;
             GlobalInstances.ServerChangeset = Guid.NewGuid();
 
-            if (CommitLearnedRules() || PruneExpiredRules())
+            bool saveConfig = false;
+            if (ActiveConfig.Service.EnablePendingConnectionPrompts)
+            {
+                try
+                {
+                    _pendingConnectionDriver ??= new PendingConnectionDriver();
+                }
+                catch (Win32Exception e)
+                {
+                    Utils.Log("Pending connection driver is unavailable. Reverting to ordinary blocked-connection prompts.", Utils.LOG_ID_SERVICE);
+                    Utils.LogException(e, Utils.LOG_ID_SERVICE);
+                    ActiveConfig.Service.EnablePendingConnectionPrompts = false;
+                    saveConfig = true;
+                }
+            }
+
+            if (CommitLearnedRules() || PruneExpiredRules() || saveConfig)
                 ActiveConfig.Service.Save(ConfigSavePath);
 
             ReapplySettings();

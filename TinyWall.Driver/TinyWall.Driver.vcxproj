@@ -27,6 +27,7 @@
     <OutDir>$(MSBuildThisFileDirectory)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(MSBuildThisFileDirectory)obj\$(Platform)\$(Configuration)\</IntDir>
     <SignMode>Off</SignMode>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -38,6 +39,10 @@
       <AdditionalDependencies>fwpkclnt.lib;wdmsec.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup><ClCompile Include="PendingDriver.c" /><ClInclude Include="PendingProtocol.h" /></ItemGroup>
+  <ItemGroup><ClCompile Include="PendingDriver.c" /><ClInclude Include="PendingProtocol.h" /><None Include="TinyWallPending.inf" /><None Include="Manage-TestDriver.ps1" /></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="StagePendingDriverPackage" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)package" />
+    <Copy SourceFiles="$(TargetPath);$(MSBuildProjectDirectory)\TinyWallPending.inf;$(MSBuildProjectDirectory)\Manage-TestDriver.ps1" DestinationFolder="$(OutDir)package" />
+  </Target>
 </Project>

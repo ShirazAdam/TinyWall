@@ -45,7 +45,7 @@ internal sealed class FirewallPromptMonitor
                 response.Type == MessageType.RESOLVE_PENDING_CONNECTION,
                 response.Type == MessageType.RESOLVE_PENDING_CONNECTION
                     ? "Connection decision applied."
-                    : $"Could not apply the pending connection decision ({response.Type}); the connection may have expired.");
+                    : $"Could not confirm the pending connection decision ({response.Type}); the connection may have expired or already been processed.");
         });
     }
 
