@@ -15,13 +15,31 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_6FE314A45FCE4ADC8B5CFC8E226A6EBC"
+        "MsmKey" = "8:_5DCD8DAAC3CA483CB85B481E587EDA41"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5F1F70204337480FA68AEDD0C00101BE"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B8E0172398E9477D924345B603244624"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_BD68CFAA43D54F0EA07E7E5EFFD83FBA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D7E0318E0E564F3BB3923EF17BF6FBB6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,6 +75,21 @@
                     "Name" = "8:Microsoft .NET Framework 4.8.1 (x86 and x64)"
                     "ProductCode" = "8:.NETFramework,Version=v4.8.1"
                     }
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.NetCore.CoreRuntime.10.0.Arm64"
+                    {
+                    "Name" = "8:.NET Runtime 10.0.14 (Arm64)"
+                    "ProductCode" = "8:Microsoft.NetCore.CoreRuntime.10.0.Arm64"
+                    }
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.NetCore.CoreRuntime.10.0.x64"
+                    {
+                    "Name" = "8:.NET Runtime 10.0.14 (x64)"
+                    "ProductCode" = "8:Microsoft.NetCore.CoreRuntime.10.0.x64"
+                    }
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.NetCore.CoreRuntime.10.0.x86"
+                    {
+                    "Name" = "8:.NET Runtime 10.0.14 (x86)"
+                    "ProductCode" = "8:Microsoft.NetCore.CoreRuntime.10.0.x86"
+                    }
                 }
             }
         }
@@ -82,6 +115,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
     }
@@ -191,7 +232,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TinyWall"
         "ProductCode" = "8:{98FDA3B6-5E3E-4981-9006-72CD5DDBE169}"
-        "PackageCode" = "8:{A0F01750-8CA8-4EC8-B94F-DC0FB63BE449}"
+        "PackageCode" = "8:{B8B35038-CFD3-49BD-8E95-DB87FAB58A4A}"
         "UpgradeCode" = "8:{1AAB1576-7FE1-4E1B-97EF-752836D76325}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -311,30 +352,58 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7497CC8B9BD9425FAB02D3A79AC7046C"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_2624BEE3E65C40169296DC1FC1DD993E"
             {
-            "Name" = "8:Shortcut to %sPublish Items from TinyWall (Active)"
+            "Name" = "8:Shortcut to %sPrimary output from ModernTinyWall (Active)"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_1EC65DAA887A4708AC5D0BFBA0B17F8F"
+            "Target" = "8:_5F1F70204337480FA68AEDD0C00101BE"
             "Folder" = "8:_080FEA96B8D944CCABDA982BC749BD65"
             "WorkingFolder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
             "Icon" = "8:"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_AE0951F8686C4CF1A749C1D3595CC94C"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_8F5E1EA174A842C19A4942AA451C82BC"
             {
-            "Name" = "8:Shortcut to %sPublish Items from ModernTinyWall (Active)"
+            "Name" = "8:Shortcut to %sPrimary output from TinyWall (Active)"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_6FE314A45FCE4ADC8B5CFC8E226A6EBC"
+            "Target" = "8:_B8E0172398E9477D924345B603244624"
             "Folder" = "8:_080FEA96B8D944CCABDA982BC749BD65"
+            "WorkingFolder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B803BFF861504DADA800B807EBCB274B"
+            {
+            "Name" = "8:Shortcut to %sPrimary output from ModernTinyWall (Active)"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_5F1F70204337480FA68AEDD0C00101BE"
+            "Folder" = "8:_F42667624E2C4E59AA175030EFCDE35D"
+            "WorkingFolder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_CC33F1ACFE284BA2AF334A519871F5C7"
+            {
+            "Name" = "8:Shortcut to %sPrimary output from TinyWall (Active)"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_B8E0172398E9477D924345B603244624"
+            "Folder" = "8:_F42667624E2C4E59AA175030EFCDE35D"
             "WorkingFolder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
             "Icon" = "8:"
             "Feature" = "8:"
@@ -738,7 +807,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_1EC65DAA887A4708AC5D0BFBA0B17F8F"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_5DCD8DAAC3CA483CB85B481E587EDA41"
             {
             "SourcePath" = "8:..\\TinyWall\\obj\\Debug\\apphost.exe"
             "TargetName" = "8:"
@@ -760,13 +829,69 @@
             "ProjectOutputGroupRegister" = "3:1"
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
-            "OutputProjectGuid" = "8:{16CD254D-9D71-4EA4-ABB4-9DC0AB52E6D2}"
+            "OutputProjectGuid" = "8:{34080346-B4C2-3516-D795-7276F3DB1A1F}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6FE314A45FCE4ADC8B5CFC8E226A6EBC"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_5F1F70204337480FA68AEDD0C00101BE"
+            {
+            "SourcePath" = "8:..\\ModernTinyWall\\obj\\Debug\\net10.0-windows10.0.26100.0\\ModernTinyWall.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{64CF0CCE-BAC3-59A3-DD34-1B9C9548660B}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B8E0172398E9477D924345B603244624"
+            {
+            "SourcePath" = "8:..\\TinyWall\\obj\\Debug\\TinyWall.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{34080346-B4C2-3516-D795-7276F3DB1A1F}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D7E0318E0E564F3BB3923EF17BF6FBB6"
             {
             "SourcePath" = "8:..\\ModernTinyWall\\obj\\Debug\\net10.0-windows10.0.26100.0\\apphost.exe"
             "TargetName" = "8:"
