@@ -75,23 +75,22 @@ internal sealed class DataUsageCollector : IDisposable
                 StopOnDispose = true,
                 BufferSizeMB = 32
             };
-            var kernel = session.Source.Kernel;
-            kernel.ProcessStartGroup += ProcessStarted;
-            kernel.ProcessStop += data => _applications.Remove(data.ProcessID);
-            kernel.TcpIpSend += data => Record(data, data.size, data.daddr, true);
-            kernel.TcpIpRecv += data => Record(data, data.size, data.saddr, false);
-            kernel.TcpIpSendIPV6 += data => Record(data, data.size, data.daddr, true);
-            kernel.TcpIpRecvIPV6 += data => Record(data, data.size, data.saddr, false);
-            kernel.UdpIpSend += data => Record(data, data.size, data.daddr, true);
-            kernel.UdpIpRecv += data => Record(data, data.size, data.saddr, false);
-            kernel.UdpIpSendIPV6 += data => Record(data, data.size, data.daddr, true);
-            kernel.UdpIpRecvIPV6 += data => Record(data, data.size, data.saddr, false);
-
             lock (_sessionGate)
             {
                 if (_stopping || _failed)
                     return;
                 session.EnableKernelProvider(KernelTraceEventParser.Keywords.NetworkTCPIP | KernelTraceEventParser.Keywords.Process);
+                var kernel = session.Source.Kernel;
+                kernel.ProcessStartGroup += ProcessStarted;
+                kernel.ProcessStop += data => _applications.Remove(data.ProcessID);
+                kernel.TcpIpSend += data => Record(data, data.size, data.daddr, true);
+                kernel.TcpIpRecv += data => Record(data, data.size, data.saddr, false);
+                kernel.TcpIpSendIPV6 += data => Record(data, data.size, data.daddr, true);
+                kernel.TcpIpRecvIPV6 += data => Record(data, data.size, data.saddr, false);
+                kernel.UdpIpSend += data => Record(data, data.size, data.daddr, true);
+                kernel.UdpIpRecv += data => Record(data, data.size, data.saddr, false);
+                kernel.UdpIpSendIPV6 += data => Record(data, data.size, data.daddr, true);
+                kernel.UdpIpRecvIPV6 += data => Record(data, data.size, data.saddr, false);
                 _session = session;
             }
             lock (_gate)
