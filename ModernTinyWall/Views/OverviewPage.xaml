@@ -171,7 +171,7 @@
                                     <Border Width="36" Height="36" CornerRadius="10"
                                             Background="{ThemeResource SystemControlBackgroundAccentBrush}"
                                             VerticalAlignment="Top">
-                                        <FontIcon Glyph="&#xEA18;" FontSize="18"
+                                        <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="18"
                                                   Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
