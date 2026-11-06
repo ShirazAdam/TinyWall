@@ -33,7 +33,7 @@ Modern TinyWall's outbound connection prompt displays the application's name, ic
 The driver exposes a system/administrator-only device interface, bounds the queue to 128 requests, and denies unanswered requests after two minutes. Modern TinyWall continues polling while a dialog is open. Loss of the polling client denies pending requests after a ten-second heartbeat grace period. Full queues, unsupported packet forms (such as raw sockets), or failures remain blocked rather than receiving a temporary blanket permit.
 
 Applications can still cancel or time out their own requests while a prompt is open. Approving a request cannot revive a socket that the application has already closed.
-Changes to firewall policy can trigger reauthorisation while a request is pending; the effect on that request and the timing of UDP reinjection have not yet been validated. Do not rely on this experimental feature for production protection.
+Changes to firewall policy can trigger reauthorisation while a request is pending. An allow rule saved before the pending operation completes can take precedence over the callout, so its reauthorisation may not reach the driver and the initial UDP datagram may not be reinjected. The application may need to retry. Policy-change behaviour and UDP reinjection remain unvalidated; do not rely on this experimental feature for production protection.
 
 Build the unsigned driver artifact from a Visual Studio developer command prompt with the C++ tools, matching Windows SDK, and WDK installed:
 

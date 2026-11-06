@@ -26,6 +26,9 @@ typedef struct TW_ENTRY {
     BOOLEAN Allow;
     BOOLEAN Completing;
     BOOLEAN Completed;
+    BOOLEAN Reauthorised;
+    BOOLEAN Injecting;
+    BOOLEAN Injected;
 } TW_ENTRY;
 
 typedef struct TW_SEND {
@@ -92,6 +95,15 @@ static BOOLEAN ReadTuple(
     entry->Request.ProcessId = metadata->processId;
     entry->Request.AddressFamily = v6 ? AF_INET6 : AF_INET;
     if (v6) {
+        if (values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_PROTOCOL].value.type != FWP_UINT8
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_LOCAL_PORT].value.type != FWP_UINT16
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_REMOTE_PORT].value.type != FWP_UINT16
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_REMOTE_ADDRESS].value.type != FWP_BYTE_ARRAY16_TYPE
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_LOCAL_ADDRESS].value.type != FWP_BYTE_ARRAY16_TYPE
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_FLAGS].value.type != FWP_UINT32
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_REMOTE_ADDRESS].value.byteArray16 == NULL
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_LOCAL_ADDRESS].value.byteArray16 == NULL)
+            return FALSE;
         entry->Request.Protocol = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_PROTOCOL].value.uint8;
         entry->Request.LocalPort = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_LOCAL_PORT].value.uint16;
         entry->Request.RemotePort = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_REMOTE_PORT].value.uint16;
@@ -99,6 +111,13 @@ static BOOLEAN ReadTuple(
         RtlCopyMemory(entry->LocalAddress, values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_IP_LOCAL_ADDRESS].value.byteArray16->byteArray16, 16);
         *flags = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V6_FLAGS].value.uint32;
     } else {
+        if (values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_PROTOCOL].value.type != FWP_UINT8
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_LOCAL_PORT].value.type != FWP_UINT16
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_REMOTE_PORT].value.type != FWP_UINT16
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_REMOTE_ADDRESS].value.type != FWP_UINT32
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_LOCAL_ADDRESS].value.type != FWP_UINT32
+            || values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_FLAGS].value.type != FWP_UINT32)
+            return FALSE;
         entry->Request.Protocol = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_PROTOCOL].value.uint8;
         entry->Request.LocalPort = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_LOCAL_PORT].value.uint16;
         entry->Request.RemotePort = values->incomingValue[FWPS_FIELD_ALE_AUTH_CONNECT_V4_IP_REMOTE_PORT].value.uint16;
@@ -166,8 +185,13 @@ static void NTAPI Classify(
     for (link = Entries.Flink; link != &Entries; link = link->Flink) {
         entry = CONTAINING_RECORD(link, TW_ENTRY, Link);
         if (SameTuple(entry, &tuple)) {
-            if (reauthorize && entry->Ready && entry->Allow)
+            if (reauthorize && entry->Completing && entry->Allow && !entry->Reauthorised
+                && FWPS_IS_METADATA_FIELD_PRESENT(metadata, FWPS_METADATA_FIELD_PACKET_DIRECTION)
+                && metadata->packetDirection == FWP_DIRECTION_OUTBOUND) {
                 result->actionType = FWP_ACTION_PERMIT;
+                entry->Reauthorised = TRUE;
+                KeSetEvent(&Wake, IO_NO_INCREMENT, FALSE);
+            }
             KeReleaseSpinLock(&Guard, irql);
             return;
         }
@@ -183,6 +207,8 @@ static void NTAPI Classify(
         goto failed;
     *entry = tuple;
     appIndex = tuple.Request.AddressFamily == AF_INET6 ? FWPS_FIELD_ALE_AUTH_CONNECT_V6_ALE_APP_ID : FWPS_FIELD_ALE_AUTH_CONNECT_V4_ALE_APP_ID;
+    if (values->incomingValue[appIndex].value.type != FWP_BYTE_BLOB_TYPE)
+        goto failed;
     app = values->incomingValue[appIndex].value.byteBlob;
     if (app == NULL || app->size < sizeof(WCHAR) || app->size > sizeof(entry->Request.AppPath) - sizeof(WCHAR)
         || (app->size % sizeof(WCHAR)) != 0 || app->data == NULL)
@@ -262,12 +288,10 @@ static NTSTATUS NTAPI Notify(FWPS_CALLOUT_NOTIFY_TYPE type, const GUID* key, FWP
     return STATUS_SUCCESS;
 }
 
-static void CompleteEntry(TW_ENTRY* entry)
+static void InjectEntry(TW_ENTRY* entry)
 {
     NTSTATUS status;
-    FwpsCompleteOperation0(entry->Completion, entry->Clone);
-    entry->Completion = NULL;
-    if (entry->Clone != NULL && entry->Allow) {
+    if (entry->Clone != NULL) {
         TW_SEND* send = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(*send), TW_TAG);
         if (send != NULL) {
             send->Parameters = entry->Send;
@@ -303,6 +327,7 @@ static void WorkerMain(void* context)
     for (;;) {
         TW_ENTRY* work = NULL;
         TW_ENTRY* garbage = NULL;
+        TW_ENTRY* injection = NULL;
         KIRQL irql;
         LIST_ENTRY* link;
         UINT64 now = KeQueryInterruptTime();
@@ -314,6 +339,12 @@ static void WorkerMain(void* context)
                 RemoveEntryList(link);
                 --EntryCount;
                 garbage = entry;
+                break;
+            }
+            if (entry->Completed && entry->Reauthorised && entry->Clone != NULL
+                && !entry->Injecting && !entry->Injected && !Stopping) {
+                entry->Injecting = TRUE;
+                injection = entry;
                 break;
             }
             if (!entry->Completed && !entry->Completing) {
@@ -335,10 +366,19 @@ static void WorkerMain(void* context)
             continue;
         }
         if (work != NULL) {
-            CompleteEntry(work);
+            FwpsCompleteOperation0(work->Completion, work->Clone);
             KeAcquireSpinLock(&Guard, &irql);
+            work->Completion = NULL;
             work->Completed = TRUE;
             work->Expires = KeQueryInterruptTime() + TW_SECONDS(30);
+            KeReleaseSpinLock(&Guard, irql);
+            continue;
+        }
+        if (injection != NULL) {
+            InjectEntry(injection);
+            KeAcquireSpinLock(&Guard, &irql);
+            injection->Injecting = FALSE;
+            injection->Injected = TRUE;
             KeReleaseSpinLock(&Guard, irql);
             continue;
         }

@@ -1463,17 +1463,30 @@ namespace ModernTinyWall.TinyWall
                                 // Reject an unavailable opt-in driver before changing or saving settings.
                                 using var probe = new PendingConnectionDriver();
                             }
+                            var previousConfig = ActiveConfig.Service;
                             try
                             {
-                                GlobalInstances.ServerChangeset = Guid.NewGuid();
                                 ActiveConfig.Service = args.Config;
-                                ActiveConfig.Service.Save(ConfigSavePath);
                                 ReapplySettings();
                                 InstallFirewallRules();
+                                ActiveConfig.Service.Save(ConfigSavePath);
+                                GlobalInstances.ServerChangeset = Guid.NewGuid();
                             }
                             catch (Exception e)
                             {
                                 Utils.LogException(e, Utils.LOG_ID_SERVICE);
+                                ActiveConfig.Service = previousConfig;
+                                GlobalInstances.ServerChangeset = Guid.NewGuid();
+                                try
+                                {
+                                    ReapplySettings();
+                                    InstallFirewallRules();
+                                }
+                                catch (Exception rollbackError)
+                                {
+                                    Utils.Log("Could not restore the previous firewall settings after an update failure.", Utils.LOG_ID_SERVICE);
+                                    Utils.LogException(rollbackError, Utils.LOG_ID_SERVICE);
+                                }
                                 return TwMessageError.Instance;
                             }
                         }
