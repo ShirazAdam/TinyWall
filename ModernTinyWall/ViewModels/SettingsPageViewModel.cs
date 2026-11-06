@@ -18,7 +18,7 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
     private readonly AsyncRelayCommand _applyCommand;
     private readonly AsyncRelayCommand _checkForUpdatesCommand;
     private bool _isLoading;
-    private string _statusMessage = "Settings migration layout ready.";
+    private string _statusMessage = "Settings ready.";
 
     public SettingsPageViewModel()
         : this(new SettingsService(), new MaintenanceService())

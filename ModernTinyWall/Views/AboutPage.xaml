@@ -5,7 +5,7 @@
     <StackPanel Padding="32" Spacing="16">
         <StackPanel Spacing="6">
             <TextBlock Text="Updates and about" Style="{StaticResource PageTitleStyle}" />
-            <TextBlock Text="ModernTinyWall is the WinUI migration client for TinyWall."
+            <TextBlock Text="Modern TinyWall brings TinyWall's firewall controls to a modern Windows interface."
                        TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="8">

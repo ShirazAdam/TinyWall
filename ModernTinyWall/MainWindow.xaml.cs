@@ -44,7 +44,7 @@ public sealed partial class MainWindow
         _trayIconService.Initialise(_windowHandle);
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Initialise(_windowHandle);
-        _trayIconService.SetStatus("ModernTinyWall migration shell");
+        _trayIconService.SetStatus("TinyWall firewall controls");
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
         _ = MonitorFirewallEventsAsync(_promptMonitoringCancellation.Token);

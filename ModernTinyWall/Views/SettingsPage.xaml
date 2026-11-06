@@ -15,7 +15,7 @@
 
         <StackPanel Spacing="6">
             <TextBlock Text="Settings" Style="{StaticResource PageTitleStyle}" />
-            <TextBlock Text="This page mirrors the WinForms settings structure: General, Machine settings, Application exceptions, and Maintenance/About." TextWrapping="Wrap" />
+            <TextBlock Text="Manage general preferences, machine settings, and maintenance tools." TextWrapping="Wrap" />
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
