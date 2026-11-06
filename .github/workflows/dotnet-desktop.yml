@@ -42,3 +42,75 @@ jobs:
 
     - name: Test
       run: dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --configuration ${{ matrix.configuration }}
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Read and validate release version
+      id: version
+      shell: pwsh
+      run: |
+        [xml]$project = Get-Content ModernTinyWall\ModernTinyWall.csproj -Raw
+        $version = $project.Project.PropertyGroup |
+          Where-Object { $_.Version } |
+          Select-Object -First 1 -ExpandProperty Version
+        if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
+          throw "ModernTinyWall.csproj must define a valid release version."
+        }
+
+        $existingTag = git tag --list $version
+        if ($existingTag) {
+          $tagCommit = git rev-list -n 1 $version
+          if ($tagCommit -ne $env:GITHUB_SHA) {
+            throw "Release tag '$version' already points to another commit. Bump the project version before releasing again."
+          }
+        }
+
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
+
+    - name: Publish desktop binaries
+      shell: pwsh
+      run: |
+        $version = "${{ steps.version.outputs.version }}"
+        New-Item -ItemType Directory -Force artifacts\release | Out-Null
+        foreach ($runtime in @("win-x86", "win-x64", "win-arm64")) {
+          $publishDirectory = "artifacts\publish\ModernTinyWall\$runtime"
+          dotnet publish ModernTinyWall\ModernTinyWall.csproj `
+            --configuration Release `
+            --runtime $runtime `
+            --self-contained true `
+            -p:WindowsAppSDKSelfContained=true `
+            --output $publishDirectory
+          if ($LASTEXITCODE -ne 0) {
+            throw "Publishing Modern TinyWall for $runtime failed."
+          }
+
+          Compress-Archive `
+            -Path "$publishDirectory\*" `
+            -DestinationPath "artifacts\release\ModernTinyWall-$version-$runtime.zip" `
+            -CompressionLevel Optimal
+        }
+
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: TinyWall ${{ steps.version.outputs.version }}
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: artifacts/release/*.zip
