@@ -64,7 +64,7 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To build the application
 
-1. Open the solution file in Visual Studio.
+1. Open `TinyWall.slnx` in Visual Studio 2026. The solution uses the modern XML solution format; all nine C# projects were already SDK-style, so their project files required no format migration.
 1. Build `ModernTinyWall` to run the modernised .NET 10 client.
 1. Build `TinyWall` to run the legacy WinForms application.
 1. The referenced projects are built automatically by Visual Studio as needed.
