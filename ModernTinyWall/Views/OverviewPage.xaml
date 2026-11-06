@@ -176,8 +176,11 @@
                                             <SolidColorBrush Color="{Binding ModeColour}" />
                                         </Border.Background>
                                         <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="18"
-                                                  Foreground="White"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <FontIcon.Foreground>
+                                                <SolidColorBrush Color="{Binding IconForeground}" />
+                                            </FontIcon.Foreground>
+                                        </FontIcon>
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="5">
                                         <TextBlock Text="{x:Bind DisplayName}" FontSize="14"

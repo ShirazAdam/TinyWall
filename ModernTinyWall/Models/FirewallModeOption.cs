@@ -18,9 +18,11 @@ public sealed record FirewallModeOption(ModernFirewallMode Mode, string DisplayN
         ModernFirewallMode.AllowOutgoing => "#FF0078D4",
         ModernFirewallMode.BlockAll => "#FFC42B1C",
         ModernFirewallMode.Disabled => "#FF5D6570",
-        ModernFirewallMode.Learning => "#FF946200",
+        ModernFirewallMode.Learning => "#FFFFD700",
         _ => "#FF5D6570"
     };
+
+    public string IconForeground => Mode == ModernFirewallMode.Learning ? "#FF1A1A1A" : "#FFFFFFFF";
 
     public string IconGlyph => Mode switch
     {
