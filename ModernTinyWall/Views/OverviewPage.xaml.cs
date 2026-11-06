@@ -136,17 +136,18 @@ public sealed partial class OverviewPage
 
         var width = NetworkActivityCanvas.ActualWidth;
         var height = NetworkActivityCanvas.ActualHeight;
-        var xStep = width / (samples.Count - 1);
+        var xStep = width / 300;
+        var startX = width - (samples.Count - 1) * xStep;
         var figure = new PathFigure
         {
-            StartPoint = new(0, height - (valueSelector(samples[0]) / (double)maxValue * height)),
+            StartPoint = new(startX, height - (valueSelector(samples[0]) / (double)maxValue * height)),
             IsFilled = false
         };
         var previousPoint = figure.StartPoint;
 
         for (var i = 1; i < samples.Count; i++)
         {
-            var x = i * xStep;
+            var x = startX + i * xStep;
             var y = height - (valueSelector(samples[i]) / (double)maxValue * height);
             var midpointX = (previousPoint.X + x) / 2;
             // Horizontal tangents join smoothly without overshooting either sample.
