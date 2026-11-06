@@ -11,63 +11,173 @@
     </Page.Resources>
 
     <ScrollViewer>
-        <StackPanel Padding="24" Spacing="16">
-            <TextBlock Text="Overview" FontSize="28" FontWeight="SemiBold" />
+        <StackPanel Padding="36,28,36,36" Spacing="24" MaxWidth="1160" HorizontalAlignment="Stretch">
+            <StackPanel Spacing="4">
+                <TextBlock Text="FIREWALL DASHBOARD" Style="{StaticResource EyebrowStyle}"
+                           Foreground="{ThemeResource SystemControlForegroundAccentBrush}" />
+                <TextBlock Text="Your network, at a glance" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock Text="Monitor activity and choose how TinyWall protects your PC."
+                           FontSize="16" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" />
+            </StackPanel>
 
-            <TextBlock Text="Network activity" FontSize="20" FontWeight="SemiBold" Margin="0,12,0,0" />
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind ViewModel.DownloadRate, Mode=OneWay}" Foreground="#FF0078D4" />
-                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.UploadRate, Mode=OneWay}" Foreground="#FF107C10" />
-            </Grid>
-            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                <Grid RowSpacing="4" ColumnSpacing="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="160" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+            <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                    CornerRadius="12" Padding="24">
+                <Grid ColumnSpacing="20">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="72" />
+                        <ColumnDefinition Width="56" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-
-                    <Grid x:Name="BandwidthScaleGrid">
-                        <TextBlock x:Name="BandwidthScaleTopText" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="12" />
-                        <TextBlock x:Name="BandwidthScaleMiddleText" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
-                        <TextBlock Text="0 B/s" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="12" />
-                    </Grid>
-                    <Canvas x:Name="NetworkActivityCanvas" Grid.Column="1" SizeChanged="NetworkActivityCanvas_SizeChanged" />
-
-                    <Grid Grid.Row="1" Grid.Column="1">
-                        <TextBlock Text="-5 min" HorizontalAlignment="Left" FontSize="12" />
-                        <TextBlock Text="-2.5 min" HorizontalAlignment="Center" FontSize="12" />
-                        <TextBlock Text="Now" HorizontalAlignment="Right" FontSize="12" />
-                    </Grid>
+                    <Border Width="56" Height="56" CornerRadius="14"
+                            Background="{ThemeResource SystemControlBackgroundAccentBrush}">
+                        <FontIcon Glyph="&#xE72E;" FontSize="26"
+                                  Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                        <TextBlock Text="Simple, clear firewall controls"
+                                   FontSize="20" FontWeight="SemiBold" />
+                        <TextBlock Text="Review live network activity, manage application access, and find your firewall tools from one place."
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
                 </Grid>
             </Border>
 
-            <TextBlock Text="Firewall mode" FontSize="20" FontWeight="SemiBold" Margin="0,12,0,0" />
-            <TextBlock Text="These actions mirror the WinForms tray firewall mode commands. Live service integration will be connected when shared TinyWall core services are extracted." TextWrapping="Wrap" />
-            <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsApplyingMode, Mode=OneWay}" />
-            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" TextWrapping="Wrap" />
+            <StackPanel Spacing="12">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Network activity" Style="{StaticResource SectionTitleStyle}" />
+                        <TextBlock Text="Live traffic across active network adapters"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16"
+                                VerticalAlignment="Center">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="DOWNLOAD" Style="{StaticResource EyebrowStyle}"
+                                       Foreground="#FF0078D4" />
+                            <TextBlock Text="{x:Bind ViewModel.DownloadRate, Mode=OneWay}"
+                                       FontSize="16" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="UPLOAD" Style="{StaticResource EyebrowStyle}"
+                                       Foreground="#FF107C10" />
+                            <TextBlock Text="{x:Bind ViewModel.UploadRate, Mode=OneWay}"
+                                       FontSize="16" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
 
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.ModeOptions, Mode=OneWay}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:FirewallModeOption">
-                        <Grid Padding="0,6" ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Button Content="{x:Bind DisplayName}" Command="{Binding ViewModel.ApplyModeCommand, ElementName=PageRoot}" CommandParameter="{x:Bind}" HorizontalAlignment="Stretch" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind Description}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                        CornerRadius="12" Padding="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <Grid RowSpacing="8" ColumnSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="176" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="72" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid x:Name="BandwidthScaleGrid">
+                            <TextBlock x:Name="BandwidthScaleTopText" HorizontalAlignment="Right"
+                                       VerticalAlignment="Top" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="BandwidthScaleMiddleText" HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="0 B/s" HorizontalAlignment="Right"
+                                       VerticalAlignment="Bottom" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </Grid>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    BorderThickness="0,0,0,1" />
+                            <Border Grid.Row="1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    BorderThickness="0,0,0,1" />
+                            <Canvas x:Name="NetworkActivityCanvas"
+                                    SizeChanged="NetworkActivityCanvas_SizeChanged" />
+                        </Grid>
+                        <Grid Grid.Row="1" Grid.Column="1">
+                            <TextBlock Text="-5 min" HorizontalAlignment="Left" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="-2.5 min" HorizontalAlignment="Center" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="Now" HorizontalAlignment="Right" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="Firewall mode" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Choose the protection level that fits what you are doing."
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+                <InfoBar IsOpen="True" Severity="Informational" Title="Firewall controls"
+                         Message="These actions mirror the WinForms tray firewall mode commands. Live service integration will be connected when shared TinyWall core services are extracted." />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ProgressRing Width="18" Height="18"
+                                  IsActive="{x:Bind ViewModel.IsApplyingMode, Mode=OneWay}" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                               VerticalAlignment="Center" TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Grid>
+                <ItemsRepeater ItemsSource="{x:Bind ViewModel.ModeOptions, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout Orientation="Horizontal" MaximumRowsOrColumns="2"
+                                           MinItemWidth="280" MinItemHeight="112"
+                                           ItemsStretch="Fill" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:FirewallModeOption">
+                            <Button Padding="16" Margin="0,0,12,12"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    Command="{Binding ViewModel.ApplyModeCommand, ElementName=PageRoot}"
+                                    CommandParameter="{x:Bind}"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="6" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind DisplayName}" FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind Description}" FontSize="13"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="1" Glyph="&#xE76C;" FontSize="14"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                              VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </Page>

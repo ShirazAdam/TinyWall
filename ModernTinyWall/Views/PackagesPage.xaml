@@ -5,15 +5,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:ModernTinyWall.ViewModels">
 
-    <Grid Padding="24" RowSpacing="12">
+    <Grid Padding="32" RowSpacing="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid ColumnSpacing="12">
+        <StackPanel Spacing="4">
+            <TextBlock Text="Packages" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="Review Microsoft Store applications and their network access."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -24,12 +31,16 @@
             <Button Grid.Column="2" Content="Clear" Command="{x:Bind ViewModel.ClearCommand}" />
         </Grid>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.Packages, Mode=OneWay}">
+        <Border Grid.Row="3" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="12"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <ListView ItemsSource="{x:Bind ViewModel.Packages, Mode=OneWay}"
+                  Background="Transparent">
             <ListView.Header>
                 <Grid Padding="8" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
@@ -67,8 +78,9 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        </Border>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="OK" />
             <Button Content="Cancel" />
         </StackPanel>
