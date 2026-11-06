@@ -16,6 +16,7 @@ internal sealed class FirewallPromptMonitor
     private bool _initialized;
     private readonly object _pendingGuard = new();
     private HashSet<ulong> _pendingIds = [];
+    private bool _pendingEnabled;
 
     public bool IsPending(ulong id)
     {
@@ -27,6 +28,12 @@ internal sealed class FirewallPromptMonitor
     {
         lock (_pendingGuard)
             _pendingIds.Clear();
+    }
+
+    public void ForgetPending(ulong id)
+    {
+        lock (_pendingGuard)
+            _pendingIds.Remove(id);
     }
 
     public Task<ModernTinyWall.Exceptions.ExceptionMutationResult> ResolvePendingAsync(ulong id, bool allow)
@@ -53,13 +60,14 @@ internal sealed class FirewallPromptMonitor
             {
                 lock (_pendingGuard)
                 {
+                    _pendingEnabled = pending.Enabled;
                     var newPending = pending.Entries.Where(entry => !_pendingIds.Contains(entry.PendingConnectionId)).ToArray();
                     _pendingIds = pending.Entries.Select(entry => entry.PendingConnectionId).ToHashSet();
                     if (pending.Enabled)
                         return newPending;
                 }
             }
-            else if (pendingResponse.Type != MessageType.RESPONSE_ERROR && pendingResponse.Type != MessageType.INVALID_COMMAND)
+            else if (_pendingEnabled || (pendingResponse.Type != MessageType.RESPONSE_ERROR && pendingResponse.Type != MessageType.INVALID_COMMAND))
             {
                 throw new InvalidOperationException($"Could not read pending connections ({pendingResponse.Type}).");
             }

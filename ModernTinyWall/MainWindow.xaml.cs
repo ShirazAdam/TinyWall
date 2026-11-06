@@ -7,6 +7,7 @@ using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Views;
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -31,6 +32,7 @@ public sealed partial class MainWindow
     private readonly CancellationTokenSource _promptMonitoringCancellation = new();
     private readonly Channel<FirewallLogEntry> _promptQueue = Channel.CreateBounded<FirewallLogEntry>(
         new BoundedChannelOptions(128) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = true });
+    private readonly ConcurrentDictionary<ulong, byte> _queuedPending = new();
     private readonly IntPtr _windowHandle;
     private readonly IntPtr _previousWindowProc;
     private readonly WindowProc _windowProc;
@@ -75,8 +77,17 @@ public sealed partial class MainWindow
                 foreach (var entry in events)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (entry.PendingConnectionId != 0 && !_queuedPending.TryAdd(entry.PendingConnectionId, 0))
+                        continue;
                     if (!_promptQueue.Writer.TryWrite(entry))
+                    {
+                        if (entry.PendingConnectionId != 0)
+                        {
+                            _queuedPending.TryRemove(entry.PendingConnectionId, out _);
+                            _firewallPromptMonitor.ForgetPending(entry.PendingConnectionId);
+                        }
                         _trayIconService.SetStatus("Connection prompt queue is full. Unanswered connections remain blocked.");
+                    }
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(750), cancellationToken);
@@ -108,11 +119,12 @@ public sealed partial class MainWindow
         {
             await foreach (var entry in _promptQueue.Reader.ReadAllAsync(cancellationToken))
             {
-                if (entry.PendingConnectionId != 0 && !_firewallPromptMonitor.IsPending(entry.PendingConnectionId))
-                    continue;
                 try
                 {
-                    await ShowFirewallPromptAsync(entry);
+                    if (entry.PendingConnectionId != 0 && !_firewallPromptMonitor.IsPending(entry.PendingConnectionId))
+                        continue;
+                    if (await ShowFirewallPromptAsync(entry) && entry.PendingConnectionId != 0)
+                        _firewallPromptMonitor.ForgetPending(entry.PendingConnectionId);
                 }
                 catch (Exception ex)
                 {
@@ -132,6 +144,11 @@ public sealed partial class MainWindow
                     }
                     _trayIconService.SetStatus("Could not show outbound connection prompt. The connection remains blocked.");
                 }
+                finally
+                {
+                    if (entry.PendingConnectionId != 0)
+                        _queuedPending.TryRemove(entry.PendingConnectionId, out _);
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -139,7 +156,7 @@ public sealed partial class MainWindow
         }
     }
 
-    private async Task ShowFirewallPromptAsync(FirewallLogEntry entry)
+    private async Task<bool> ShowFirewallPromptAsync(FirewallLogEntry entry)
     {
         _ = ShowWindow(_windowHandle, SwShow);
         Activate();
@@ -230,7 +247,7 @@ public sealed partial class MainWindow
         if (expired)
         {
             _trayIconService.SetStatus("Pending connection expired or was withdrawn. No rule was saved.");
-            return;
+            return true;
         }
         decision = result switch
         {
@@ -251,6 +268,7 @@ public sealed partial class MainWindow
         _trayIconService.SetStatus(mutationResult.Message);
         if (!mutationResult.Success)
             await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", mutationResult.Message);
+        return false;
     }
 
     private static Task TryLoadApplicationIconAsync(Image image, string executablePath)
