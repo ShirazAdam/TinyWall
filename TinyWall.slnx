@@ -1,0 +1,35 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/Build-TinyWall-NETFramework.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="LICENCE.txt" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/Installer/">
+    <File Path="Installer/README.md" />
+    <File Path="Installer/TinyWall.iss" />
+  </Folder>
+  <Project Path="ModernTinyWall.Exceptions.Tests/ModernTinyWall.Exceptions.Tests.csproj" />
+  <Project Path="ModernTinyWall.Exceptions/ModernTinyWall.Exceptions.csproj" />
+  <Project Path="ModernTinyWall.Utilities/ModernTinyWall.Utilities.csproj" />
+  <Project Path="ModernTinyWall.Windows.Services/ModernTinyWall.Windows.Services.csproj" />
+  <Project Path="ModernTinyWall.Windows.WFP/ModernTinyWall.Windows.WFP.csproj" />
+  <Project Path="ModernTinyWall.Windows/ModernTinyWall.Windows.csproj" />
+  <Project Path="ModernTinyWall/ModernTinyWall.csproj">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Project Path="TinyWall.Core/TinyWall.Core.csproj" />
+  <Project Path="TinyWall/TinyWall.csproj" />
+  <Project Path="TinyWallSetup/TinyWallSetup.vdproj" Type="Installer" />
+</Solution>
