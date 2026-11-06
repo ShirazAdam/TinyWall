@@ -53,7 +53,7 @@
             </Border>
 
             <StackPanel Spacing="10">
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="12" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -148,12 +148,14 @@
                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.ModeOptions, Mode=OneWay}">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout Orientation="Horizontal" MaximumRowsOrColumns="3"
-                                           MinItemWidth="220" MinItemHeight="108"
+                                           MinItemWidth="220" MinItemHeight="150"
                                            ItemsStretch="Fill" />
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="models:FirewallModeOption">
                             <Button Padding="14" Margin="0,0,10,10"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                     BorderThickness="1"
@@ -175,7 +177,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="5">
                                         <TextBlock Text="{x:Bind DisplayName}" FontSize="14"
-                                                   FontWeight="SemiBold" />
+                                                   FontWeight="SemiBold" TextWrapping="Wrap" />
                                         <TextBlock Text="{x:Bind Description}" FontSize="12"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                    TextWrapping="Wrap" />
