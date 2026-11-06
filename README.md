@@ -60,15 +60,18 @@ You're welcome to hack and slash at it. Enjoy!
 
 - [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com/vs/)
 - [.NET 10](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Microsoft Visual Studio 2022/2026 Installer Project Extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects)
+- The [Visual Studio Installer Projects extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects) is needed only to build the legacy `TinyWallSetup` project.
+- [Inno Setup 6 or later](https://jrsoftware.org/isinfo.php) is needed to build installers using the current packaging scripts.
 
 ### To build the application
 
-1. Open `TinyWall.slnx` in Visual Studio 2026. The solution uses the modern XML solution format; all nine C# projects were already SDK-style, so their project files required no format migration.
-1. Build `ModernTinyWall` to run the modernised .NET 10 client.
-1. Build `TinyWall` to run the legacy WinForms application.
-1. The referenced projects are built automatically by Visual Studio as needed.
-1. Done.
+1. Open `TinyWall.slnx` in Visual Studio.
+1. Build `ModernTinyWall` to run the modern WinUI 3 client, or build `TinyWall` to run the legacy WinForms application.
+1. Visual Studio builds the referenced projects automatically.
+
+### To build an installer
+
+The current Inno Setup packaging workflow publishes the `TinyWall` application for x86, x64, and ARM64, then builds an architecture-specific installer. Follow the commands in [`installer/README.md`](installer/README.md). The older `TinyWallSetup` Visual Studio project remains in the solution but is not the primary installer path.
 
 ### Main projects
 
