@@ -157,6 +157,7 @@ namespace ModernTinyWall.TinyWall
 
         [DataMember(EmitDefaultValue = false)]
         public FirewallMode StartupMode { get; set; } = FirewallMode.Normal;
+        public bool EnablePendingConnectionPrompts { get; set; }
 
         [DataMember(EmitDefaultValue = false)]
         public List<ServerProfileConfiguration> Profiles { get; set; } = new();

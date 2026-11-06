@@ -28,6 +28,7 @@ namespace ModernTinyWall.TinyWall
             UserBlock = 6000000,
             UserPermit = 5000000,
             DefaultPermit = 4000000,
+            PendingPrompt = 3500000,
             DefaultBlock = 3000000,
         }
 
@@ -38,6 +39,7 @@ namespace ModernTinyWall.TinyWall
         private readonly Timer? _minuteTimer;
 
         private readonly CircularBuffer<FirewallLogEntry> _firewallLogEntries = new(500);
+        private PendingConnectionDriver? _pendingConnectionDriver;
         private readonly FileLocker _fileLocker = new();
         private readonly HostsFileManager _hostsFileManager = new();
         private DateTime _lastControllerCommandTime = DateTime.Now;
@@ -329,6 +331,14 @@ namespace ModernTinyWall.TinyWall
             _lastRuleReloadTime = DateTime.Now;
             PathMapper.Instance.RebuildCache();
 
+            if (ActiveConfig.Service.EnablePendingConnectionPrompts)
+                _pendingConnectionDriver ??= new PendingConnectionDriver();
+            else
+            {
+                _pendingConnectionDriver?.Dispose();
+                _pendingConnectionDriver = null;
+            }
+
             var rules = new List<RuleDef>();
             var rawSocketExceptions = new List<RuleDef>();
             lock (_inheritanceGuard)
@@ -390,6 +400,9 @@ namespace ModernTinyWall.TinyWall
 
             timer.NewSubTask("Installing rules");
             InstallRules(rules, rawSocketExceptions, false);
+            if (_pendingConnectionDriver is not null && _visibleState.Mode == FirewallMode.Normal
+                && !(ActiveConfig.Service.ActiveProfile.DisplayOffBlock && !_displayCurrentlyOn))
+                InstallPendingPromptFilters();
 
             timer.NewSubTask("WFP transaction commit");
             trx.Commit();
@@ -411,6 +424,25 @@ namespace ModernTinyWall.TinyWall
             FWPM_LAYER_INBOUND_TRANSPORT_V4_DISCARD,
             FWPM_LAYER_ALE_RESOURCE_ASSIGNMENT_V6,
             FWPM_LAYER_ALE_RESOURCE_ASSIGNMENT_V4,
+        }
+
+        private void InstallPendingPromptFilters()
+        {
+            foreach (var layer in new[] { LayerKeyEnum.FWPM_LAYER_ALE_AUTH_CONNECT_V4, LayerKeyEnum.FWPM_LAYER_ALE_AUTH_CONNECT_V6 })
+            {
+                foreach (var protocol in new[] { Protocol.TCP, Protocol.UDP })
+                {
+                    using var filter = new Filter("Pending outbound decision", "Experimental TinyWall authorization prompt",
+                        TinywallProviderKey, FilterActions.FWP_ACTION_CALLOUT_TERMINATING, (ulong)FilterWeights.PendingPrompt);
+                    filter.LayerKey = GetLayerKey(layer);
+                    filter.SublayerKey = GetSublayerKey(layer);
+                    filter.CalloutKey = layer == LayerKeyEnum.FWPM_LAYER_ALE_AUTH_CONNECT_V4
+                        ? PendingConnectionDriver.CalloutV4 : PendingConnectionDriver.CalloutV6;
+                    filter.Conditions.Add(new ProtocolFilterCondition((byte)protocol));
+                    // Never make the experimental callout filters persistent or boot-time filters.
+                    _wfpEngine.RegisterFilter(filter);
+                }
+            }
         }
 
         private static Guid GetSublayerKey(LayerKeyEnum layer)
@@ -1364,6 +1396,20 @@ namespace ModernTinyWall.TinyWall
         {
             switch (req.Type)
             {
+                case MessageType.READ_PENDING_CONNECTIONS:
+                    {
+                        var entries = _pendingConnectionDriver is not null && !PasswordLock.Locked && _visibleState.Mode == FirewallMode.Normal
+                            ? _pendingConnectionDriver.ReadPendingConnections() : [];
+                        return new TwMessagePendingConnections(req.Type, 0, false, _pendingConnectionDriver is not null, entries);
+                    }
+                case MessageType.RESOLVE_PENDING_CONNECTION:
+                    {
+                        if (_pendingConnectionDriver is null || _visibleState.Mode != FirewallMode.Normal)
+                            return TwMessageError.Instance;
+                        var args = (TwMessagePendingConnections)req;
+                        _pendingConnectionDriver.Resolve(args.ConnectionId, args.Allow);
+                        return new TwMessagePendingConnections(req.Type, args.ConnectionId, args.Allow, true, []);
+                    }
                 case MessageType.READ_FW_LOG:
                     {
                         var args = (TwMessageReadFwLog)req;
@@ -1412,6 +1458,11 @@ namespace ModernTinyWall.TinyWall
                         var warning = (args.Changeset != GlobalInstances.ServerChangeset);
                         if (!warning)
                         {
+                            if (args.Config.EnablePendingConnectionPrompts && _pendingConnectionDriver is null)
+                            {
+                                // Reject an unavailable opt-in driver before changing or saving settings.
+                                using var probe = new PendingConnectionDriver();
+                            }
                             try
                             {
                                 GlobalInstances.ServerChangeset = Guid.NewGuid();
@@ -1423,6 +1474,7 @@ namespace ModernTinyWall.TinyWall
                             catch (Exception e)
                             {
                                 Utils.LogException(e, Utils.LOG_ID_SERVICE);
+                                return TwMessageError.Instance;
                             }
                         }
                         _visibleState.HasPassword = PasswordLock.HasPassword;
@@ -1992,6 +2044,7 @@ namespace ModernTinyWall.TinyWall
         {
             using var timer = new HierarchicalStopwatch("TinyWallService.Dispose()");
             _serverPipe.Dispose();
+            _pendingConnectionDriver?.Dispose();
             _processStartWatcher.Dispose();
 
             if (_minuteTimer != null)

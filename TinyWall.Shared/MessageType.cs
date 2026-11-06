@@ -14,6 +14,7 @@ namespace ModernTinyWall.TinyWall
         GET_PROCESS_PATH,
         READ_FW_LOG,
         IS_LOCKED,
+        READ_PENDING_CONNECTIONS,
 
         // Unprivileged write commands (>1023)
         UNLOCK = 1024,
@@ -27,9 +28,10 @@ namespace ModernTinyWall.TinyWall
         STOP_SERVICE,
         MINUTE_TIMER,
         REENUMERATE_ADDRESSES,
+        RESOLVE_PENDING_CONNECTION = 2057,
 
         // Service-to-client messages
-        DATABASE_UPDATED,
+        DATABASE_UPDATED = 2056,
 
         // Service-to-service only (>4095)
         ADD_TEMPORARY_EXCEPTION = 4096,

@@ -37,6 +37,7 @@ namespace ModernTinyWall.TinyWall
         public int RemotePort;
         public string? AppPath;
         public string? PackageId;
+        public ulong PendingConnectionId;
 
         public int GetHashCode(bool includeTimestamp)
         {
@@ -50,6 +51,7 @@ namespace ModernTinyWall.TinyWall
                     hash = (hash ^ Timestamp.GetHashCode()) * FNV_PRIME;
                 hash = (hash ^ Event.GetHashCode()) * FNV_PRIME;
                 hash = (hash ^ ProcessId.GetHashCode()) * FNV_PRIME;
+                hash = (hash ^ PendingConnectionId.GetHashCode()) * FNV_PRIME;
                 hash = (hash ^ Protocol.GetHashCode()) * FNV_PRIME;
                 hash = (hash ^ Direction.GetHashCode()) * FNV_PRIME;
                 if (LocalIp is not null)
@@ -81,6 +83,7 @@ namespace ModernTinyWall.TinyWall
                 (!includeTimestamp || (Timestamp == obj.Timestamp)) &&
                 (Event == obj.Event) &&
                 (ProcessId == obj.ProcessId) &&
+                (PendingConnectionId == obj.PendingConnectionId) &&
                 (Protocol == obj.Protocol) &&
                 (Direction == obj.Direction) &&
                 string.Equals(LocalIp, obj.LocalIp) &&
