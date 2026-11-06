@@ -14,6 +14,7 @@ namespace ModernTinyWall.TinyWall
         GET_PROCESS_PATH,
         READ_FW_LOG,
         IS_LOCKED,
+        READ_DATA_USAGE,
 
         // Unprivileged write commands (>1023)
         UNLOCK = 1024,

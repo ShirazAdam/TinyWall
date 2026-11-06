@@ -28,6 +28,16 @@ TinyWall and Modern TinyWall focus on being practical and low-overhead. They use
 
 Now enabled to run natively on x86, x64, and ARM.
 
+## Application data usage
+
+Modern TinyWall's **Data usage** view, immediately after Overview, lists applications with recorded TCP/UDP traffic. It shows Total, Internet incoming/outgoing, and Local incoming/outgoing bytes, with search, sorting, and Today, Last 7 days, Last 30 days, and All time filters. The last-7/30-day filters include today and use the machine's local calendar days. Totals combine multiple instances of the same executable path and remain visible after those applications exit.
+
+The **updated TinyWall service must be installed and running**. Its privileged Windows ETW collector runs independently of the UI; the UI does not need administrator access just to read usage. Daily aggregates are committed to SQLite at `%ProgramData%\TinyWall\data-usage.db` every five seconds and on normal service shutdown. No packet contents or remote-address history are stored. History begins when collection starts, not retroactively. A crash or forced shutdown can lose the most recent uncommitted batch.
+
+Local means private, loopback, link-local, IPv6 unique/site-local, shared-address (`100.64.0.0/10`), and multicast/broadcast addresses. Public remote addresses count as Internet. This is address-based, so private-address VPN traffic counts as Local and VPN/tunnel overhead may be attributed separately. ETW TCP/UDP byte sizes are not billing-grade interface counters: they do not include all link-layer overhead, retransmission events, or other protocols. Loopback traffic can count on both the sending and receiving application.
+
+Shared hosts such as `svchost.exe` are grouped by executable, not separated into services; packaged applications are also identified by their executable path. System traffic has a System row. Events whose executable cannot be resolved (for example, a protected or already-exited process) have an explicit Unattributed traffic row rather than being silently discarded. Collection failures, detected ETW event loss, and interrupted collection are surfaced in the view; incomplete-history warnings persist across service restarts. Period totals only include times when the service was recording.
+
 ## Current development focus
 
 - Targeting .NET 10 for the actively modernised projects.
@@ -73,11 +83,13 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To run automated tests
 
-Run the Modern TinyWall exception-store tests from the repository root:
+Run the Modern TinyWall exception-store and data-usage tests from the repository root:
 
 ```powershell
 dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj
 ```
+
+The `LiveETW` data-usage smoke test requires an elevated Windows test process; otherwise it is skipped. It records IPv4/IPv6 loopback traffic in a temporary database without modifying the installed service. Release builds store usage in ProgramData; Debug builds follow TinyWall's existing application-directory data location.
 
 ### To update/build build the database of known applications
 

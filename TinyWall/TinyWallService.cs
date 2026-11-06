@@ -36,6 +36,7 @@ namespace ModernTinyWall.TinyWall
         private readonly BlockingCollection<TwRequest> _q = new(32);
         private readonly PipeServerEndpoint _serverPipe;
         private readonly Timer? _minuteTimer;
+        private readonly DataUsageCollector _dataUsageCollector;
 
         private readonly CircularBuffer<FirewallLogEntry> _firewallLogEntries = new(500);
         private readonly FileLocker _fileLocker = new();
@@ -1364,6 +1365,11 @@ namespace ModernTinyWall.TinyWall
         {
             switch (req.Type)
             {
+                case MessageType.READ_DATA_USAGE:
+                    {
+                        var args = (TwMessageDataUsage)req;
+                        return new TwMessageDataUsage(args.Period, _dataUsageCollector.Query(args.Period));
+                    }
                 case MessageType.READ_FW_LOG:
                     {
                         var args = (TwMessageReadFwLog)req;
@@ -1723,6 +1729,9 @@ namespace ModernTinyWall.TinyWall
 
             // Fire up pipe
             _serverPipe = new PipeServerEndpoint(PipeServerDataReceived, "TinyWallController");
+            _dataUsageCollector = new DataUsageCollector(
+                Path.Combine(Utils.AppDataPath, "data-usage.db"),
+                ex => Utils.LogException(ex, Utils.LOG_ID_SERVICE));
         }
 
         // Entry point for thread that actually issues commands to Windows Firewall.
@@ -1992,6 +2001,7 @@ namespace ModernTinyWall.TinyWall
         {
             using var timer = new HierarchicalStopwatch("TinyWallService.Dispose()");
             _serverPipe.Dispose();
+            _dataUsageCollector.Dispose();
             _processStartWatcher.Dispose();
 
             if (_minuteTimer != null)

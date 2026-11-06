@@ -11,9 +11,16 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="4.0.2" />
     <PackageReference Include="MSTest.TestFramework" Version="4.0.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="4.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj" />
+    <Compile Include="..\TinyWall\DataUsageHistory.cs" Link="DataUsageHistory.cs" />
+    <Compile Include="..\TinyWall\DataUsageCollector.cs" Link="DataUsageCollector.cs" />
+    <Compile Include="..\ModernTinyWall\ViewModels\DataUsagePageViewModel.cs" Link="DataUsagePageViewModel.cs" />
   </ItemGroup>
 </Project>
