@@ -3,6 +3,7 @@ using ModernTinyWall.TinyWall;
 using ModernTinyWall.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -320,11 +321,27 @@ public sealed class DataUsageTests
                     Assert.HasCount(4096, packet.Buffer);
                 }
             }
-            await Task.Delay(2000);
-            var application = collector.Query(DataUsagePeriod.Today).Applications
-                .Single(row => string.Equals(row.ApplicationPath, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase));
-            Assert.IsGreaterThanOrEqualTo(81920L, application.LocalSent);
-            Assert.IsGreaterThanOrEqualTo(81920L, application.LocalReceived);
+            var timeout = Stopwatch.StartNew();
+            DataUsageSnapshot snapshot;
+            ApplicationDataUsage? application;
+            do
+            {
+                snapshot = collector.Query(DataUsagePeriod.Today);
+                Assert.IsNull(snapshot.Error, snapshot.Error);
+                application = snapshot.Applications.SingleOrDefault(row =>
+                    string.Equals(row.ApplicationPath, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase));
+                if (application is not null && application.LocalSent >= 81920 && application.LocalReceived >= 81920)
+                    break;
+                await Task.Delay(250);
+            }
+            while (timeout.Elapsed < TimeSpan.FromSeconds(30));
+
+            var observed = string.Join(", ", snapshot.Applications.Select(row =>
+                $"{row.ApplicationPath}: sent={row.LocalSent}, received={row.LocalReceived}"));
+            Assert.IsNotNull(application,
+                $"No usage recorded for {Environment.ProcessPath}. Observed applications: {observed}");
+            Assert.IsGreaterThanOrEqualTo(81920L, application.LocalSent, $"Observed applications: {observed}");
+            Assert.IsGreaterThanOrEqualTo(81920L, application.LocalReceived, $"Observed applications: {observed}");
         }
         var saved = new DataUsageHistory(HistoryPath).Query(DataUsagePeriod.Today, DateOnly.FromDateTime(DateTime.Now));
         Assert.IsTrue(saved.Applications.Any(row => row.Total >= 163840L));
