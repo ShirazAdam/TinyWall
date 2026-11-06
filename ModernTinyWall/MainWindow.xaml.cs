@@ -321,6 +321,9 @@ public sealed partial class MainWindow
                 case "overview":
                     ShowPage(typeof(OverviewPage));
                     break;
+                case "dataUsage":
+                    ShowPage(typeof(DataUsagePage));
+                    break;
                 case "settings":
                     ShowPage(typeof(SettingsPage));
                     break;

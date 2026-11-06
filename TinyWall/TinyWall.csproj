@@ -8,6 +8,8 @@
 	<NeutralLanguage>en-GB</NeutralLanguage>
 	<Nullable>enable</Nullable>
 	<NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8605;CS8607;CS8622;CS8631;CS8765;CS8767;NU1510</NoWarn>
+	<!-- MSB3305: tlbimp warns about IRegisteredTask.GetRunTimes marshaling; that member is not used by TinyWall. -->
+	<MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3305</MSBuildWarningsAsMessages>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
