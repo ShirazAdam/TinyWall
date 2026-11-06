@@ -3,10 +3,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <StackPanel Padding="24" Spacing="16">
+    <StackPanel Padding="32" Spacing="20">
         <StackPanel Spacing="6">
-            <TextBlock Text="Options" FontSize="28" FontWeight="SemiBold" />
-            <TextBlock Text="Choose how ModernTinyWall behaves when using the title-bar buttons." TextWrapping="Wrap" />
+            <TextBlock Text="Options" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="Choose how ModernTinyWall behaves when using the title-bar buttons."
+                       TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
         <ToggleSwitch
