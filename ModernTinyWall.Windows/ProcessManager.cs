@@ -263,7 +263,7 @@ namespace ModernTinyWall.Windows
             unsafe
             {
                 var stackBuffer = stackalloc char[STACK_BUFF_CHARS];
-                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.NativeFormat, stackBuffer, ref numChars))
+                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.Win32Format, stackBuffer, ref numChars))
                 {
                     if (numChars == 0)
                         return string.Empty;
@@ -278,7 +278,7 @@ namespace ModernTinyWall.Windows
             {
                 var heapBuffer = new char[MAX_PATH_BUFF_CHARS];
                 numChars = heapBuffer.Length;
-                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.NativeFormat, heapBuffer, ref numChars))
+                if (NativeMethods.QueryFullProcessImageName(hProcess, QueryFullProcessImageNameFlags.Win32Format, heapBuffer, ref numChars))
                 {
                     if (numChars == 0)
                         return string.Empty;

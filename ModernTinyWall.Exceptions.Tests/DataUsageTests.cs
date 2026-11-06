@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.ViewModels;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -281,6 +282,13 @@ public sealed class DataUsageTests
         {
             CultureInfo.CurrentCulture = previousCulture;
         }
+    }
+
+    [TestMethod]
+    public void ProcessPathUsesWin32Format()
+    {
+        var path = ProcessManager.GetProcessPath((uint)Environment.ProcessId);
+        Assert.AreEqual(Environment.ProcessPath, path, ignoreCase: true);
     }
 
     [TestMethod]
