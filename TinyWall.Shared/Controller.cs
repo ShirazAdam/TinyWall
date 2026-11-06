@@ -47,6 +47,16 @@ namespace ModernTinyWall.TinyWall
             return Endpoint.QueueMessage(TwMessageReadFwLog.CreateRequest());
         }
 
+        public DataUsageSnapshot ReadDataUsage(DataUsagePeriod period)
+        {
+            var response = Endpoint.QueueMessage(new TwMessageDataUsage(period, null)).Response;
+            if (response is TwMessageDataUsage { Snapshot: not null } usage)
+                return usage.Snapshot;
+
+            throw new InvalidOperationException(
+                $"Data usage is unavailable (service response: {response.Type}). Ensure the updated TinyWall service is installed and running.");
+        }
+
         public static FirewallLogEntry[] EndReadFwLog(TwMessage twResp)
         {
             if (twResp is TwMessageReadFwLog fwLog)

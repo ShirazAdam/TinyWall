@@ -393,6 +393,7 @@ public sealed partial class MainWindow
 
         var pageType = tag switch
         {
+            "DataUsage" => typeof(DataUsagePage),
             "Settings" => typeof(SettingsPage),
             "Connections" => typeof(ConnectionsPage),
             "Processes" => typeof(ProcessesPage),
