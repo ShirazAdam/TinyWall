@@ -10,6 +10,8 @@ public sealed partial class DataUsagePage : Page
 {
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(5) };
     private bool _loaded;
+    private bool _windowVisible = true;
+    private MainWindow? _mainWindow;
     internal DataUsagePageViewModel ViewModel { get; } = new();
 
     public DataUsagePage()
@@ -23,19 +25,49 @@ public sealed partial class DataUsagePage : Page
     private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
         _loaded = true;
-        _timer.Start();
-        await ViewModel.RefreshAsync();
+        _mainWindow = App.MainWindow as MainWindow;
+        if (_mainWindow is not null)
+        {
+            _mainWindow.WindowVisibilityChanged += MainWindow_WindowVisibilityChanged;
+            _windowVisible = _mainWindow.IsWindowVisible;
+        }
+
+        UpdateRefreshState();
+        if (_windowVisible)
+            await ViewModel.RefreshAsync();
     }
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
         _loaded = false;
-        _timer.Stop();
+        if (_mainWindow is not null)
+        {
+            _mainWindow.WindowVisibilityChanged -= MainWindow_WindowVisibilityChanged;
+            _mainWindow = null;
+        }
+
+        UpdateRefreshState();
+    }
+
+    private async void MainWindow_WindowVisibilityChanged(bool isVisible)
+    {
+        _windowVisible = isVisible;
+        UpdateRefreshState();
+        if (_loaded && isVisible && !ViewModel.IsRefreshing)
+            await ViewModel.RefreshAsync();
+    }
+
+    private void UpdateRefreshState()
+    {
+        if (_loaded && _windowVisible)
+            _timer.Start();
+        else
+            _timer.Stop();
     }
 
     private async void Timer_Tick(object? sender, object e)
     {
-        if (!ViewModel.IsRefreshing)
+        if (_loaded && _windowVisible && !ViewModel.IsRefreshing)
             await ViewModel.RefreshAsync();
     }
 

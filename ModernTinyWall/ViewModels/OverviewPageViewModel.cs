@@ -130,6 +130,11 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         AddNetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond);
     }
 
+    public void ResetNetworkActivityBaseline()
+    {
+        _previousNetworkTotals = GetNetworkTotals();
+    }
+
     private void AddNetworkActivitySample(long receivedBytesPerSecond, long sentBytesPerSecond)
     {
         NetworkActivitySamples.Add(new NetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond));

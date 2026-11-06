@@ -33,6 +33,11 @@ public sealed partial class MainWindow
     private readonly WindowProc _windowProc;
     private int _traySnapshotRefreshInProgress;
     private bool _isTerminating;
+    private bool _isWindowVisible = true;
+
+    internal event Action<bool>? WindowVisibilityChanged;
+
+    internal bool IsWindowVisible => _isWindowVisible;
 
     public MainWindow()
     {
@@ -112,6 +117,7 @@ public sealed partial class MainWindow
     {
         _ = ShowWindow(_windowHandle, SwShow);
         Activate();
+        SetWindowVisibility(true);
 
         var executablePath = entry.AppPath ?? string.Empty;
         var applicationName = GetApplicationDisplayName(executablePath);
@@ -259,6 +265,11 @@ public sealed partial class MainWindow
 
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
     {
+        if (message == WmShowWindow)
+            SetWindowVisibility(wParam != IntPtr.Zero);
+        else if (message == WmSize)
+            SetWindowVisibility(wParam.ToInt32() != SizeMinimized);
+
         if ((message == WmClose && !_isTerminating && ShouldCloseToTray()) || (message == WmSyscommand && (wParam.ToInt64() & 0xFFF0) == ScMinimise && ShouldMinimiseToTray()))
         {
             HideWindow();
@@ -422,6 +433,7 @@ public sealed partial class MainWindow
     {
         NavigateTo(pageType);
         Activate();
+        SetWindowVisibility(true);
     }
 
     public void TerminateApplication()
@@ -517,12 +529,25 @@ public sealed partial class MainWindow
     private void HideWindow()
     {
         _ = ShowWindow(_windowHandle, SwHide);
+        SetWindowVisibility(false);
+    }
+
+    private void SetWindowVisibility(bool isVisible)
+    {
+        if (_isWindowVisible == isVisible)
+            return;
+
+        _isWindowVisible = isVisible;
+        WindowVisibilityChanged?.Invoke(isVisible);
     }
 
     private const int GwlpWndproc = -4;
     private const uint WmClose = 0x0010;
+    private const uint WmSize = 0x0005;
+    private const uint WmShowWindow = 0x0018;
     private const uint WmSyscommand = 0x0112;
     private const int ScMinimise = 0xF020;
+    private const int SizeMinimized = 1;
     private const int SwHide = 0;
     private const int SwShow = 5;
 

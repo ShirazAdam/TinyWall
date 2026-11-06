@@ -20,6 +20,10 @@ public sealed partial class OverviewPage
 
     private readonly List<Line> _downloadLines = [];
     private readonly List<Line> _uploadLines = [];
+    private MainWindow? _mainWindow;
+    private bool _isPageLoaded;
+    private bool _isWindowVisible = true;
+    private bool _isMonitoring;
 
     public OverviewPageViewModel ViewModel { get; } = new();
 
@@ -29,20 +33,62 @@ public sealed partial class OverviewPage
         Loaded += OverviewPage_Loaded;
         Unloaded += OverviewPage_Unloaded;
         _networkActivityTimer.Tick += NetworkActivityTimer_Tick;
-        ViewModel.NetworkActivitySamples.CollectionChanged += NetworkActivitySamples_CollectionChanged;
     }
 
     private void OverviewPage_Loaded(object sender, RoutedEventArgs e)
     {
-        _networkActivityTimer.Start();
+        _isPageLoaded = true;
+        _mainWindow = App.MainWindow as MainWindow;
+        if (_mainWindow is not null)
+        {
+            _mainWindow.WindowVisibilityChanged += MainWindow_WindowVisibilityChanged;
+            _isWindowVisible = _mainWindow.IsWindowVisible;
+        }
+
+        UpdateMonitoringState();
         UpdateNetworkActivityGraph();
     }
 
     private void OverviewPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        _networkActivityTimer.Stop();
-        _networkActivityTimer.Tick -= NetworkActivityTimer_Tick;
-        ViewModel.NetworkActivitySamples.CollectionChanged -= NetworkActivitySamples_CollectionChanged;
+        _isPageLoaded = false;
+        if (_mainWindow is not null)
+        {
+            _mainWindow.WindowVisibilityChanged -= MainWindow_WindowVisibilityChanged;
+            _mainWindow = null;
+        }
+
+        UpdateMonitoringState();
+    }
+
+    private void MainWindow_WindowVisibilityChanged(bool isVisible)
+    {
+        _isWindowVisible = isVisible;
+        UpdateMonitoringState();
+    }
+
+    private void UpdateMonitoringState()
+    {
+        var shouldMonitor = _isPageLoaded && _isWindowVisible;
+        if (_isMonitoring == shouldMonitor)
+            return;
+
+        _isMonitoring = shouldMonitor;
+        if (shouldMonitor)
+        {
+            ViewModel.ResetNetworkActivityBaseline();
+            ViewModel.NetworkActivitySamples.CollectionChanged += NetworkActivitySamples_CollectionChanged;
+            _networkActivityTimer.Start();
+            UpdateNetworkActivityGraph();
+        }
+        else
+        {
+            _networkActivityTimer.Stop();
+            ViewModel.NetworkActivitySamples.CollectionChanged -= NetworkActivitySamples_CollectionChanged;
+            NetworkActivityCanvas.Children.Clear();
+            _downloadLines.Clear();
+            _uploadLines.Clear();
+        }
     }
 
     private void NetworkActivitySamples_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -62,7 +108,7 @@ public sealed partial class OverviewPage
 
     private void UpdateNetworkActivityGraph()
     {
-        if (NetworkActivityCanvas.ActualWidth <= 0 || NetworkActivityCanvas.ActualHeight <= 0)
+        if (!_isMonitoring || NetworkActivityCanvas.ActualWidth <= 0 || NetworkActivityCanvas.ActualHeight <= 0)
             return;
 
         var samples = ViewModel.NetworkActivitySamples;
