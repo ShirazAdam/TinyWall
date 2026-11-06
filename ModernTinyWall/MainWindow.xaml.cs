@@ -1,7 +1,7 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
@@ -391,10 +391,10 @@ public sealed partial class MainWindow
 
     private void ShellNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        if (args.SelectedItem is not NavigationViewItem item || item.Tag is not string tag)
+        if (args.SelectedItem is not NavigationViewItem { Tag: string tag })
             return;
 
-        var pageType = tag switch
+        Type pageType = tag switch
         {
             "DataUsage" => typeof(DataUsagePage),
             "Settings" => typeof(SettingsPage),
