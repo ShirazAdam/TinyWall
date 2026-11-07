@@ -144,6 +144,8 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         var updateResponse = _controller.SetServerConfig(serviceConfig, changeset);
         return updateResponse.Type switch
         {
+            MessageType.PUT_SETTINGS when updateResponse is TwMessagePutSettings { Warning: true } =>
+                new ExceptionMutationResult(false, "Settings changed while the exception was being saved. Please try again."),
             MessageType.PUT_SETTINGS => new ExceptionMutationResult(true, successMessage),
             MessageType.RESPONSE_LOCKED => new ExceptionMutationResult(false, ExceptionStoreStrings.TinyWallLocked),
             MessageType.COM_ERROR => new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotContactService),
@@ -206,9 +208,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (string.IsNullOrWhiteSpace(entry.AppPath)
-            || string.Equals(entry.AppPath, "System", StringComparison.OrdinalIgnoreCase)
-            || !System.Net.IPAddress.TryParse(entry.RemoteIp, out var remoteAddress))
+        if (!FirewallPromptValidation.TryGetDestination(entry, out var path, out var remoteAddress))
         {
             return new ExceptionMutationResult(false, ExceptionStoreStrings.CannotCreateConnectionRule);
         }
@@ -216,7 +216,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         if (decision == FirewallPromptDecision.DenyOnce)
             return new ExceptionMutationResult(true, ExceptionStoreStrings.ConnectionDeniedOnce);
 
-        var subject = new ExecutableSubject(entry.AppPath);
+        var subject = new ExecutableSubject(path);
         var exception = decision switch
         {
             FirewallPromptDecision.DenyAlways => new FirewallExceptionV3(subject, HardBlockPolicy.Instance),

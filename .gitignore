@@ -55,3 +55,5 @@ artifacts/
 /ModernTinyWall.Exceptions/obj/
 /ModernTinyWall.Exceptions.Tests/obj/
 /ModernTinyWall.Exceptions.Tests/bin/
+/TinyWall.Driver/bin/
+/TinyWall.Driver/obj/

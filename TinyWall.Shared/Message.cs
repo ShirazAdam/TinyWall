@@ -20,6 +20,7 @@ namespace ModernTinyWall.TinyWall
                 MessageType.RESPONSE_LOCKED => JsonSerializer.Deserialize<TwMessageLocked>(ref reader, SourceGenerationContext.Default.TwMessageLocked),
                 MessageType.GET_PROCESS_PATH => JsonSerializer.Deserialize<TwMessageGetProcessPath>(ref reader, SourceGenerationContext.Default.TwMessageGetProcessPath),
                 MessageType.READ_FW_LOG => JsonSerializer.Deserialize<TwMessageReadFwLog>(ref reader, SourceGenerationContext.Default.TwMessageReadFwLog),
+                MessageType.READ_PENDING_CONNECTIONS or MessageType.RESOLVE_PENDING_CONNECTION => JsonSerializer.Deserialize<TwMessagePendingConnections>(ref reader, SourceGenerationContext.Default.TwMessagePendingConnections),
                 MessageType.READ_DATA_USAGE => JsonSerializer.Deserialize<TwMessageDataUsage>(ref reader, SourceGenerationContext.Default.TwMessageDataUsage),
                 MessageType.IS_LOCKED => JsonSerializer.Deserialize<TwMessageIsLocked>(ref reader, SourceGenerationContext.Default.TwMessageIsLocked),
                 MessageType.UNLOCK => JsonSerializer.Deserialize<TwMessageUnlock>(ref reader, SourceGenerationContext.Default.TwMessageUnlock),
@@ -53,6 +54,8 @@ namespace ModernTinyWall.TinyWall
                     JsonSerializer.Serialize<TwMessageGetProcessPath>(writer, typedVal, SourceGenerationContext.Default.TwMessageGetProcessPath); break;
                 case TwMessageReadFwLog typedVal:
                     JsonSerializer.Serialize<TwMessageReadFwLog>(writer, typedVal, SourceGenerationContext.Default.TwMessageReadFwLog); break;
+                case TwMessagePendingConnections typedVal:
+                    JsonSerializer.Serialize(writer, typedVal, SourceGenerationContext.Default.TwMessagePendingConnections); break;
                 case TwMessageDataUsage typedVal:
                     JsonSerializer.Serialize(writer, typedVal, SourceGenerationContext.Default.TwMessageDataUsage); break;
                 case TwMessageIsLocked typedVal:
@@ -88,6 +91,23 @@ namespace ModernTinyWall.TinyWall
         public JsonTypeInfo<TwMessage> GetJsonTypeInfo()
         {
             return SourceGenerationContext.Default.TwMessage;
+        }
+    }
+
+    public record TwMessagePendingConnections : TwMessage
+    {
+        public ulong ConnectionId { get; }
+        public bool Allow { get; }
+        public bool Enabled { get; }
+        public FirewallLogEntry[] Entries { get; }
+
+        [JsonConstructor]
+        public TwMessagePendingConnections(MessageType type, ulong connectionId, bool allow, bool enabled, FirewallLogEntry[] entries) : base(type)
+        {
+            ConnectionId = connectionId;
+            Allow = allow;
+            Enabled = enabled;
+            Entries = entries;
         }
     }
 

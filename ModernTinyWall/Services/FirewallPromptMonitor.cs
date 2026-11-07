@@ -14,12 +14,63 @@ internal sealed class FirewallPromptMonitor
     private readonly Queue<string> _seenEventOrder = new();
     private readonly Dictionary<string, DateTime> _lastPromptByDestination = new(StringComparer.OrdinalIgnoreCase);
     private bool _initialized;
+    private readonly object _pendingGuard = new();
+    private HashSet<ulong> _pendingIds = [];
+    private bool _pendingEnabled;
+
+    public bool IsPending(ulong id)
+    {
+        lock (_pendingGuard)
+            return _pendingIds.Contains(id);
+    }
+
+    public void ClearPending()
+    {
+        lock (_pendingGuard)
+            _pendingIds.Clear();
+    }
+
+    public void ForgetPending(ulong id)
+    {
+        lock (_pendingGuard)
+            _pendingIds.Remove(id);
+    }
+
+    public Task<ModernTinyWall.Exceptions.ExceptionMutationResult> ResolvePendingAsync(ulong id, bool allow)
+    {
+        return Task.Run(() =>
+        {
+            var response = _controller.ResolvePendingConnection(id, allow);
+            return new ModernTinyWall.Exceptions.ExceptionMutationResult(
+                response.Type == MessageType.RESOLVE_PENDING_CONNECTION,
+                response.Type == MessageType.RESOLVE_PENDING_CONNECTION
+                    ? "Connection decision applied."
+                    : $"Could not confirm the pending connection decision ({response.Type}); the connection may have expired or already been processed.");
+        });
+    }
 
     public Task<IReadOnlyList<FirewallLogEntry>> GetNewBlockedOutboundEventsAsync(CancellationToken cancellationToken = default)
     {
         return Task.Run<IReadOnlyList<FirewallLogEntry>>(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var pendingResponse = _controller.ReadPendingConnections();
+            if (pendingResponse is TwMessagePendingConnections pending)
+            {
+                lock (_pendingGuard)
+                {
+                    _pendingEnabled = pending.Enabled;
+                    var newPending = pending.Entries.Where(entry => !_pendingIds.Contains(entry.PendingConnectionId)).ToArray();
+                    _pendingIds = pending.Entries.Select(entry => entry.PendingConnectionId).ToHashSet();
+                    if (pending.Enabled)
+                        return newPending;
+                }
+            }
+            else if (_pendingEnabled || (pendingResponse.Type != MessageType.RESPONSE_ERROR && pendingResponse.Type != MessageType.INVALID_COMMAND))
+            {
+                throw new InvalidOperationException($"Could not read pending connections ({pendingResponse.Type}).");
+            }
 
             var request = _controller.BeginReadFwLog();
             var entries = Controller.EndReadFwLog(request.Response);
