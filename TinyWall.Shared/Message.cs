@@ -21,6 +21,7 @@ namespace ModernTinyWall.TinyWall
                 MessageType.GET_PROCESS_PATH => JsonSerializer.Deserialize<TwMessageGetProcessPath>(ref reader, SourceGenerationContext.Default.TwMessageGetProcessPath),
                 MessageType.READ_FW_LOG => JsonSerializer.Deserialize<TwMessageReadFwLog>(ref reader, SourceGenerationContext.Default.TwMessageReadFwLog),
                 MessageType.READ_PENDING_CONNECTIONS or MessageType.RESOLVE_PENDING_CONNECTION => JsonSerializer.Deserialize<TwMessagePendingConnections>(ref reader, SourceGenerationContext.Default.TwMessagePendingConnections),
+                MessageType.READ_DATA_USAGE => JsonSerializer.Deserialize<TwMessageDataUsage>(ref reader, SourceGenerationContext.Default.TwMessageDataUsage),
                 MessageType.IS_LOCKED => JsonSerializer.Deserialize<TwMessageIsLocked>(ref reader, SourceGenerationContext.Default.TwMessageIsLocked),
                 MessageType.UNLOCK => JsonSerializer.Deserialize<TwMessageUnlock>(ref reader, SourceGenerationContext.Default.TwMessageUnlock),
                 MessageType.MODE_SWITCH => JsonSerializer.Deserialize<TwMessageModeSwitch>(ref reader, SourceGenerationContext.Default.TwMessageModeSwitch),
@@ -55,6 +56,8 @@ namespace ModernTinyWall.TinyWall
                     JsonSerializer.Serialize<TwMessageReadFwLog>(writer, typedVal, SourceGenerationContext.Default.TwMessageReadFwLog); break;
                 case TwMessagePendingConnections typedVal:
                     JsonSerializer.Serialize(writer, typedVal, SourceGenerationContext.Default.TwMessagePendingConnections); break;
+                case TwMessageDataUsage typedVal:
+                    JsonSerializer.Serialize(writer, typedVal, SourceGenerationContext.Default.TwMessageDataUsage); break;
                 case TwMessageIsLocked typedVal:
                     JsonSerializer.Serialize<TwMessageIsLocked>(writer, typedVal, SourceGenerationContext.Default.TwMessageIsLocked); break;
                 case TwMessageUnlock typedVal:

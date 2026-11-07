@@ -18,9 +18,9 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
 
     private readonly IFirewallModeService _firewallModeService;
     private NetworkTotals _previousNetworkTotals;
-    private string _statusMessage = "Select a firewall mode to continue the migration workflow.";
-    private string _downloadRate = "Download: 0 B/s";
-    private string _uploadRate = "Upload: 0 B/s";
+    private string _statusMessage = "Choose a protection mode to apply.";
+    private string _downloadRate = "0 B/s";
+    private string _uploadRate = "0 B/s";
     private readonly AsyncRelayCommand<FirewallModeOption> _applyModeCommand;
     private bool _isApplyingMode;
 
@@ -130,6 +130,11 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         AddNetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond);
     }
 
+    public void ResetNetworkActivityBaseline()
+    {
+        _previousNetworkTotals = GetNetworkTotals();
+    }
+
     private void AddNetworkActivitySample(long receivedBytesPerSecond, long sentBytesPerSecond)
     {
         NetworkActivitySamples.Add(new NetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond));
@@ -139,8 +144,8 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             NetworkActivitySamples.RemoveAt(0);
         }
 
-        DownloadRate = $"Download: {FormatRate(receivedBytesPerSecond)}";
-        UploadRate = $"Upload: {FormatRate(sentBytesPerSecond)}";
+        DownloadRate = FormatRate(receivedBytesPerSecond);
+        UploadRate = FormatRate(sentBytesPerSecond);
     }
 
     private static NetworkTotals GetNetworkTotals()

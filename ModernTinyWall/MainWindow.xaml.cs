@@ -1,7 +1,7 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
@@ -38,6 +38,11 @@ public sealed partial class MainWindow
     private readonly WindowProc _windowProc;
     private int _traySnapshotRefreshInProgress;
     private bool _isTerminating;
+    private bool _isWindowVisible = true;
+
+    internal event Action<bool>? WindowVisibilityChanged;
+
+    internal bool IsWindowVisible => _isWindowVisible;
 
     public MainWindow()
     {
@@ -49,7 +54,7 @@ public sealed partial class MainWindow
         _trayIconService.Initialise(_windowHandle);
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Initialise(_windowHandle);
-        _trayIconService.SetStatus("ModernTinyWall migration shell");
+        _trayIconService.SetStatus("TinyWall firewall controls");
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
         _ = MonitorFirewallEventsAsync(_promptMonitoringCancellation.Token);
@@ -160,6 +165,7 @@ public sealed partial class MainWindow
     {
         _ = ShowWindow(_windowHandle, SwShow);
         Activate();
+        SetWindowVisibility(true);
 
         var executablePath = entry.AppPath ?? string.Empty;
         var isPending = entry.PendingConnectionId != 0;
@@ -368,6 +374,11 @@ public sealed partial class MainWindow
 
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
     {
+        if (message == WmShowWindow)
+            SetWindowVisibility(wParam != IntPtr.Zero);
+        else if (message == WmSize)
+            SetWindowVisibility(wParam.ToInt32() != SizeMinimized);
+
         if ((message == WmClose && !_isTerminating && ShouldCloseToTray()) || (message == WmSyscommand && (wParam.ToInt64() & 0xFFF0) == ScMinimise && ShouldMinimiseToTray()))
         {
             HideWindow();
@@ -429,6 +440,9 @@ public sealed partial class MainWindow
             {
                 case "overview":
                     ShowPage(typeof(OverviewPage));
+                    break;
+                case "dataUsage":
+                    ShowPage(typeof(DataUsagePage));
                     break;
                 case "settings":
                     ShowPage(typeof(SettingsPage));
@@ -497,11 +511,12 @@ public sealed partial class MainWindow
 
     private void ShellNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        if (args.SelectedItem is not NavigationViewItem item || item.Tag is not string tag)
+        if (args.SelectedItem is not NavigationViewItem { Tag: string tag })
             return;
 
-        var pageType = tag switch
+        Type pageType = tag switch
         {
+            "DataUsage" => typeof(DataUsagePage),
             "Settings" => typeof(SettingsPage),
             "Connections" => typeof(ConnectionsPage),
             "Processes" => typeof(ProcessesPage),
@@ -527,6 +542,7 @@ public sealed partial class MainWindow
     {
         NavigateTo(pageType);
         Activate();
+        SetWindowVisibility(true);
     }
 
     public void TerminateApplication()
@@ -622,12 +638,25 @@ public sealed partial class MainWindow
     private void HideWindow()
     {
         _ = ShowWindow(_windowHandle, SwHide);
+        SetWindowVisibility(false);
+    }
+
+    private void SetWindowVisibility(bool isVisible)
+    {
+        if (_isWindowVisible == isVisible)
+            return;
+
+        _isWindowVisible = isVisible;
+        WindowVisibilityChanged?.Invoke(isVisible);
     }
 
     private const int GwlpWndproc = -4;
     private const uint WmClose = 0x0010;
+    private const uint WmSize = 0x0005;
+    private const uint WmShowWindow = 0x0018;
     private const uint WmSyscommand = 0x0112;
     private const int ScMinimise = 0xF020;
+    private const int SizeMinimized = 1;
     private const int SwHide = 0;
     private const int SwShow = 5;
 

@@ -1,5 +1,4 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ModernTinyWall.Exceptions;
 using ModernTinyWall.TinyWall;
 using System;
 using System.Threading;
@@ -256,19 +255,19 @@ public sealed class TinyWallExceptionStoreTests
             };
         }
 
-        }
+    }
 
-        private static FirewallLogEntry CreateBlockedOutboundEntry()
+    private static FirewallLogEntry CreateBlockedOutboundEntry()
+    {
+        return new FirewallLogEntry
         {
-            return new FirewallLogEntry
-            {
-                Timestamp = DateTime.UtcNow,
-                Event = EventLogEvent.BLOCKED,
-                AppPath = @"C:\Program Files\App\app.exe",
-                Protocol = Protocol.TCP,
-                Direction = RuleDirection.Out,
-                RemoteIp = "203.0.113.8",
-                RemotePort = 443
-            };
-        }
+            Timestamp = DateTime.UtcNow,
+            Event = EventLogEvent.BLOCKED,
+            AppPath = @"C:\Program Files\App\app.exe",
+            Protocol = Protocol.TCP,
+            Direction = RuleDirection.Out,
+            RemoteIp = "203.0.113.8",
+            RemotePort = 443
+        };
+    }
 }

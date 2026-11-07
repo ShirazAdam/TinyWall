@@ -6,12 +6,12 @@
 	<Nullable>enable</Nullable>
 	<LangVersion>14.0</LangVersion>
 	<Deterministic>True</Deterministic>
-	<VersionPrefix>4.0.1</VersionPrefix>
+	<VersionPrefix>4.0.2</VersionPrefix>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<EnableNETAnalyzers>true</EnableNETAnalyzers>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
 	<RootNamespace>ModernTinyWall.Windows.Services</RootNamespace>
-	<Version>4.0.1</Version>
+	<Version>4.0.2</Version>
 	<NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
 

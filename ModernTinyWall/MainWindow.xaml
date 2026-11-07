@@ -6,18 +6,43 @@
 
     <NavigationView
         x:Name="ShellNavigation"
+        PaneDisplayMode="Left"
+        OpenPaneLength="248"
+        CompactPaneLength="48"
         IsBackButtonVisible="Collapsed"
         IsSettingsVisible="False"
-        PaneTitle="ModernTinyWall"
+        PaneTitle=""
         SelectionChanged="ShellNavigation_SelectionChanged">
+        <NavigationView.PaneHeader>
+            <Grid Margin="12,0,12,12" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="36" Height="36" CornerRadius="10"
+                        Background="{ThemeResource SystemControlBackgroundAccentBrush}">
+                    <FontIcon Glyph="&#xEA18;" FontSize="18"
+                              Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Text="TinyWall" FontSize="15" FontWeight="SemiBold" />
+                    <TextBlock Text="FIREWALL CONTROL" FontSize="10" CharacterSpacing="90"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
+        </NavigationView.PaneHeader>
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" />
-            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" />
+            <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" IsSelected="True" />
+            <NavigationViewItem Content="Data usage" Icon="World" Tag="DataUsage" />
+            <NavigationViewItemSeparator />
             <NavigationViewItem Content="Connections" Icon="ViewAll" Tag="Connections" />
             <NavigationViewItem Content="Processes" Icon="Library" Tag="Processes" />
             <NavigationViewItem Content="Services" Icon="Repair" Tag="Services" />
             <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" />
+            <NavigationViewItemSeparator />
             <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" />
+            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" />
             <NavigationViewItem Content="Options" Icon="Setting" Tag="Options" />
         </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems>

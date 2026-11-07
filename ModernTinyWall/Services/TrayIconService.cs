@@ -14,6 +14,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     private static readonly IReadOnlyList<TrayCommand> Commands =
     [
         new TrayCommand("overview", "Overview"),
+        new TrayCommand("dataUsage", "Data usage"),
         new TrayCommand("settings", "Settings"),
         new TrayCommand("connections", "Connections"),
         new TrayCommand("processes", "Processes"),
@@ -166,13 +167,14 @@ internal sealed partial class TrayIconService : ITrayIconService
             AppendMenuItem(menu, 204, "Mode: Learning", "learning", isChecked: _snapshot.ModeId == "learning");
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 300, "Overview", "overview");
-            AppendMenuItem(menu, 301, "Manage settings", "settings");
-            AppendMenuItem(menu, 302, "Show connections", "connections");
-            AppendMenuItem(menu, 303, "Show processes", "processes");
-            AppendMenuItem(menu, 304, "Show services", "services");
-            AppendMenuItem(menu, 305, "Show UWP packages", "packages");
-            AppendMenuItem(menu, 306, "Application exceptions", "exceptions");
-            AppendMenuItem(menu, 307, "Options", "options");
+            AppendMenuItem(menu, 301, "Data usage", "dataUsage");
+            AppendMenuItem(menu, 302, "Manage settings", "settings");
+            AppendMenuItem(menu, 303, "Show connections", "connections");
+            AppendMenuItem(menu, 304, "Show processes", "processes");
+            AppendMenuItem(menu, 305, "Show services", "services");
+            AppendMenuItem(menu, 306, "Show UWP packages", "packages");
+            AppendMenuItem(menu, 307, "Application exceptions", "exceptions");
+            AppendMenuItem(menu, 308, "Options", "options");
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 400, "Lock", "lock", enabled: !_snapshot.IsLocked);
             AppendMenuItem(menu, 401, "Unlock", "unlock", enabled: _snapshot.IsLocked);

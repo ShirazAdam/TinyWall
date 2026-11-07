@@ -4,15 +4,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:ModernTinyWall.ViewModels">
 
-    <Grid Padding="24" RowSpacing="12">
+    <Grid Padding="32" RowSpacing="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid ColumnSpacing="12">
+        <StackPanel Spacing="4">
+            <TextBlock Text="Connections" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="Review active, listening, and blocked network activity."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -28,12 +35,16 @@
             <Button Grid.Column="4" Content="Refresh" Click="RefreshButton_Click" />
         </Grid>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <ListView Grid.Row="2" x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}">
+        <Border Grid.Row="3" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="12"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <ListView x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}"
+                  Background="Transparent">
             <ListView.Header>
                 <Grid ColumnSpacing="12" Padding="8">
                     <Grid.ColumnDefinitions>
@@ -87,7 +98,9 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        </Border>
 
-        <TextBlock Grid.Row="3" Text="Live active and listening connection data is available. Blocked firewall log integration will follow when shared TinyWall core services are extracted." />
+        <TextBlock Grid.Row="4" Text="Live active and listening connection data is available. Blocked firewall log integration will follow when shared TinyWall core services are extracted."
+                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
     </Grid>
 </Page>
