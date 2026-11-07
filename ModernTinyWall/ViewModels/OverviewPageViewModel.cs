@@ -1,14 +1,14 @@
 using CommunityToolkit.Mvvm.Input;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
+using ModernTinyWall.TinyWall;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-
 namespace ModernTinyWall.ViewModels;
 
 public sealed class OverviewPageViewModel : INotifyPropertyChanged
@@ -17,7 +17,16 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     private static readonly string[] RateUnits = ["B/s", "KB/s", "MB/s", "GB/s"];
 
     private readonly IFirewallModeService _firewallModeService;
-    private NetworkTotals _previousNetworkTotals;
+    private NetworkTotals? _previousNetworkTotals;
+    private (long Received, long Sent)? _previousAdapterTotals;
+    private bool _usingAdapterFallback;
+    private long _previousSampleTimestamp;
+    private int _samplingGeneration;
+    private bool _isSampling;
+    private readonly Controller _controller = new("TinyWallController");
+    private string _localDownloadRate = "0 B/s";
+    private string _localUploadRate = "0 B/s";
+    private string _networkActivityStatus = "Waiting for traffic tracking...";
     private string _statusMessage = "Choose a protection mode to apply.";
     private string _downloadRate = "0 B/s";
     private string _uploadRate = "0 B/s";
@@ -38,7 +47,6 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             ModeOptions.Add(option);
         }
 
-        _previousNetworkTotals = GetNetworkTotals();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -74,6 +82,12 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
+    public string LocalDownloadRate => _localDownloadRate;
+    public string LocalUploadRate => _localUploadRate;
+    public string TotalDownloadRate { get; private set; } = "0 B/s";
+    public string TotalUploadRate { get; private set; } = "0 B/s";
+    public string NetworkActivityStatus => _networkActivityStatus;
 
     public string StatusMessage
     {
@@ -120,54 +134,154 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void UpdateNetworkActivity()
+    public async Task UpdateNetworkActivityAsync()
     {
-        var currentTotals = GetNetworkTotals();
-        var receivedBytesPerSecond = Math.Max(0, currentTotals.ReceivedBytes - _previousNetworkTotals.ReceivedBytes);
-        var sentBytesPerSecond = Math.Max(0, currentTotals.SentBytes - _previousNetworkTotals.SentBytes);
+        if (_isSampling)
+            return;
 
-        _previousNetworkTotals = currentTotals;
-        AddNetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond);
+        _isSampling = true;
+        var generation = _samplingGeneration;
+        try
+        {
+            var snapshot = await Task.Run(() => _controller.ReadDataUsage(DataUsagePeriod.AllTime));
+            if (generation != _samplingGeneration)
+                return;
+
+            if (snapshot.Error is not null)
+                throw new InvalidOperationException(snapshot.Error);
+
+            if (_usingAdapterFallback)
+            {
+                _usingAdapterFallback = false;
+                _previousAdapterTotals = null;
+                NetworkActivitySamples.Clear();
+                TotalDownloadRate = TotalUploadRate = "Waiting...";
+                OnPropertyChanged(nameof(TotalDownloadRate));
+                OnPropertyChanged(nameof(TotalUploadRate));
+            }
+
+            long received = 0, sent = 0, localReceived = 0, localSent = 0;
+            foreach (var application in snapshot.Applications)
+            {
+                received = checked(received + application.InternetReceived);
+                sent = checked(sent + application.InternetSent);
+                localReceived = checked(localReceived + application.LocalReceived);
+                localSent = checked(localSent + application.LocalSent);
+            }
+
+            var totals = new NetworkTotals(received, sent, localReceived, localSent, snapshot.TrackingStarted);
+            var timestamp = Stopwatch.GetTimestamp();
+            if (_previousNetworkTotals is { } previous && previous.TrackingStarted == totals.TrackingStarted
+                && received >= previous.ReceivedBytes && sent >= previous.SentBytes
+                && localReceived >= previous.LocalReceivedBytes && localSent >= previous.LocalSentBytes)
+            {
+                var elapsed = Stopwatch.GetElapsedTime(_previousSampleTimestamp, timestamp).TotalSeconds;
+                var sample = NetworkActivitySample.FromTotals(previous, totals, elapsed);
+                AddNetworkActivitySample(sample);
+            }
+
+            _previousNetworkTotals = totals;
+            _previousSampleTimestamp = timestamp;
+            _networkActivityStatus = snapshot.Warning ?? "Internet and local TCP/UDP traffic";
+            OnPropertyChanged(nameof(NetworkActivityStatus));
+        }
+        catch (Exception ex)
+        {
+            if (generation != _samplingGeneration)
+                return;
+            Debug.WriteLine($"Could not sample network activity: {ex}");
+            _previousNetworkTotals = null;
+            DownloadRate = UploadRate = "Unavailable";
+            _localDownloadRate = _localUploadRate = "Unavailable";
+            OnPropertyChanged(nameof(LocalDownloadRate));
+            OnPropertyChanged(nameof(LocalUploadRate));
+            if (!_usingAdapterFallback)
+            {
+                _usingAdapterFallback = true;
+                NetworkActivitySamples.Clear();
+            }
+            try
+            {
+                long received = 0, sent = 0;
+                foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (adapter.OperationalStatus != OperationalStatus.Up ||
+                        adapter.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel)
+                        continue;
+                    var statistics = adapter.GetIPv4Statistics();
+                    received = checked(received + statistics.BytesReceived);
+                    sent = checked(sent + statistics.BytesSent);
+                }
+                var timestamp = Stopwatch.GetTimestamp();
+                if (_previousAdapterTotals is { } previous && received >= previous.Received && sent >= previous.Sent)
+                    AddNetworkActivitySample(NetworkActivitySample.FromAdapterTotals(previous.Received, previous.Sent,
+                        received, sent, Stopwatch.GetElapsedTime(_previousSampleTimestamp, timestamp).TotalSeconds));
+                else
+                {
+                    TotalDownloadRate = TotalUploadRate = "Waiting...";
+                    OnPropertyChanged(nameof(TotalDownloadRate));
+                    OnPropertyChanged(nameof(TotalUploadRate));
+                }
+                _previousAdapterTotals = (received, sent);
+                _previousSampleTimestamp = timestamp;
+                _networkActivityStatus = $"Internet and local tracking unavailable: {ex.Message} Totals show adapter traffic instead.";
+            }
+            catch (Exception adapterError)
+            {
+                Debug.WriteLine($"Could not sample adapter traffic: {adapterError}");
+                _previousAdapterTotals = null;
+                NetworkActivitySamples.Clear();
+                TotalDownloadRate = TotalUploadRate = "Unavailable";
+                OnPropertyChanged(nameof(TotalDownloadRate));
+                OnPropertyChanged(nameof(TotalUploadRate));
+                _networkActivityStatus = $"Traffic unavailable: {ex.Message} Adapter counters: {adapterError.Message}";
+            }
+            OnPropertyChanged(nameof(NetworkActivityStatus));
+        }
+        finally
+        {
+            _isSampling = false;
+        }
     }
 
     public void ResetNetworkActivityBaseline()
     {
-        _previousNetworkTotals = GetNetworkTotals();
+        _samplingGeneration++;
+        _previousNetworkTotals = null;
+        _previousAdapterTotals = null;
+        _usingAdapterFallback = false;
+        NetworkActivitySamples.Clear();
+        DownloadRate = UploadRate = "0 B/s";
+        _localDownloadRate = _localUploadRate = "0 B/s";
+        TotalDownloadRate = TotalUploadRate = "0 B/s";
+        _networkActivityStatus = "Waiting for traffic tracking...";
+        OnPropertyChanged(nameof(LocalDownloadRate));
+        OnPropertyChanged(nameof(LocalUploadRate));
+        OnPropertyChanged(nameof(TotalDownloadRate));
+        OnPropertyChanged(nameof(TotalUploadRate));
+        OnPropertyChanged(nameof(NetworkActivityStatus));
     }
 
-    private void AddNetworkActivitySample(long receivedBytesPerSecond, long sentBytesPerSecond)
+    private void AddNetworkActivitySample(NetworkActivitySample sample)
     {
-        NetworkActivitySamples.Add(new NetworkActivitySample(receivedBytesPerSecond, sentBytesPerSecond));
+        NetworkActivitySamples.Add(sample);
 
-        while (NetworkActivitySamples.Count > NetworkActivitySampleLimit)
+        while (NetworkActivitySamples.Count > NetworkActivitySampleLimit
+            || NetworkActivitySamples[0].Timestamp < sample.Timestamp.AddMinutes(-5))
         {
             NetworkActivitySamples.RemoveAt(0);
         }
 
-        DownloadRate = FormatRate(receivedBytesPerSecond);
-        UploadRate = FormatRate(sentBytesPerSecond);
-    }
-
-    private static NetworkTotals GetNetworkTotals()
-    {
-        long receivedBytes = 0;
-        long sentBytes = 0;
-
-        foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
-        {
-            if (networkInterface.OperationalStatus != OperationalStatus.Up ||
-                networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
-                networkInterface.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
-            {
-                continue;
-            }
-
-            var statistics = networkInterface.GetIPv4Statistics();
-            receivedBytes += statistics.BytesReceived;
-            sentBytes += statistics.BytesSent;
-        }
-
-        return new NetworkTotals(receivedBytes, sentBytes);
+        DownloadRate = sample.IsClassified ? FormatRate(sample.ReceivedBytesPerSecond) : "Unavailable";
+        UploadRate = sample.IsClassified ? FormatRate(sample.SentBytesPerSecond) : "Unavailable";
+        _localDownloadRate = sample.IsClassified ? FormatRate(sample.LocalReceivedBytesPerSecond) : "Unavailable";
+        _localUploadRate = sample.IsClassified ? FormatRate(sample.LocalSentBytesPerSecond) : "Unavailable";
+        TotalDownloadRate = FormatRate(sample.TotalReceivedBytesPerSecond);
+        TotalUploadRate = FormatRate(sample.TotalSentBytesPerSecond);
+        OnPropertyChanged(nameof(LocalDownloadRate));
+        OnPropertyChanged(nameof(LocalUploadRate));
+        OnPropertyChanged(nameof(TotalDownloadRate));
+        OnPropertyChanged(nameof(TotalUploadRate));
     }
 
     private static string FormatRate(long bytesPerSecond)
@@ -189,7 +303,3 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-
-public sealed record NetworkActivitySample(long ReceivedBytesPerSecond, long SentBytesPerSecond);
-
-internal sealed record NetworkTotals(long ReceivedBytes, long SentBytes);

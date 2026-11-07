@@ -60,7 +60,7 @@ internal sealed class SettingsService : ISettingsService
             return updateResponse.Type switch
             {
                 MessageType.PUT_SETTINGS => new SettingsApplyResult(true, "Settings applied."),
-                MessageType.RESPONSE_LOCKED => new SettingsApplyResult(false, "TinyWall is locked. Unlock it before changing settings."),
+                MessageType.RESPONSE_LOCKED => new SettingsApplyResult(false, "Modern TinyWall is locked. Unlock it before changing settings."),
                 MessageType.COM_ERROR => new SettingsApplyResult(false, "Could not contact the TinyWall service."),
                 MessageType.RESPONSE_ERROR => new SettingsApplyResult(false, "The TinyWall service could not apply settings."),
                 _ => new SettingsApplyResult(false, $"Unexpected TinyWall service response: {updateResponse.Type}.")
@@ -79,7 +79,7 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(AutoUpdateCheckKey, "Automatic update checks", "Check for TinyWall updates automatically.", serviceConfig.AutoUpdateCheck, true),
                     new SettingsItem(AskForExceptionDetailsKey, "Ask for exception details", "Prompt for details when creating new application exceptions.", controllerSettings.AskForExceptionDetails, true),
                     new SettingsItem(EnableGlobalHotkeysKey, "Global hotkeys", "Enable TinyWall global keyboard shortcuts.", controllerSettings.EnableGlobalHotkeys, true),
-                    new SettingsItem("controller.language", "Language", "English is the ModernTinyWall baseline language.", true, false)
+                    new SettingsItem("controller.language", "Language", "English is the Modern TinyWall baseline language.", true, false)
                 ]),
             new SettingsSection(
                 "Machine settings",

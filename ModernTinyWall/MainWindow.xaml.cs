@@ -56,7 +56,7 @@ public sealed partial class MainWindow
         _trayIconService.Initialise(_windowHandle);
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Initialise(_windowHandle);
-        _trayIconService.SetStatus("TinyWall firewall controls");
+        _trayIconService.SetStatus("Modern TinyWall firewall controls");
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
         _ = MonitorFirewallEventsAsync(_promptMonitoringCancellation.Token);
@@ -153,7 +153,7 @@ public sealed partial class MainWindow
             FontSize = 18,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
         });
-        text.Children.Add(new TextBlock { Text = "TinyWall blocked this connection. The application may need to retry after you allow it." });
+        text.Children.Add(new TextBlock { Text = "Modern TinyWall blocked this connection. The application may need to retry after you allow it." });
         text.Children.Add(new TextBlock { Text = executablePath, TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}" });
         applicationDetails.Children.Add(text);
@@ -570,7 +570,7 @@ public sealed partial class MainWindow
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = "Unlock TinyWall",
+            Title = "Unlock Modern TinyWall",
             Content = passwordBox,
             PrimaryButtonText = "Unlock",
             CloseButtonText = "Cancel"
@@ -591,7 +591,7 @@ public sealed partial class MainWindow
     {
         try
         {
-            return await _optionsService.LoadAsync();
+            return await _optionsService.LoadAsync().ConfigureAwait(false);
         }
         catch
         {

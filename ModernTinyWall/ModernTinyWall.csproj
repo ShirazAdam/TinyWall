@@ -2,6 +2,8 @@
   <PropertyGroup>
 	<OutputType>WinExe</OutputType>
 	<Version>4.5.0</Version>
+	<Product>Modern TinyWall</Product>
+	<AssemblyTitle>Modern TinyWall</AssemblyTitle>
 	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
 	<TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
 	<RootNamespace>ModernTinyWall</RootNamespace>

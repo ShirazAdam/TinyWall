@@ -96,7 +96,7 @@ namespace ModernTinyWall.TinyWall
 
             string clientFilePath = Utils.GetPathOfProcess((uint)clientPid);
 
-            return clientFilePath.Equals(ModernTinyWall.Windows.ProcessManager.ExecutablePath, StringComparison.OrdinalIgnoreCase);
+            return ControllerClientIdentity.IsTrusted(ModernTinyWall.Windows.ProcessManager.ExecutablePath, clientFilePath);
 #else
             return true;
 #endif

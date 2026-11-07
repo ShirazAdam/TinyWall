@@ -1,11 +1,14 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using ModernTinyWall.Models;
 using ModernTinyWall.ViewModels;
+using ModernTinyWall.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 
 namespace ModernTinyWall.Views;
 
@@ -20,10 +23,18 @@ public sealed partial class OverviewPage
 
     private readonly Path _downloadPath = new() { StrokeThickness = 2 };
     private readonly Path _uploadPath = new() { StrokeThickness = 2 };
+    private readonly Path _localDownloadPath = new() { StrokeThickness = 2 };
+    private readonly Path _localUploadPath = new() { StrokeThickness = 2 };
+    private readonly Path _totalDownloadPath = new() { StrokeThickness = 2 };
+    private readonly Path _totalUploadPath = new() { StrokeThickness = 2 };
+    private readonly Dictionary<Path, Path> _outlines = [];
     private MainWindow? _mainWindow;
     private bool _isPageLoaded;
     private bool _isWindowVisible = true;
     private bool _isMonitoring;
+    private readonly IOptionsService _optionsService = new OptionsService();
+    private bool _isRestoringSeries;
+    private bool _optionsReady;
 
     public OverviewPageViewModel ViewModel { get; } = new();
 
@@ -35,7 +46,7 @@ public sealed partial class OverviewPage
         _networkActivityTimer.Tick += NetworkActivityTimer_Tick;
     }
 
-    private void OverviewPage_Loaded(object sender, RoutedEventArgs e)
+    private async void OverviewPage_Loaded(object sender, RoutedEventArgs e)
     {
         _isPageLoaded = true;
         _mainWindow = App.MainWindow as MainWindow;
@@ -45,6 +56,30 @@ public sealed partial class OverviewPage
             _isWindowVisible = _mainWindow.IsWindowVisible;
         }
 
+        _isRestoringSeries = true;
+        try
+        {
+            var options = await _optionsService.LoadAsync();
+            var series = options.VisibleNetworkSeries;
+            if ((series & ~NetworkActivitySeries.All) != 0)
+                throw new InvalidOperationException("The saved traffic series selection is invalid.");
+            InternetDownloadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.InternetDownload);
+            InternetUploadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.InternetUpload);
+            LocalDownloadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.LocalDownload);
+            LocalUploadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.LocalUpload);
+            TotalDownloadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.TotalDownload);
+            TotalUploadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.TotalUpload);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not restore traffic series selection: {ex}");
+            SeriesSettingsStatus.Text = $"Could not restore chart settings: {ex.Message}";
+        }
+        finally
+        {
+            _isRestoringSeries = false;
+            _optionsReady = true;
+        }
         UpdateMonitoringState();
         UpdateNetworkActivityGraph();
     }
@@ -69,7 +104,7 @@ public sealed partial class OverviewPage
 
     private void UpdateMonitoringState()
     {
-        var shouldMonitor = _isPageLoaded && _isWindowVisible;
+        var shouldMonitor = _isPageLoaded && _isWindowVisible && _optionsReady;
         if (_isMonitoring == shouldMonitor)
             return;
 
@@ -84,10 +119,16 @@ public sealed partial class OverviewPage
         else
         {
             _networkActivityTimer.Stop();
+            ViewModel.ResetNetworkActivityBaseline();
             ViewModel.NetworkActivitySamples.CollectionChanged -= NetworkActivitySamples_CollectionChanged;
             NetworkActivityCanvas.Children.Clear();
+            _outlines.Clear();
             _downloadPath.Data = null;
             _uploadPath.Data = null;
+            _localDownloadPath.Data = null;
+            _localUploadPath.Data = null;
+            _totalDownloadPath.Data = null;
+            _totalUploadPath.Data = null;
         }
     }
 
@@ -96,14 +137,39 @@ public sealed partial class OverviewPage
         UpdateNetworkActivityGraph();
     }
 
-    private void NetworkActivityTimer_Tick(object? sender, object e)
+    private async void NetworkActivityTimer_Tick(object? sender, object e)
     {
-        ViewModel.UpdateNetworkActivity();
+        if (_isMonitoring)
+            await ViewModel.UpdateNetworkActivityAsync();
     }
 
     private void NetworkActivityCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         UpdateNetworkActivityGraph();
+    }
+
+    private void SeriesSelection_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_optionsReady || _isRestoringSeries || !_isPageLoaded)
+            return;
+        UpdateNetworkActivityGraph();
+        var series = NetworkActivitySeries.None;
+        if (InternetDownloadCheckBox.IsChecked == true) series |= NetworkActivitySeries.InternetDownload;
+        if (InternetUploadCheckBox.IsChecked == true) series |= NetworkActivitySeries.InternetUpload;
+        if (LocalDownloadCheckBox.IsChecked == true) series |= NetworkActivitySeries.LocalDownload;
+        if (LocalUploadCheckBox.IsChecked == true) series |= NetworkActivitySeries.LocalUpload;
+        if (TotalDownloadCheckBox.IsChecked == true) series |= NetworkActivitySeries.TotalDownload;
+        if (TotalUploadCheckBox.IsChecked == true) series |= NetworkActivitySeries.TotalUpload;
+        try
+        {
+            _optionsService.UpdateAsync(options => options with { VisibleNetworkSeries = series }).GetAwaiter().GetResult();
+            SeriesSettingsStatus.Text = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not save traffic series selection: {ex}");
+            SeriesSettingsStatus.Text = $"Could not save chart settings: {ex.Message}";
+        }
     }
 
     private void UpdateNetworkActivityGraph()
@@ -112,42 +178,69 @@ public sealed partial class OverviewPage
             return;
 
         var samples = ViewModel.NetworkActivitySamples;
-        long maxValue = 1;
+        var classified = samples.Count == 0 || samples[samples.Count - 1].IsClassified;
+        long maxValue = 2;
 
         foreach (var sample in samples)
         {
-            maxValue = Math.Max(maxValue, Math.Max(sample.ReceivedBytesPerSecond, sample.SentBytesPerSecond));
+            if (InternetDownloadCheckBox.IsChecked == true)
+                maxValue = Math.Max(maxValue, sample.ReceivedBytesPerSecond);
+            if (InternetUploadCheckBox.IsChecked == true)
+                maxValue = Math.Max(maxValue, sample.SentBytesPerSecond);
+            if (LocalDownloadCheckBox.IsChecked == true)
+                maxValue = Math.Max(maxValue, sample.LocalReceivedBytesPerSecond);
+            if (LocalUploadCheckBox.IsChecked == true)
+                maxValue = Math.Max(maxValue, sample.LocalSentBytesPerSecond);
+            if (TotalDownloadCheckBox.IsChecked == true)
+                maxValue = Math.Max(maxValue, sample.TotalReceivedBytesPerSecond);
+            if (TotalUploadCheckBox.IsChecked == true)
+                maxValue = Math.Max(maxValue, sample.TotalSentBytesPerSecond);
         }
 
         BandwidthScaleTopText.Text = FormatRate(maxValue);
         BandwidthScaleMiddleText.Text = FormatRate(maxValue / 2);
 
+        _totalDownloadPath.Visibility = TotalDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        _totalUploadPath.Visibility = TotalUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        _downloadPath.Visibility = classified && InternetDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        _uploadPath.Visibility = classified && InternetUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        _localDownloadPath.Visibility = classified && LocalDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        _localUploadPath.Visibility = classified && LocalUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        UpdateSeries(_totalDownloadPath, samples, maxValue, static sample => sample.TotalReceivedBytesPerSecond, (Brush)Resources["TotalDownloadBrush"]);
+        UpdateSeries(_totalUploadPath, samples, maxValue, static sample => sample.TotalSentBytesPerSecond, (Brush)Resources["TotalUploadBrush"]);
         UpdateSeries(_downloadPath, samples, maxValue, static sample => sample.ReceivedBytesPerSecond, (Brush)Resources["NetworkDownloadBrush"]);
         UpdateSeries(_uploadPath, samples, maxValue, static sample => sample.SentBytesPerSecond, (Brush)Resources["NetworkUploadBrush"]);
+        UpdateSeries(_localDownloadPath, samples, maxValue, static sample => sample.LocalReceivedBytesPerSecond, (Brush)Resources["LocalDownloadBrush"]);
+        UpdateSeries(_localUploadPath, samples, maxValue, static sample => sample.LocalSentBytesPerSecond, (Brush)Resources["LocalUploadBrush"]);
     }
 
     private void UpdateSeries(Path path, IReadOnlyList<NetworkActivitySample> samples, long maxValue, Func<NetworkActivitySample, long> valueSelector, Brush brush)
     {
-        if (samples.Count < 2)
+        if (path.Visibility == Visibility.Collapsed || samples.Count < 2)
         {
             path.Data = null;
+            if (_outlines.TryGetValue(path, out var existingOutline))
+                existingOutline.Data = null;
             return;
         }
 
         var width = NetworkActivityCanvas.ActualWidth;
         var height = NetworkActivityCanvas.ActualHeight;
         var xStep = width / 300;
-        var startX = width - (samples.Count - 1) * xStep;
+        var latestTimestamp = samples[samples.Count - 1].Timestamp;
+        var startX = width - (latestTimestamp - samples[0].Timestamp).TotalSeconds * xStep;
         var figure = new PathFigure
         {
             StartPoint = new(startX, height - (valueSelector(samples[0]) / (double)maxValue * height)),
-            IsFilled = false
+            IsFilled = true,
+            IsClosed = false
         };
         var previousPoint = figure.StartPoint;
+        var outline = new PathFigure { StartPoint = figure.StartPoint, IsFilled = false };
 
         for (var i = 1; i < samples.Count; i++)
         {
-            var x = startX + i * xStep;
+            var x = width - (latestTimestamp - samples[i].Timestamp).TotalSeconds * xStep;
             var y = height - (valueSelector(samples[i]) / (double)maxValue * height);
             var midpointX = (previousPoint.X + x) / 2;
             // Horizontal tangents join smoothly without overshooting either sample.
@@ -158,15 +251,30 @@ public sealed partial class OverviewPage
                 Point3 = new(x, y)
             };
             figure.Segments.Add(segment);
+            outline.Segments.Add(new BezierSegment { Point1 = segment.Point1, Point2 = segment.Point2, Point3 = segment.Point3 });
             previousPoint = segment.Point3;
         }
 
+        figure.Segments.Add(new LineSegment { Point = new(width, height) });
+        figure.Segments.Add(new LineSegment { Point = new(startX, height) });
+        figure.IsClosed = true;
         var geometry = new PathGeometry();
         geometry.Figures.Add(figure);
         path.Data = geometry;
-        path.Stroke = brush;
+        path.Fill = new SolidColorBrush(((SolidColorBrush)brush).Color) { Opacity = 0.25 };
         if (!NetworkActivityCanvas.Children.Contains(path))
             NetworkActivityCanvas.Children.Add(path);
+        if (!_outlines.TryGetValue(path, out var outlinePath))
+        {
+            outlinePath = new Path { StrokeThickness = 2 };
+            Canvas.SetZIndex(outlinePath, 1);
+            _outlines.Add(path, outlinePath);
+            NetworkActivityCanvas.Children.Add(outlinePath);
+        }
+        var outlineGeometry = new PathGeometry();
+        outlineGeometry.Figures.Add(outline);
+        outlinePath.Data = outlineGeometry;
+        outlinePath.Stroke = brush;
     }
 
     private static string FormatRate(long bytesPerSecond)

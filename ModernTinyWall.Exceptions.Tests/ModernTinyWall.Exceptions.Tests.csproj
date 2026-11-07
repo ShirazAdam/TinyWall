@@ -21,6 +21,11 @@
     <ProjectReference Include="..\ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj" />
     <Compile Include="..\TinyWall\DataUsageHistory.cs" Link="DataUsageHistory.cs" />
     <Compile Include="..\TinyWall\DataUsageCollector.cs" Link="DataUsageCollector.cs" />
+    <Compile Include="..\TinyWall.Shared\ControllerClientIdentity.cs" Link="ControllerClientIdentity.cs" />
     <Compile Include="..\ModernTinyWall\ViewModels\DataUsagePageViewModel.cs" Link="DataUsagePageViewModel.cs" />
+    <Compile Include="..\ModernTinyWall\Models\NetworkActivitySeries.cs" Link="NetworkActivitySeries.cs" />
+    <Compile Include="..\ModernTinyWall\Models\NetworkActivitySample.cs" Link="NetworkActivitySample.cs" />
+    <Compile Include="..\ModernTinyWall\Services\IOptionsService.cs" Link="IOptionsService.cs" />
+    <Compile Include="..\ModernTinyWall\Services\OptionsService.cs" Link="OptionsService.cs" />
   </ItemGroup>
 </Project>

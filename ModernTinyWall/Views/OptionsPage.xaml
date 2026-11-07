@@ -6,7 +6,7 @@
     <StackPanel Padding="32" Spacing="20">
         <StackPanel Spacing="6">
             <TextBlock Text="Options" Style="{StaticResource PageTitleStyle}" />
-            <TextBlock Text="Choose how ModernTinyWall behaves when using the title-bar buttons."
+            <TextBlock Text="Choose how Modern TinyWall behaves when using the title-bar buttons."
                        TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
 
@@ -14,21 +14,21 @@
             x:Name="MinimiseToTraySwitch"
             Header="Minimise to tray"
             OffContent="Minimise to taskbar"
-            OnContent="Hide the window and keep ModernTinyWall running in the tray"
+            OnContent="Hide the window and keep Modern TinyWall running in the tray"
             Toggled="OptionsSwitch_Toggled" />
 
         <ToggleSwitch
             x:Name="CloseToTraySwitch"
             Header="Close to tray"
             OffContent="Close the application"
-            OnContent="Hide the window and keep ModernTinyWall running in the tray"
+            OnContent="Hide the window and keep Modern TinyWall running in the tray"
             Toggled="OptionsSwitch_Toggled" />
 
         <InfoBar
             IsOpen="True"
             Severity="Informational"
             Title="Tray behaviour"
-            Message="The tray icon remains available while ModernTinyWall is hidden. Use the tray menu or the terminate button below to fully exit." />
+            Message="The tray icon remains available while Modern TinyWall is hidden. Use the tray menu or the terminate button below to fully exit." />
 
         <Button Content="Terminate application" Click="TerminateButton_Click" HorizontalAlignment="Left" />
     </StackPanel>
