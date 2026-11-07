@@ -2,6 +2,7 @@
   <PropertyGroup>
 	<Version>4.5.0</Version>
 	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+	<Version>4.0.2</Version>
 	<LangVersion>14.0</LangVersion>
 	<Nullable>enable</Nullable>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>

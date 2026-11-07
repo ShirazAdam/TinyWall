@@ -1,0 +1,46 @@
+#pragma once
+
+#define TW_DEVICE_TYPE 0x8000
+#define TW_IOCTL_READ CTL_CODE(TW_DEVICE_TYPE, 0x800, METHOD_BUFFERED, FILE_READ_DATA)
+#define TW_IOCTL_DECIDE CTL_CODE(TW_DEVICE_TYPE, 0x801, METHOD_BUFFERED, FILE_WRITE_DATA)
+#define TW_IOCTL_QUERY CTL_CODE(TW_DEVICE_TYPE, 0x802, METHOD_BUFFERED, FILE_READ_DATA)
+#define TW_PROTOCOL_VERSION 2
+#define TW_DECISION_WAITING 0
+#define TW_DECISION_APPLIED 1
+#define TW_DECISION_FAILED 2
+#define TW_PATH_CHARS 1024
+#define TW_MAX_PENDING 128
+
+typedef struct TW_PENDING_REQUEST {
+    UINT64 Id;
+    UINT64 ProcessId;
+    UINT32 Protocol;
+    UINT32 AddressFamily;
+    UINT16 LocalPort;
+    UINT16 RemotePort;
+    UINT32 Reserved;
+    UCHAR RemoteAddress[16];
+    WCHAR AppPath[TW_PATH_CHARS];
+} TW_PENDING_REQUEST;
+
+typedef struct TW_READ_RESULT {
+    UINT32 Version;
+    UINT32 Count;
+    TW_PENDING_REQUEST Requests[TW_MAX_PENDING];
+} TW_READ_RESULT;
+
+typedef struct TW_DECISION {
+    UINT64 Id;
+    UINT32 Allow;
+    UINT32 Version;
+} TW_DECISION;
+
+typedef struct TW_QUERY {
+    UINT64 Id;
+    UINT32 Version;
+    UINT32 State;
+} TW_QUERY;
+
+C_ASSERT(sizeof(TW_PENDING_REQUEST) == 2096);
+C_ASSERT(sizeof(TW_DECISION) == 16);
+C_ASSERT(sizeof(TW_QUERY) == 16);

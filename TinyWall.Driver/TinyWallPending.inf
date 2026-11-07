@@ -1,0 +1,45 @@
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%Provider%
+DriverVer=11/06/2026,1.0.0.0
+CatalogFile=TinyWallPending.cat
+PnpLockdown=1
+
+[DestinationDirs]
+DriverFiles=13
+
+[SourceDisksNames]
+1=%DiskName%
+
+[SourceDisksFiles]
+TinyWallPending.sys=1
+
+[DefaultInstall.NTamd64]
+CopyFiles=DriverFiles
+
+[DefaultInstall.NTarm64]
+CopyFiles=DriverFiles
+
+[DefaultInstall.NTamd64.Services]
+AddService=TinyWallPending,,DriverService
+
+[DefaultInstall.NTarm64.Services]
+AddService=TinyWallPending,,DriverService
+
+[DriverFiles]
+TinyWallPending.sys
+
+[DriverService]
+DisplayName=%ServiceName%
+ServiceType=1
+StartType=2
+ErrorControl=1
+ServiceBinary=%13%\TinyWallPending.sys
+Dependencies=BFE
+
+[Strings]
+Provider="TinyWall"
+DiskName="TinyWall pending connection driver"
+ServiceName="TinyWall pending connection driver"

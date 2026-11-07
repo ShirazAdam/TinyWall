@@ -1,4 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Net;
+using ModernTinyWall.TinyWall;
 
 namespace ModernTinyWall.Exceptions;
 
@@ -27,6 +30,18 @@ public enum FirewallPromptDecision
     AllowAlways,
     DenyOnce,
     DenyAlways
+}
+
+public static class FirewallPromptValidation
+{
+    public static bool TryGetDestination(FirewallLogEntry entry, [NotNullWhen(true)] out string? path, [NotNullWhen(true)] out IPAddress? address)
+    {
+        path = entry.AppPath;
+        address = null;
+        return !string.IsNullOrWhiteSpace(path)
+            && !string.Equals(path, "System", StringComparison.OrdinalIgnoreCase)
+            && IPAddress.TryParse(entry.RemoteIp, out address);
+    }
 }
 
 public sealed record ExceptionEntryActionRequest(

@@ -47,6 +47,16 @@ namespace ModernTinyWall.TinyWall
             return Endpoint.QueueMessage(TwMessageReadFwLog.CreateRequest());
         }
 
+        public TwMessage ReadPendingConnections()
+        {
+            return Endpoint.QueueMessage(new TwMessagePendingConnections(MessageType.READ_PENDING_CONNECTIONS, 0, false, false, [])).Response;
+        }
+
+        public TwMessage ResolvePendingConnection(ulong connectionId, bool allow)
+        {
+            return Endpoint.QueueMessage(new TwMessagePendingConnections(MessageType.RESOLVE_PENDING_CONNECTION, connectionId, allow, false, [])).Response;
+        }
+
         public DataUsageSnapshot ReadDataUsage(DataUsagePeriod period)
         {
             var response = Endpoint.QueueMessage(new TwMessageDataUsage(period, null)).Response;

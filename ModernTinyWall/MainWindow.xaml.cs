@@ -8,11 +8,13 @@ using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Views;
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
@@ -31,6 +33,9 @@ public sealed partial class MainWindow
     private readonly ITinyWallExceptionStore _exceptionStore = App.Services.GetRequiredService<ITinyWallExceptionStore>();
     private readonly GlobalHotkeyService _globalHotkeyService = new();
     private readonly CancellationTokenSource _promptMonitoringCancellation = new();
+    private readonly Channel<FirewallLogEntry> _promptQueue = Channel.CreateBounded<FirewallLogEntry>(
+        new BoundedChannelOptions(128) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = true });
+    private readonly ConcurrentDictionary<ulong, byte> _queuedPending = new();
     private readonly IntPtr _windowHandle;
     private readonly IntPtr _previousWindowProc;
     private readonly WindowProc _windowProc;
@@ -60,6 +65,7 @@ public sealed partial class MainWindow
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
         _ = MonitorFirewallEventsAsync(_promptMonitoringCancellation.Token);
+        _ = ConsumeFirewallPromptsAsync(_promptMonitoringCancellation.Token);
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
@@ -85,26 +91,16 @@ public sealed partial class MainWindow
                 foreach (var entry in events)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-                    if (DispatcherQueue.TryEnqueue(async () =>
+                    if (entry.PendingConnectionId != 0 && !_queuedPending.TryAdd(entry.PendingConnectionId, 0))
+                        continue;
+                    if (!_promptQueue.Writer.TryWrite(entry))
                     {
-                        try
+                        if (entry.PendingConnectionId != 0)
                         {
-                            await ShowFirewallPromptAsync(entry);
-                            completion.TrySetResult();
+                            _queuedPending.TryRemove(entry.PendingConnectionId, out _);
+                            _firewallPromptMonitor.ForgetPending(entry.PendingConnectionId);
                         }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"Could not show outbound connection prompt: {ex}");
-                            completion.TrySetException(ex);
-                        }
-                    }))
-                    {
-                        await completion.Task;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Could not dispatch the outbound connection prompt to the UI thread.");
+                        _trayIconService.SetStatus("Connection prompt queue is full. Unanswered connections remain blocked.");
                     }
                 }
 
@@ -117,18 +113,71 @@ public sealed partial class MainWindow
             catch (Exception ex)
             {
                 Debug.WriteLine($"Could not monitor outbound firewall events: {ex}");
-                await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+                _firewallPromptMonitor.ClearPending();
+                _trayIconService.SetStatus("Could not monitor outbound connection prompts. Connections remain blocked.");
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
             }
         }
     }
 
-    private async Task ShowFirewallPromptAsync(FirewallLogEntry entry)
+    private async Task ConsumeFirewallPromptsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await foreach (var entry in _promptQueue.Reader.ReadAllAsync(cancellationToken))
+            {
+                try
+                {
+                    if (entry.PendingConnectionId != 0 && !_firewallPromptMonitor.IsPending(entry.PendingConnectionId))
+                        continue;
+                    if (await ShowFirewallPromptAsync(entry) && entry.PendingConnectionId != 0)
+                        _firewallPromptMonitor.ForgetPending(entry.PendingConnectionId);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Could not show outbound connection prompt: {ex}");
+                    if (entry.PendingConnectionId != 0)
+                    {
+                        try
+                        {
+                            var denied = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
+                            if (!denied.Success)
+                                Debug.WriteLine(denied.Message);
+                        }
+                        catch (Exception resolutionError)
+                        {
+                            Debug.WriteLine($"Could not release the pending connection: {resolutionError}");
+                        }
+                    }
+                    _trayIconService.SetStatus("Could not complete the outbound connection prompt. The connection status may be unknown.");
+                }
+                finally
+                {
+                    if (entry.PendingConnectionId != 0)
+                        _queuedPending.TryRemove(entry.PendingConnectionId, out _);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+    }
+
+    private async Task<bool> ShowFirewallPromptAsync(FirewallLogEntry entry)
     {
         _ = ShowWindow(_windowHandle, SwShow);
         Activate();
         SetWindowVisibility(true);
 
         var executablePath = entry.AppPath ?? string.Empty;
+        var isPending = entry.PendingConnectionId != 0;
         var applicationName = GetApplicationDisplayName(executablePath);
         var icon = new Image { Width = 48, Height = 48, Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform };
         try
@@ -149,11 +198,17 @@ public sealed partial class MainWindow
         var text = new StackPanel { Spacing = 4 };
         text.Children.Add(new TextBlock
         {
-            Text = $"{applicationName} attempted to connect",
+            Text = isPending ? $"{applicationName} wants to connect" : $"{applicationName} attempted to connect",
             FontSize = 18,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
         });
-        text.Children.Add(new TextBlock { Text = "Modern TinyWall blocked this connection. The application may need to retry after you allow it." });
+        text.Children.Add(new TextBlock
+        {
+            Text = isPending
+                ? "Modern TinyWall is holding this connection for your decision. No response within two minutes denies it."
+                : "Modern TinyWall blocked this connection. The application may need to retry after you allow it.",
+            TextWrapping = TextWrapping.Wrap
+        });
         text.Children.Add(new TextBlock { Text = executablePath, TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}" });
         applicationDetails.Children.Add(text);
@@ -164,7 +219,7 @@ public sealed partial class MainWindow
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = "Outbound connection blocked",
+            Title = isPending ? "Outbound connection awaiting permission" : "Outbound connection blocked",
             Content = content,
             PrimaryButtonText = "Allow destination (5 min)",
             SecondaryButtonText = "Allow always",
@@ -183,7 +238,32 @@ public sealed partial class MainWindow
         };
         content.Children.Add(denyAlwaysButton);
 
-        var result = await ShowDialogAsync(dialog);
+        var expired = false;
+        var expiryTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        expiryTimer.Tick += (_, _) =>
+        {
+            if (_promptMonitoringCancellation.IsCancellationRequested
+                || (isPending && !_firewallPromptMonitor.IsPending(entry.PendingConnectionId)))
+            {
+                expired = true;
+                dialog.Hide();
+            }
+        };
+        expiryTimer.Start();
+        ContentDialogResult result;
+        try
+        {
+            result = await ShowDialogAsync(dialog);
+        }
+        finally
+        {
+            expiryTimer.Stop();
+        }
+        if (expired)
+        {
+            _trayIconService.SetStatus("Pending connection expired or was withdrawn. No rule was saved.");
+            return true;
+        }
         decision = result switch
         {
             ContentDialogResult.Primary => FirewallPromptDecision.AllowOnce,
@@ -192,10 +272,39 @@ public sealed partial class MainWindow
             _ => FirewallPromptDecision.DenyOnce
         };
 
+        var allow = decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways;
+        if (isPending && allow)
+        {
+            if (!FirewallPromptValidation.TryGetDestination(entry, out _, out _))
+            {
+                var invalid = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+                var denial = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
+                var message = denial.Success ? invalid.Message : $"{invalid.Message} {denial.Message}";
+                _trayIconService.SetStatus(message);
+                await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", message);
+                return false;
+            }
+            var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, true);
+            if (!resolution.Success)
+            {
+                _trayIconService.SetStatus(resolution.Message);
+                await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", resolution.Message);
+                return false;
+            }
+        }
         var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+        if (isPending && !allow)
+        {
+            var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
+            if (mutationResult.Success && !resolution.Success)
+                mutationResult = resolution;
+        }
+        else if (isPending && !mutationResult.Success)
+            mutationResult = new ExceptionMutationResult(false, $"The connection decision was submitted, but the rule could not be saved: {mutationResult.Message}");
         _trayIconService.SetStatus(mutationResult.Message);
         if (!mutationResult.Success)
             await new DialogueService().ShowMessageAsync(Content.XamlRoot, "Connection decision", mutationResult.Message);
+        return false;
     }
 
     private static Task TryLoadApplicationIconAsync(Image image, string executablePath)
