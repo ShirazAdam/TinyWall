@@ -57,7 +57,7 @@ internal sealed class MaintenanceService : IMaintenanceService
                 if (updateResponse.Type != MessageType.PUT_SETTINGS)
                     return new MaintenanceResult(false, updateResponse.Type switch
                     {
-                        MessageType.RESPONSE_LOCKED => "TinyWall is locked. Unlock it before importing settings.",
+                        MessageType.RESPONSE_LOCKED => "Modern TinyWall is locked. Unlock it before importing settings.",
                         MessageType.COM_ERROR => "Could not contact the TinyWall service.",
                         MessageType.RESPONSE_ERROR => "The TinyWall service could not import settings.",
                         _ => $"Unexpected TinyWall service response: {updateResponse.Type}."
@@ -109,7 +109,7 @@ internal sealed class MaintenanceService : IMaintenanceService
                 return response switch
                 {
                     MessageType.SET_PASSPHRASE => new MaintenanceResult(true, string.IsNullOrEmpty(newPassword) ? "Password removed." : "Password changed."),
-                    MessageType.RESPONSE_LOCKED => new MaintenanceResult(false, "TinyWall is locked. Unlock it before changing the password."),
+                    MessageType.RESPONSE_LOCKED => new MaintenanceResult(false, "Modern TinyWall is locked. Unlock it before changing the password."),
                     MessageType.COM_ERROR => new MaintenanceResult(false, "Could not contact the TinyWall service."),
                     MessageType.RESPONSE_ERROR => new MaintenanceResult(false, "The TinyWall service could not change the password."),
                     _ => new MaintenanceResult(false, $"Unexpected TinyWall service response: {response}.")

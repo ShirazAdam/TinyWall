@@ -10,10 +10,10 @@ internal sealed class FirewallModeService : IFirewallModeService
 {
     private static readonly IReadOnlyList<FirewallModeOption> ModeOptions =
     [
-        new FirewallModeOption(ModernFirewallMode.Normal, "Normal protection", "Recommended TinyWall mode. Blocks unsolicited inbound traffic and allows trusted configured traffic."),
+        new FirewallModeOption(ModernFirewallMode.Normal, "Normal protection", "Recommended Modern TinyWall mode. Blocks unsolicited inbound traffic and allows trusted configured traffic."),
         new FirewallModeOption(ModernFirewallMode.AllowOutgoing, "Allow outgoing", "Allows outgoing connections while retaining inbound protection."),
         new FirewallModeOption(ModernFirewallMode.BlockAll, "Block all", "Blocks inbound and outbound traffic."),
-        new FirewallModeOption(ModernFirewallMode.Disabled, "Disabled", "Turns TinyWall filtering off."),
+        new FirewallModeOption(ModernFirewallMode.Disabled, "Disabled", "Turns Modern TinyWall filtering off."),
         new FirewallModeOption(ModernFirewallMode.Learning, "Learning", "Temporarily learns allowed traffic. Use with care.")
     ];
 
@@ -73,7 +73,7 @@ internal sealed class FirewallModeService : IFirewallModeService
         return response switch
         {
             MessageType.COM_ERROR => "Could not contact the TinyWall service.",
-            MessageType.RESPONSE_LOCKED => "TinyWall is locked. Unlock it before changing firewall mode.",
+            MessageType.RESPONSE_LOCKED => "Modern TinyWall is locked. Unlock it before changing firewall mode.",
             MessageType.RESPONSE_ERROR => "The TinyWall service could not change firewall mode.",
             MessageType.INVALID_COMMAND => "The TinyWall service rejected the firewall mode command.",
             _ => $"Unexpected TinyWall service response: {response}."

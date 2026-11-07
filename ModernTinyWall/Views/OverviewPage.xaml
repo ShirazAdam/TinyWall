@@ -8,6 +8,10 @@
     <Page.Resources>
         <SolidColorBrush x:Key="NetworkDownloadBrush" Color="#FF0078D4" />
         <SolidColorBrush x:Key="NetworkUploadBrush" Color="#FF107C10" />
+        <SolidColorBrush x:Key="LocalDownloadBrush" Color="#FFFFD700" />
+        <SolidColorBrush x:Key="LocalUploadBrush" Color="#FFE54848" />
+        <SolidColorBrush x:Key="TotalDownloadBrush" Color="#FFFF69B4" />
+        <SolidColorBrush x:Key="TotalUploadBrush" Color="#FF909090" />
     </Page.Resources>
 
     <ScrollViewer>
@@ -25,7 +29,7 @@
                         <ColumnDefinition Width="140" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Spacing="8">
-                        <TextBlock Text="TINYWall  /  FIREWALL CONTROL"
+                        <TextBlock Text="MODERN TINYWALL  /  FIREWALL CONTROL"
                                    FontSize="12" FontWeight="SemiBold" CharacterSpacing="120"
                                    Foreground="#FFD2F2FF" />
                         <TextBlock Text="Your network, your rules."
@@ -52,35 +56,77 @@
                 </Grid>
             </Border>
 
-            <StackPanel Spacing="10">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+            <Grid RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                     <StackPanel Spacing="2">
                         <TextBlock Text="Network activity" Style="{StaticResource SectionTitleStyle}" />
-                        <TextBlock Text="Live traffic across active network adapters"
-                                   FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.NetworkActivityStatus, Mode=OneWay}"
+                                   TextWrapping="Wrap" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20"
-                                VerticalAlignment="Center">
+                    <Grid Grid.Row="2" ColumnSpacing="12" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <StackPanel Spacing="2">
-                            <TextBlock Text="DOWNLOAD" Style="{StaticResource EyebrowStyle}"
-                                       Foreground="#FF0078D4" />
+                            <CheckBox x:Name="InternetDownloadCheckBox" IsChecked="True"
+                                      Checked="SeriesSelection_Changed" Unchecked="SeriesSelection_Changed">
+                                <TextBlock Text="Internet download" TextWrapping="Wrap" Foreground="{StaticResource NetworkDownloadBrush}" />
+                            </CheckBox>
                             <TextBlock Text="{x:Bind ViewModel.DownloadRate, Mode=OneWay}"
                                        FontSize="15" FontWeight="SemiBold" />
                         </StackPanel>
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="UPLOAD" Style="{StaticResource EyebrowStyle}"
-                                       Foreground="#FF107C10" />
+                        <StackPanel Grid.Row="1" Spacing="2">
+                            <CheckBox x:Name="InternetUploadCheckBox" IsChecked="True"
+                                      Checked="SeriesSelection_Changed" Unchecked="SeriesSelection_Changed">
+                                <TextBlock Text="Internet upload" TextWrapping="Wrap" Foreground="{StaticResource NetworkUploadBrush}" />
+                            </CheckBox>
                             <TextBlock Text="{x:Bind ViewModel.UploadRate, Mode=OneWay}"
                                        FontSize="15" FontWeight="SemiBold" />
                         </StackPanel>
-                    </StackPanel>
-                </Grid>
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <CheckBox x:Name="LocalDownloadCheckBox" IsChecked="True"
+                                      Checked="SeriesSelection_Changed" Unchecked="SeriesSelection_Changed">
+                                <TextBlock Text="Local download" TextWrapping="Wrap" Foreground="{StaticResource LocalDownloadBrush}" />
+                            </CheckBox>
+                            <TextBlock Text="{x:Bind ViewModel.LocalDownloadRate, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Grid.Row="1" Spacing="2">
+                            <CheckBox x:Name="LocalUploadCheckBox" IsChecked="True"
+                                      Checked="SeriesSelection_Changed" Unchecked="SeriesSelection_Changed">
+                                <TextBlock Text="Local upload" TextWrapping="Wrap" Foreground="{StaticResource LocalUploadBrush}" />
+                            </CheckBox>
+                            <TextBlock Text="{x:Bind ViewModel.LocalUploadRate, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="2">
+                            <CheckBox x:Name="TotalDownloadCheckBox" IsChecked="True"
+                                      Checked="SeriesSelection_Changed" Unchecked="SeriesSelection_Changed">
+                                <TextBlock Text="Total download" TextWrapping="Wrap" Foreground="{StaticResource TotalDownloadBrush}" />
+                            </CheckBox>
+                            <TextBlock Text="{x:Bind ViewModel.TotalDownloadRate, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Grid.Row="1" Spacing="2">
+                            <CheckBox x:Name="TotalUploadCheckBox" IsChecked="True"
+                                      Checked="SeriesSelection_Changed" Unchecked="SeriesSelection_Changed">
+                                <TextBlock Text="Total upload" TextWrapping="Wrap" Foreground="{StaticResource TotalUploadBrush}" />
+                            </CheckBox>
+                            <TextBlock Text="{x:Bind ViewModel.TotalUploadRate, Mode=OneWay}" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="SeriesSettingsStatus" Grid.Row="3" TextWrapping="Wrap"
+                               Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
 
-                <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                <Border Grid.Row="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
                         CornerRadius="10" Padding="16"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                     <Grid RowSpacing="8" ColumnSpacing="12">
@@ -107,13 +153,10 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <Border Grid.Row="0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                                     BorderThickness="0,0,0,1" />
-                            <Border Grid.Row="1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                                    BorderThickness="0,0,0,1" />
-                            <Canvas x:Name="NetworkActivityCanvas"
+                            <Canvas x:Name="NetworkActivityCanvas" Grid.RowSpan="2"
                                     SizeChanged="NetworkActivityCanvas_SizeChanged" />
                         </Grid>
                         <Grid Grid.Row="1" Grid.Column="1">
@@ -126,12 +169,12 @@
                         </Grid>
                     </Grid>
                 </Border>
-            </StackPanel>
+            </Grid>
 
             <StackPanel Spacing="10">
                 <StackPanel Spacing="2">
                     <TextBlock Text="Protection mode" Style="{StaticResource SectionTitleStyle}" />
-                    <TextBlock Text="Choose how TinyWall handles network traffic."
+                    <TextBlock Text="Choose how Modern TinyWall handles network traffic."
                                FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
                 <Grid ColumnSpacing="8">
@@ -148,34 +191,36 @@
                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.ModeOptions, Mode=OneWay}">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout Orientation="Horizontal" MaximumRowsOrColumns="3"
-                                           MinItemWidth="220" MinItemHeight="108"
+                                           MinItemWidth="220" MinItemHeight="150"
                                            ItemsStretch="Fill" />
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="models:FirewallModeOption">
                             <Button Padding="14" Margin="0,0,10,10"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderBrush="{x:Bind ModeBrush}"
                                     BorderThickness="1"
                                     Command="{Binding ViewModel.ApplyModeCommand, ElementName=PageRoot}"
                                     CommandParameter="{x:Bind}"
                                     HorizontalContentAlignment="Stretch"
                                     VerticalContentAlignment="Stretch">
-                                <Grid ColumnSpacing="12">
+                                <Grid ColumnSpacing="12" VerticalAlignment="Top">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="36" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="36" Height="36" CornerRadius="10"
-                                            Background="{ThemeResource SystemControlBackgroundAccentBrush}"
+                                            Background="{x:Bind ModeBrush}"
                                             VerticalAlignment="Top">
-                                        <FontIcon Glyph="&#xEA18;" FontSize="18"
-                                                  Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
+                                        <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="18"
+                                                  Foreground="{x:Bind IconBrush}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="5">
                                         <TextBlock Text="{x:Bind DisplayName}" FontSize="14"
-                                                   FontWeight="SemiBold" />
+                                                   FontWeight="SemiBold" TextWrapping="Wrap" />
                                         <TextBlock Text="{x:Bind Description}" FontSize="12"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                    TextWrapping="Wrap" />

@@ -60,7 +60,7 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
             var response = _controller.LockServer();
             return response switch
             {
-                MessageType.LOCK => new CommandResult(true, "TinyWall locked."),
+                MessageType.LOCK => new CommandResult(true, "Modern TinyWall locked."),
                 MessageType.COM_ERROR => new CommandResult(false, "Could not contact the TinyWall service."),
                 _ => new CommandResult(false, $"Unexpected TinyWall service response: {response}.")
             };
@@ -75,7 +75,7 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
             var response = _controller.TryUnlockServer(password);
             return response switch
             {
-                MessageType.UNLOCK => new CommandResult(true, "TinyWall unlocked."),
+                MessageType.UNLOCK => new CommandResult(true, "Modern TinyWall unlocked."),
                 MessageType.RESPONSE_LOCKED => new CommandResult(false, "The password was not accepted."),
                 MessageType.COM_ERROR => new CommandResult(false, "Could not contact the TinyWall service."),
                 _ => new CommandResult(false, $"Unexpected TinyWall service response: {response}.")
@@ -97,7 +97,7 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
                     Verb = "runas"
                 });
 
-                return new CommandResult(true, "Elevated ModernTinyWall instance requested.");
+                return new CommandResult(true, "Elevated Modern TinyWall instance requested.");
             }
             catch (Exception ex)
             {
@@ -164,7 +164,7 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
             return updateResponse.Type switch
             {
                 MessageType.PUT_SETTINGS => new CommandResult(true, successMessage),
-                MessageType.RESPONSE_LOCKED => new CommandResult(false, "TinyWall is locked. Unlock it before changing settings."),
+                MessageType.RESPONSE_LOCKED => new CommandResult(false, "Modern TinyWall is locked. Unlock it before changing settings."),
                 MessageType.COM_ERROR => new CommandResult(false, "Could not contact the TinyWall service."),
                 MessageType.RESPONSE_ERROR => new CommandResult(false, "The TinyWall service could not apply the change."),
                 _ => new CommandResult(false, $"Unexpected TinyWall service response: {updateResponse.Type}.")
@@ -186,7 +186,7 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
         return updateResponse.Type switch
         {
             MessageType.PUT_SETTINGS => new CommandResult(true, successMessage),
-            MessageType.RESPONSE_LOCKED => new CommandResult(false, "TinyWall is locked. Unlock it before changing settings."),
+            MessageType.RESPONSE_LOCKED => new CommandResult(false, "Modern TinyWall is locked. Unlock it before changing settings."),
             MessageType.COM_ERROR => new CommandResult(false, "Could not contact the TinyWall service."),
             MessageType.RESPONSE_ERROR => new CommandResult(false, "The TinyWall service could not apply the change."),
             _ => new CommandResult(false, $"Unexpected TinyWall service response: {updateResponse.Type}.")

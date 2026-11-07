@@ -47,10 +47,12 @@ public sealed partial class OptionsPage : Page
 
     private Task SaveOptionsAsync()
     {
-        return _optionsService.SaveAsync(new ModernTinyWallOptions
+        var minimiseToTray = MinimiseToTraySwitch.IsOn;
+        var closeToTray = CloseToTraySwitch.IsOn;
+        return _optionsService.UpdateAsync(options => options with
         {
-            MinimiseToTray = MinimiseToTraySwitch.IsOn,
-            CloseToTray = CloseToTraySwitch.IsOn
+            MinimiseToTray = minimiseToTray,
+            CloseToTray = closeToTray
         });
     }
 }

@@ -55,14 +55,14 @@ public sealed partial class SettingsPage : Page
 
     private async Task ImportAsync()
     {
-        var filePath = FilePickerService.PickOpenFile(WindowNative.GetWindowHandle(App.MainWindow), "Import TinyWall settings");
+        var filePath = FilePickerService.PickOpenFile(WindowNative.GetWindowHandle(App.MainWindow), "Import Modern TinyWall settings");
         if (filePath is not null)
             await ViewModel.ImportSettingsAsync(filePath);
     }
 
     private async Task ExportAsync()
     {
-        var filePath = FilePickerService.PickSaveFile(WindowNative.GetWindowHandle(App.MainWindow), "Export TinyWall settings", "TinyWall-settings.tws");
+        var filePath = FilePickerService.PickSaveFile(WindowNative.GetWindowHandle(App.MainWindow), "Export Modern TinyWall settings", "Modern-TinyWall-settings.tws");
         if (filePath is not null)
             await ViewModel.ExportSettingsAsync(filePath);
     }
