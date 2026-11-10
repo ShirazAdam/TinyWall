@@ -1,10 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System.Threading.Tasks;
+using Windows.System;
 
 namespace ModernTinyWall.Views;
 
@@ -35,8 +37,20 @@ public sealed partial class ConnectionsPage : Page
         ViewModel.SearchText = SearchBox.Text;
     }
 
+    private async void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == VirtualKey.Enter)
+        {
+            e.Handled = true;
+            await RefreshAsync();
+        }
+    }
+
     private Task RefreshAsync()
     {
+        if (ViewModel.IsRefreshing)
+            return Task.CompletedTask;
+
         return ViewModel.RefreshAsync(
             ShowActiveCheckBox.IsChecked == true,
             ShowListeningCheckBox.IsChecked == true,
