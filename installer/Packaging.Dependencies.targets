@@ -1,0 +1,29 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.targets"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\Directory.Build.targets')" />
+  <!-- The legacy app already requires these package versions. Resolve Modern
+       against that same graph rather than replacing DLLs after publishing. -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'ModernTinyWall'">
+    <PackageReference Include="System.CodeDom" Version="$(PackagingCodeDomVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(PackagingImmutableVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(PackagingMetadataVersion)" />
+  </ItemGroup>
+  <Target Name="ValidatePackagingDependencyVersions" BeforeTargets="PrepareForBuild"
+          Condition="'$(MSBuildProjectName)' == 'ModernTinyWall'">
+    <Error Condition="'$(PackagingCodeDomVersion)' == '' Or '$(PackagingImmutableVersion)' == '' Or '$(PackagingMetadataVersion)' == ''"
+           Text="Packaging dependency versions must be supplied from TinyWall's resolved publish manifest." />
+  </Target>
+  <Target Name="IncludePackagingWinUIResources" AfterTargets="ComputeFilesToPublish"
+          Condition="'$(MSBuildProjectName)' == 'ModernTinyWall'">
+    <Error Condition="!Exists('$(TargetDir)$(TargetName).pri')"
+           Text="The WinUI application resource index was not generated." />
+    <ItemGroup>
+      <_PackagingWinUIResource Include="$(TargetDir)$(TargetName).pri;$(TargetDir)**\*.xbf"
+                               Exclude="@(ResolvedFileToPublish)" />
+      <ResolvedFileToPublish Include="@(_PackagingWinUIResource)">
+        <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

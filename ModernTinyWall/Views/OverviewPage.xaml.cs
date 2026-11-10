@@ -64,7 +64,10 @@ public sealed partial class OverviewPage
 
     private void ProtectionSummary_Click(object sender, RoutedEventArgs e)
     {
-        ProtectionPanel.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = _uiSettings.AnimationsEnabled });
+        ProtectionPanel.StartBringIntoView(new BringIntoViewOptions
+        {
+            AnimationDesired = App.PreviewOptions.AnimationsAllowed(_uiSettings.AnimationsEnabled, _accessibilitySettings.HighContrast)
+        });
     }
 
     private void ConnectionsSummary_Click(object sender, RoutedEventArgs e)
@@ -133,7 +136,7 @@ public sealed partial class OverviewPage
     {
         ElementCompositionPreview.SetIsTranslationEnabled(button, true);
         var visual = ElementCompositionPreview.GetElementVisual(button);
-        if (!_uiSettings.AnimationsEnabled || _accessibilitySettings.HighContrast)
+        if (!App.PreviewOptions.AnimationsAllowed(_uiSettings.AnimationsEnabled, _accessibilitySettings.HighContrast))
         {
             visual.StopAnimation("Translation.Y");
             visual.Properties.InsertVector3("Translation", Vector3.Zero);

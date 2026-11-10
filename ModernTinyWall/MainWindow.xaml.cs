@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Views;
@@ -60,10 +61,8 @@ public sealed partial class MainWindow
         _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
         ApplySystemTheme();
         _windowHandle = WindowNative.GetWindowHandle(this);
-        var display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest);
-        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(
-            Math.Min(1536, display.WorkArea.Width - 32),
-            Math.Min(1024, display.WorkArea.Height - 32)));
+        CentreOnScreen();
+        ShellRoot.Loaded += ShellRoot_Loaded;
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
@@ -75,6 +74,21 @@ public sealed partial class MainWindow
         ContentFrame.Navigate(typeof(OverviewPage));
         _ = MonitorFirewallEventsAsync(_promptMonitoringCancellation.Token);
         _ = ConsumeFirewallPromptsAsync(_promptMonitoringCancellation.Token);
+    }
+
+    private void ShellRoot_Loaded(object sender, RoutedEventArgs args)
+    {
+        ShellRoot.Loaded -= ShellRoot_Loaded;
+        // Reapply once the first show has established the monitor's DPI.
+        CentreOnScreen();
+    }
+
+    private void CentreOnScreen()
+    {
+        var display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
+            AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest);
+        AppWindow.MoveAndResize(WindowPlacement.Centre(display.WorkArea,
+            new global::Windows.Graphics.SizeInt32(App.PreviewOptions.Width ?? 1536, App.PreviewOptions.Height ?? 1024)));
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
@@ -111,7 +125,12 @@ public sealed partial class MainWindow
         var background = _uiSettings.GetColorValue(UIColorType.Background);
         ShellRoot.RequestedTheme = new AccessibilitySettings().HighContrast
             ? ElementTheme.Default
-            : background.R + background.G + background.B >= 384 ? ElementTheme.Light : ElementTheme.Dark;
+            : App.PreviewOptions.Theme switch
+            {
+                PreviewTheme.Light => ElementTheme.Light,
+                PreviewTheme.Dark => ElementTheme.Dark,
+                _ => background.R + background.G + background.B >= 384 ? ElementTheme.Light : ElementTheme.Dark
+            };
         UpdateTitleBarTheme();
     }
 
@@ -668,7 +687,8 @@ public sealed partial class MainWindow
 
     private async Task FadeContentAsync(double opacity, TimeSpan duration)
     {
-        if (!_isWindowVisible || !_uiSettings.AnimationsEnabled || _isTerminating)
+        if (!_isWindowVisible || !App.PreviewOptions.AnimationsAllowed(_uiSettings.AnimationsEnabled,
+                new AccessibilitySettings().HighContrast) || _isTerminating)
         {
             ContentFrame.Opacity = opacity;
             return;

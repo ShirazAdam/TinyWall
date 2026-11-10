@@ -10,11 +10,11 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications and their shipped libraries use version **4.5.4**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.4`) when the changes are pushed to `master` and its builds pass.
+Both applications and their shipped libraries use version **4.5.5**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.5`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
 
-*The running application, not a design mock-up. This screenshot was taken without the TinyWall service installed: protection status and classified Internet/local traffic are unavailable, while live adapter totals and established TCP connection counts remain visible. “Blocked today” is unavailable because complete daily blocked-connection history is not provided.*
+*The running application, not a design mock-up. This screenshot was taken without the TinyWall service installed: protection status, blocked-event counts and classified Internet/local traffic are unavailable, while live adapter totals and established TCP connection counts remain visible.*
 
 ## What's new in Modern TinyWall
 
@@ -23,6 +23,7 @@ Both applications and their shipped libraries use version **4.5.4**. The release
 - **Six selectable traffic series:** Internet, local and total upload/download, with smooth filled curves, automatic scaling and an inline legend. Selections are saved immediately and survive restarts.
 - **Subtle motion:** animated navigation, page fades and protection-tile hover effects, respecting Windows animation settings. Dashboard sampling pauses while hidden or minimised.
 - **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
+- **Persistent blocked-event counts:** the matching service records observed WFP drop events by local calendar day. The Overview tooltip explains collection coverage; these are not counts of unique connections.
 
 The TinyWall service is still required for firewall control and classified traffic tracking. Without it, the dashboard clearly reports unavailable service data and labels total rates as adapter traffic.
 
@@ -38,9 +39,9 @@ Modern TinyWall uses WinUI 3 dialogue boxes. The legacy WinForms application use
 
 Modern TinyWall uses WinUI's animated sidebar selection indicator and fades between views. Navigation animations follow the Windows animation setting and do not run while the window is hidden or minimised.
 
-The refreshed shell and Overview follow the design reference with a shield wordmark, a seamless title bar, coordinated navy surfaces in Windows dark mode and pale blue/white surfaces in light mode, switching with the system theme. Contrast themes use system colours. The compact dashboard has three summary cards, a filled traffic chart with an inline two-row legend, and five outlined protection tiles. Verified service state determines the protection badge and selected tile; unavailable service state never appears as active protection. Active connections counts established IPv4/IPv6 TCP connections. The **Blocked today** card explicitly shows **Unavailable**, because the service does not provide complete daily blocked-connection history. Summary cards lead to protection modes or Connections. Traffic status details are available from the chart's information button; the subtitle identifies adapter-only totals when classified tracking is unavailable.
+The refreshed shell and Overview follow the design reference with a shield wordmark, a seamless title bar, coordinated navy surfaces in Windows dark mode and pale blue/white surfaces in light mode, switching with the system theme. Contrast themes use system colours. The compact dashboard has three summary cards, a filled traffic chart with an inline two-row legend, and five outlined protection tiles. Verified service state determines the protection badge and selected tile; unavailable service state never appears as active protection. Active connections counts established IPv4/IPv6 TCP connections. **Blocked today** shows observed WFP drop events from the matching service, or **Unavailable** when its history cannot be read. Summary cards lead to protection modes or Connections. Traffic status details are available from the chart's information button; the subtitle identifies adapter-only totals when classified tracking is unavailable.
 
-The window initially fits the reference proportions within the current monitor's work area. Shorter or narrower windows use a shorter chart, reflowed cards/legend and scrolling rather than clipping controls. Protection tiles have subtle hover lift, disabled when Windows animations are off or a contrast theme is active.
+The window opens centred within the current monitor's work area, fitting the reference proportions without extending behind the taskbar or beyond the screen. Placement respects secondary-monitor offsets and is reapplied after the first show establishes the monitor's DPI. Shorter or narrower windows use a shorter chart, reflowed cards/legend and scrolling rather than clipping controls. Protection tiles have subtle hover lift, disabled when Windows animations are off or a contrast theme is active.
 
 The Connections view keeps headers and results aligned, with horizontal scrolling on narrower windows. Press Enter/Return in the search box or select **Filter/Refresh** to reload results using the search text and selected connection types.
 
@@ -122,7 +123,7 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To build an installer
 
-The current Inno Setup packaging workflow publishes the `TinyWall` application for x86, x64, and ARM64, then builds an architecture-specific installer. Follow the commands in [`installer/README.md`](installer/README.md). The older `TinyWallSetup` Visual Studio project remains in the solution but is not the primary installer path.
+The current packaging workflow stages matching `TinyWall` service/legacy and `ModernTinyWall` client outputs together, checks dependency collisions and versions, and can compile an architecture-specific Inno Setup installer when the compiler is already available. Packaging never installs or starts the service. Follow the commands and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md). The older `TinyWallSetup` Visual Studio project remains in the solution but is not the primary installer path.
 
 ### Main projects
 
@@ -144,14 +145,48 @@ Run the Modern TinyWall exception-store and data-usage tests from the repository
 dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj
 ```
 
-The `LiveETW` data-usage smoke test requires an elevated Windows test process; otherwise it is skipped. It records IPv4/IPv6 loopback traffic in a temporary database without modifying the installed service. Release builds store usage in ProgramData; Debug builds follow TinyWall's existing application-directory data location.
+For strictly offline checks that never start an ETW session, explicitly exclude the live test even in an elevated shell:
+
+```powershell
+dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --filter "TestCategory!=LiveETW"
+```
+
+The `LiveETW` data-usage smoke test requires an elevated Windows test process; otherwise it is skipped. Run that test only in the disposable VM. Release builds store usage in ProgramData; Debug builds follow TinyWall's existing application-directory data location.
+
+### Blocked-event history
+
+The matching service stores only daily counts in `%ProgramData%\TinyWall\blocked-traffic.db`, without executable paths, addresses or packet contents. It counts WFP classify-drop notifications once at ingestion, independently of the circular Connections log and repeated UI reads. Retries and repeated drops can produce multiple events for one application connection. Other WFP event types are not counted, and notification delivery is not guaranteed to capture every blocked attempt.
+
+History begins when collection starts, not at midnight or retroactively. Service downtime and undelivered notifications are not recovered. Pending counts are committed every five seconds, on reads and on normal shutdown; forced termination can lose the last uncommitted batch and leaves a persistent interruption warning. The Overview tooltip gives the original tracking start and these coverage limitations. A missing, older or failing service never appears as a valid zero.
+
+### Application-only UI previews
+
+Launch the built modern client with `--preview-theme=light` or `--preview-theme=dark`, optionally adding `--preview-reduced-motion` and `--preview-size=1024x768`. Overrides apply only to that process and are not saved or applied to Windows. The size is in physical pixels, limited to the monitor's work area; it does not simulate DPI scaling. Reduced motion disables application-added fades, hover lift and animated scrolling; native controls still follow Windows settings. A real Windows contrast theme takes precedence.
+
+Preview argument handling, motion policy, blocked-history persistence and display validity, traffic fallback/recovery and preferences have offline regression coverage. Actual rendered layout, Windows contrast themes, DPI scaling, live ETW and service/firewall behaviour still require the VM checks; builds and synthetic tests are not a visual or end-to-end pass.
+
+### Known-application catalogue
+
+The runtime catalogue uses SQLite at `%ProgramData%\TinyWall\profiles.db`. Applications, flags and ordered components are stored separately; component definitions retain the existing polymorphic JSON subject/policy encoding inside SQLite so that identity restrictions and firewall policies are preserved. Both clients read the same catalogue without needing write access. Settings and exception configuration remain in their existing JSON files.
+
+On the next service start, an existing `profiles.json` is imported once if `profiles.db` is absent. The original JSON is left untouched as a backup. A clean installation instead uses the validated `catalogue\profiles.db` seed shipped beside the executables. An existing SQLite catalogue is authoritative; corrupt or unsupported databases are reported rather than silently replaced from old JSON. Debug builds use the application directory instead of ProgramData.
+
+Catalogue replacements are validated and written through an atomic file replacement. Downloaded catalogue updates may contain legacy JSON or the new SQLite format; their source hash is retained to avoid repeatedly downloading a JSON update merely because its stored format changed. Human-maintained definitions under `TinyWall\Database` remain JSON source files, not runtime storage.
+
+For repository-only catalogue compilation, the legacy executable has an early command-line entry point which returns before UI, service, settings and Windows Error Reporting initialisation:
+
+```powershell
+& .\TinyWall.exe /buildcatalogue .\profiles.json .\catalogue\profiles.db
+```
+
+Only the explicit output path is written. Exit code zero indicates success; invalid input fails without replacing a valid output catalogue. The packaging script uses this entry point automatically.
 
 ### To update/build build the database of known applications
 
 1. Adjust the individual JSON files in the `TinyWall\Database` folder.
 1. Start the application with the `/develtool` flag.
-1. Use the `Database creator` tab to create one combined database file in JSON format. The output file will be called `profiles.json`.
-1. To use the new database in debug builds, copy the output file to the `TinyWall\bin\Debug` folder.
+1. Use the `Database creator` tab to create the combined SQLite catalogue, `profiles.db`.
+1. To use the catalogue in Debug builds, copy it beside the relevant application's executable. The individual authoring definitions remain JSON.
 1. Done.
 
 ## Contributing

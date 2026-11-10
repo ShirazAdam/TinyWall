@@ -105,7 +105,7 @@
                 </Button>
                 <Button Grid.Column="2" Style="{StaticResource DashboardSummaryButtonStyle}" Click="ConnectionsSummary_Click"
                         AutomationProperties.Name="Review connection activity">
-                    <Grid ColumnSpacing="14" ToolTipService.ToolTip="A complete daily blocked-connection history is not available. No count is estimated.">
+                    <Grid ColumnSpacing="14" ToolTipService.ToolTip="{x:Bind ViewModel.BlockedDetail, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="34" />
                             <ColumnDefinition Width="*" />
@@ -114,7 +114,7 @@
                         <FontIcon Glyph="&#xE730;" FontSize="32" Foreground="{ThemeResource LocalUploadBrush}" />
                         <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                             <TextBlock Text="Blocked today" FontSize="12" Foreground="{ThemeResource ModernMutedBrush}" />
-                            <TextBlock Text="Unavailable" FontSize="19" />
+                            <TextBlock Text="{x:Bind ViewModel.BlockedToday, Mode=OneWay}" FontSize="19" />
                         </StackPanel>
                         <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="10" Foreground="{ThemeResource ModernMutedBrush}" />
                     </Grid>

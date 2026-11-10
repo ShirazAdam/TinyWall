@@ -95,6 +95,9 @@ namespace ModernTinyWall.TinyWall
         [STAThread]
         static int Main(string[] args)
         {
+            if (DatabaseClasses.CatalogueCommand.TryExecute(args) is { } catalogueResult)
+                return catalogueResult;
+
             HierarchicalStopwatch.Enable = File.Exists(Path.Combine(Utils.AppDataPath, "enable-timings"));
             HierarchicalStopwatch.LogFileBase = Path.Combine(Utils.AppDataPath, @"logs\timings");
 

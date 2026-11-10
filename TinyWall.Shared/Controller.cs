@@ -42,6 +42,15 @@ namespace ModernTinyWall.TinyWall
             return Endpoint.QueueMessage(TwMessagePutSettings.CreateRequest(clientChangeset, serverConfig)).Response;
         }
 
+        public BlockedTrafficSnapshot ReadBlockedTraffic()
+        {
+            var response = Endpoint.QueueMessage(new TwMessageBlockedTraffic(null)).Response;
+            return response is TwMessageBlockedTraffic { Snapshot: not null } message
+                ? message.Snapshot
+                : new(DateOnly.FromDateTime(DateTime.Now), 0, null,
+                    $"Blocked traffic is unavailable (service response: {response.Type}). Install and run the matching service.", null);
+        }
+
         public TwRequest BeginReadFwLog()
         {
             return Endpoint.QueueMessage(TwMessageReadFwLog.CreateRequest());

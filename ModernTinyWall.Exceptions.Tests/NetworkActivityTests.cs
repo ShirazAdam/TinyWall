@@ -46,4 +46,42 @@ public sealed class NetworkActivityTests
         Assert.AreEqual(1000L, sample.TotalReceivedBytesPerSecond);
         Assert.AreEqual(2000L, sample.TotalSentBytesPerSecond);
     }
+
+    [TestMethod]
+    public void FallbackAndRecoveryAlwaysTakeFreshBaselines()
+    {
+        var baseline = new NetworkActivityBaseline();
+        var time = System.Diagnostics.Stopwatch.Frequency;
+        var totals = new NetworkTotals(100, 200, 300, 400, DateTimeOffset.UtcNow);
+        Assert.IsNull(baseline.RecordClassified(totals, time));
+        Assert.IsNotNull(baseline.RecordClassified(totals with { ReceivedBytes = 200 }, 2 * time));
+        Assert.IsNull(baseline.RecordAdapter(9000, 10000, 3 * time));
+        var fallback = baseline.RecordAdapter(10000, 12000, 4 * time);
+        Assert.IsNotNull(fallback);
+        Assert.IsFalse(fallback.IsClassified);
+        Assert.AreEqual(1000L, fallback.TotalReceivedBytesPerSecond);
+        Assert.IsNull(baseline.RecordClassified(totals with { ReceivedBytes = 5000 }, 5 * time));
+        var recovered = baseline.RecordClassified(totals with { ReceivedBytes = 6000 }, 6 * time);
+        Assert.IsNotNull(recovered);
+        Assert.IsTrue(recovered.IsClassified);
+        Assert.AreEqual(1000L, recovered.ReceivedBytesPerSecond);
+    }
+
+    [TestMethod]
+    public void RestartsCounterResetsAndResumeNeverProduceSpikes()
+    {
+        var baseline = new NetworkActivityBaseline();
+        var time = System.Diagnostics.Stopwatch.Frequency;
+        var totals = new NetworkTotals(1000, 2000, 3000, 4000, DateTimeOffset.UtcNow);
+        baseline.RecordClassified(totals, time);
+        Assert.IsNull(baseline.RecordClassified(totals with { ReceivedBytes = 1 }, 2 * time));
+        Assert.IsNull(baseline.RecordClassified(totals with { TrackingStarted = DateTimeOffset.UtcNow.AddMinutes(1) }, 3 * time));
+        baseline.Reset();
+        Assert.IsNull(baseline.RecordClassified(totals, 4 * time));
+        baseline.RecordAdapter(1000, 2000, 5 * time);
+        Assert.IsNull(baseline.RecordAdapter(100, 200, 6 * time));
+        Assert.IsNull(baseline.RecordAdapter(100, 200, 6 * time));
+        baseline.Reset();
+        Assert.IsNull(baseline.RecordAdapter(2000, 3000, 7 * time));
+    }
 }

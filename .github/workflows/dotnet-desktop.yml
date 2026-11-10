@@ -31,6 +31,10 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    - name: Validate installer packaging checks
+      shell: pwsh
+      run: .\installer\build-package.ps1 -SelfTest
+
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v2
 
@@ -41,7 +45,7 @@ jobs:
       run: msbuild TinyWall\TinyWall.csproj /restore /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU"
 
     - name: Test
-      run: dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --configuration ${{ matrix.configuration }}
+      run: dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --configuration ${{ matrix.configuration }} --filter 'TestCategory!=LiveETW'
 
   release:
     needs: build
@@ -60,6 +64,9 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
 
     - name: Read and validate release version
       id: version
@@ -96,28 +103,22 @@ jobs:
 
         Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
 
-    - name: Publish desktop binaries
+    - name: Package both desktop applications
+      id: package
       shell: pwsh
       run: |
-        $version = "${{ steps.version.outputs.version }}"
-        New-Item -ItemType Directory -Force artifacts\release | Out-Null
-        foreach ($runtime in @("win-x86", "win-x64", "win-arm64")) {
-          $publishDirectory = "artifacts\publish\ModernTinyWall\$runtime"
-          dotnet publish ModernTinyWall\ModernTinyWall.csproj `
-            --configuration Release `
-            --runtime $runtime `
-            --self-contained true `
-            -p:WindowsAppSDKSelfContained=true `
-            --output $publishDirectory
-          if ($LASTEXITCODE -ne 0) {
-            throw "Publishing Modern TinyWall for $runtime failed."
-          }
-
-          Compress-Archive `
-            -Path "$publishDirectory\*" `
-            -DestinationPath "artifacts\release\ModernTinyWall-$version-$runtime.zip" `
-            -CompressionLevel Optimal
+        .\installer\build-package.ps1 -Architecture All
+        $assets = @(
+          Get-ChildItem artifacts\release\*.zip -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\release\*.zip.sha256 -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\installer\*\*.exe -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+        )
+        if (-not $assets) {
+          throw "Packaging produced no release assets."
         }
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "files<<ASSETS"
+        $assets | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "ASSETS"
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v2
@@ -127,4 +128,4 @@ jobs:
         name: TinyWall ${{ steps.version.outputs.version }}
         generate_release_notes: true
         fail_on_unmatched_files: true
-        files: artifacts/release/*.zip
+        files: ${{ steps.package.outputs.files }}
