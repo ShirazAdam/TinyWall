@@ -31,7 +31,7 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Validate installer packaging checks
+    - name: Validate MSI project and application packaging checks
       shell: pwsh
       run: .\installer\build-package.ps1 -SelfTest
 
@@ -103,7 +103,7 @@ jobs:
 
         Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
 
-    - name: Package both desktop applications
+    - name: Publish application archives (not MSI installers)
       id: package
       shell: pwsh
       run: |
@@ -111,7 +111,6 @@ jobs:
         $assets = @(
           Get-ChildItem artifacts\release\*.zip -File | ForEach-Object { $_.FullName }
           Get-ChildItem artifacts\release\*.zip.sha256 -File | ForEach-Object { $_.FullName }
-          Get-ChildItem artifacts\installer\*\*.exe -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
         )
         if (-not $assets) {
           throw "Packaging produced no release assets."

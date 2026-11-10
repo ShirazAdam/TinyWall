@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications and their shipped libraries use version **4.5.5**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.5`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.6**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.6`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
 
@@ -112,8 +112,7 @@ You're welcome to hack and slash at it. Enjoy!
 
 - [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com/vs/)
 - [.NET 10](https://dotnet.microsoft.com/download/dotnet/10.0)
-- The [Visual Studio Installer Projects extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects) is needed only to build the legacy `TinyWallSetup` project.
-- [Inno Setup 6 or later](https://jrsoftware.org/isinfo.php) is needed to build installers using the current packaging scripts.
+- The [Visual Studio Installer Projects extension](https://marketplace.visualstudio.com/items?itemName=VisualStudioClient.MicrosoftVisualStudio2022InstallerProjects) is required to build the `TinyWallSetup` MSI project, the sole installer project.
 
 ### To build the application
 
@@ -123,7 +122,7 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To build an installer
 
-The current packaging workflow stages matching `TinyWall` service/legacy and `ModernTinyWall` client outputs together, checks dependency collisions and versions, and can compile an architecture-specific Inno Setup installer when the compiler is already available. Packaging never installs or starts the service. Follow the commands and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md). The older `TinyWallSetup` Visual Studio project remains in the solution but is not the primary installer path.
+Build `TinyWallSetup\TinyWallSetup.vdproj` from `TinyWall.slnx` using Visual Studio and the Installer Projects extension. This is the only supported installer route and produces an MSI. The separate `installer\build-package.ps1` script publishes matching application files, checks dependency collisions and versions, and creates ZIP staging archives; it does not compile an installer or install/start the service. Archive checks do not validate the MSI payload, prerequisites or service actions. Follow the build instructions and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md).
 
 ### Main projects
 

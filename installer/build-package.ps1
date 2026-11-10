@@ -264,26 +264,35 @@ function Get-MSBuildPath {
     throw 'Visual Studio MSBuild.exe is required to resolve TinyWall COM references. Install no tools as part of this script.'
 }
 
-function Find-ISCCPath {
-    $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
-    if ($command) {
-        return $command.Source
+function Assert-InstallerProject([string] $Version) {
+    [xml] $solution = Get-Content -LiteralPath (Join-Path $repositoryRoot 'TinyWall.slnx') -Raw
+    $installers = @($solution.Solution.Project | Where-Object { $_.Type -eq 'Installer' })
+    if ($installers.Count -ne 1 -or
+        $installers[0].Path.Replace('/', '\') -ne 'TinyWallSetup\TinyWallSetup.vdproj') {
+        throw 'TinyWallSetup\TinyWallSetup.vdproj must be the sole installer project in the solution.'
     }
-    foreach ($candidate in @(
-        (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
-        (Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe')
-    )) {
-        if ($candidate -and (Test-Path -LiteralPath $candidate)) {
-            return $candidate
-        }
+    $project = Get-Content -LiteralPath (Join-Path $repositoryRoot 'TinyWallSetup\TinyWallSetup.vdproj') -Raw
+    if ($project -notmatch ('"ProductVersion"\s*=\s*"8:' + [regex]::Escape($Version) + '"')) {
+        throw "The Visual Studio installer project must use release version '$Version'."
     }
-    return $null
+    if (@(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.iss' -File -Recurse).Count -ne 0) {
+        throw 'Only the Visual Studio Installer Projects MSI route is supported.'
+    }
 }
 
 function Invoke-SelfTest {
-    if ((Get-ProjectVersion (Join-Path $repositoryRoot 'TinyWall\TinyWall.csproj')) -ne
+    $version = Get-ProjectVersion (Join-Path $repositoryRoot 'TinyWall\TinyWall.csproj')
+    if ($version -ne
         (Get-ProjectVersion (Join-Path $repositoryRoot 'ModernTinyWall\ModernTinyWall.csproj'))) {
         throw 'TinyWall and Modern TinyWall project versions do not match.'
+    }
+    Assert-InstallerProject $version
+    try {
+        Assert-InstallerProject "$version-mismatch"
+        throw 'Self-test failed: an out-of-date MSI project was accepted.'
+    }
+    catch {
+        if ($_.Exception.Message -notlike 'The Visual Studio installer project must use release version*') { throw }
     }
 
     $testRoot = Join-Path $PSScriptRoot ('.packaging-selftest-' + [Guid]::NewGuid().ToString('N'))
@@ -293,6 +302,18 @@ function Invoke-SelfTest {
         $combined = Join-Path $testRoot 'combined'
         foreach ($path in @($legacy, $modern)) {
             New-Item -ItemType Directory -Path $path -Force | Out-Null
+        }
+        $unsupportedInstaller = Join-Path $testRoot 'unsupported.iss'
+        Set-Content -LiteralPath $unsupportedInstaller -Value '; Unsupported installer test fixture.'
+        try {
+            Assert-InstallerProject $version
+            throw 'Self-test failed: an alternative installer route was accepted.'
+        }
+        catch {
+            if ($_.Exception.Message -ne 'Only the Visual Studio Installer Projects MSI route is supported.') { throw }
+        }
+        finally {
+            Remove-Item -LiteralPath $unsupportedInstaller
         }
         foreach ($name in @('TinyWall.exe', 'TinyWall.deps.json', 'shared.dll')) {
             Set-Content -LiteralPath (Join-Path $legacy $name) -Value 'same'
@@ -359,7 +380,7 @@ function Invoke-SelfTest {
             Remove-Item -LiteralPath $testRoot -Recurse -Force
         }
     }
-    Write-Output 'Packaging self-test passed: versions, input completeness, shared-file collisions, and archive hashes.'
+    Write-Output 'Packaging self-test passed: MSI project/version, input completeness, shared-file collisions, and archive hashes.'
 }
 
 if ($SelfTest) {
@@ -374,18 +395,17 @@ $modernVersion = Get-ProjectVersion $modernProject
 if ($version -ne $modernVersion) {
     throw "TinyWall project version '$version' does not match Modern TinyWall project version '$modernVersion'."
 }
+Assert-InstallerProject $version
 
 $architectures = if ($Architecture -eq 'All') { @('win-x86', 'win-x64', 'win-arm64') } else { @($Architecture) }
 $artifactRoot = Join-Path $repositoryRoot 'artifacts'
 $publishRoot = Join-Path $artifactRoot 'publish'
 $releaseRoot = Join-Path $artifactRoot 'release'
-$installerRoot = Join-Path $artifactRoot 'installer'
 $catalogueSource = Join-Path $repositoryRoot 'TinyWallSetup\Sources\CommonAppData\TinyWall\profiles.json'
 $catalogueOutput = Join-Path $artifactRoot 'catalogue\profiles.db'
 $catalogueReady = $false
 $catalogueApplicationCount = 0
 $msbuild = $null
-$iscc = Find-ISCCPath
 
 if (-not $ValidateOnly -and -not $VerifyArchive) {
     $msbuild = Get-MSBuildPath
@@ -504,19 +524,9 @@ foreach ($rid in $architectures) {
     "$(Get-FileDigest $archive)  $([IO.Path]::GetFileName($archive))" |
         Set-Content -LiteralPath "$archive.sha256" -Encoding ascii
 
-    if ($iscc) {
-        New-Item -ItemType Directory -Path (Join-Path $installerRoot $rid) -Force | Out-Null
-        & $iscc (Join-Path $PSScriptRoot 'TinyWall.iss') "/DAppVersion=$version" "/DSourceArch=$rid" "/DOutputArch=$rid"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Building the $rid installer with Inno Setup failed."
-        }
-    }
-    else {
-        Write-Warning 'ISCC.exe was not found on PATH or in the usual Inno Setup 6 locations; the dual-app archive was created, but no installer was built.'
-    }
     Write-Output "Packaged ${rid}: $archive"
 }
 
-if (-not $ValidateOnly -and -not $VerifyArchive -and -not $iscc) {
-    Write-Output 'Installer compilation skipped because Inno Setup is unavailable.'
+if (-not $ValidateOnly -and -not $VerifyArchive) {
+    Write-Output 'Archives are staging outputs, not installers. Build TinyWallSetup\TinyWallSetup.vdproj in Visual Studio to create the MSI.'
 }

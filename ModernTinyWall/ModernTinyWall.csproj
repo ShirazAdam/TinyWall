@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<OutputType>WinExe</OutputType>
-	<Version>4.5.5</Version>
+	<Version>4.5.6</Version>
 	<Product>Modern TinyWall</Product>
 	<AssemblyTitle>Modern TinyWall</AssemblyTitle>
 	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
