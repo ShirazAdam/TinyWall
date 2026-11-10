@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications and their shipped libraries use version **4.5.3**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.3`) when the changes are pushed to `master` and its builds pass.
+Both applications and their shipped libraries use version **4.5.4**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.4`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
 
@@ -34,7 +34,7 @@ This repository now contains both the legacy TinyWall application and a new **Mo
 
 The applications provide tray-based control for managing firewall modes, application exceptions, service and process rules, Microsoft Store / packaged app rules, connection activity, blocklists, and firewall log entries. They help users allow trusted applications, block unwanted network access, and review network activity without needing to edit Windows Firewall rules manually.
 
-Modern TinyWall uses WinUI 3 dialogs. The legacy WinForms application uses the built-in .NET Windows Task Dialog API, replacing the former third-party wrapper while retaining its prompts, command-link choices, expandable details, progress indicators, and cancellation options.
+Modern TinyWall uses WinUI 3 dialogue boxes. The legacy WinForms application uses the built-in .NET Windows Task Dialog API, replacing the former third-party wrapper while retaining its prompts, command-link choices, expandable details, progress indicators, and cancellation options.
 
 Modern TinyWall uses WinUI's animated sidebar selection indicator and fades between views. Navigation animations follow the Windows animation setting and do not run while the window is hidden or minimised.
 
@@ -46,22 +46,22 @@ The Connections view keeps headers and results aligned, with horizontal scrollin
 
 The Overview traffic chart uses the same TCP/UDP tracking and Internet/local classification as Data usage. It shows Internet download (blue) and upload (green), local download (yellow) and upload (red), and combined download (pink) and upload (grey). Each smooth curve has a translucent fill down to zero; classified totals are Internet plus local traffic, not additional traffic. Tick the series labels to show any combination, including all six or none. Selections are saved immediately and restored after restarting the application. Rates are calculated from elapsed time between snapshots, with an automatic bandwidth scale based on visible series and five-minute history. Sampling pauses while hidden or minimised. If the service is unavailable, the chart reports the error, marks classified traffic unavailable, and shows adapter counters for total traffic instead; adapter totals can include traffic excluded from classified TCP/UDP tracking.
 
-For Release builds, install `ModernTinyWall.exe` in the same directory as the matching `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this colocated modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
+For Release builds, install `ModernTinyWall.exe` in the same directory as the matching `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this co-located modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
 
 Modern TinyWall's outbound connection prompt displays the application's name, icon, executable path, protocol, and destination. Users can allow the destination for five minutes, always allow the application, deny the attempt, or always block the application. The initial connection attempt is blocked before the prompt appears, so the application may need to retry after it is allowed. Existing approved rules continue to work without prompting.
 
 ### Experimental pending-connection driver
 
-`TinyWall.Driver` adds an opt-in Windows Filtering Platform callout for holding unapproved outbound TCP and UDP connections while Modern TinyWall asks for a decision. TCP authorization is pended; UDP additionally clones the initial datagram and reinjects it after approval. IPv4 and IPv6 are supported by the source implementation. Existing permits, explicit blocks, and blocklist rules take precedence. This path applies only in Normal mode and is not enabled during display-off blocking.
+`TinyWall.Driver` adds an opt-in Windows Filtering Platform callout for holding unapproved outbound TCP and UDP connections while Modern TinyWall asks for a decision. TCP authorisation is pended; UDP additionally clones the initial datagram and reinjects it after approval. IPv4 and IPv6 are supported by the source implementation. Existing permits, explicit blocks, and blocklist rules take precedence. This path applies only in Normal mode and is not enabled during display-off blocking.
 
 **This path is experimental and has not been runtime-tested.** It is disabled by default; Modern TinyWall exposes an experimental toggle under Machine settings. The regular installer does not install a driver, and installing the WDK alone does not enable this feature. Only enable it on an isolated test VM after separately installing a suitably signed driver and arranging debugging and recovery. If the driver is unavailable when TinyWall starts, the service logs the failure, disables the opt-in setting and uses the ordinary firewall rules instead. Production driver signing and distribution are not included.
 
-The driver exposes a system/administrator-only device interface, bounds the queue to 128 requests, and denies unanswered requests after two minutes. Modern TinyWall continues polling while a dialog is open. Loss of the polling client denies pending requests after a ten-second heartbeat grace period. Full queues, unsupported packet forms (such as raw sockets), or failures remain blocked rather than receiving a temporary blanket permit.
+The driver exposes a system/administrator-only device interface, bounds the queue to 128 requests, and denies unanswered requests after two minutes. Modern TinyWall continues polling while a dialogue box is open. Loss of the polling client denies pending requests after a ten-second heartbeat grace period. Full queues, unsupported packet forms (such as raw sockets), or failures remain blocked rather than receiving a temporary blanket permit.
 
 Applications can still cancel or time out their own requests while a prompt is open. Approving a request cannot revive a socket that the application has already closed.
 Allow decisions are submitted to the driver before the corresponding rule is saved, so that the rule does not bypass the pending callout. If the decision cannot be confirmed, no allow rule is saved; the connection may nevertheless already have been processed. If saving the rule subsequently fails, the connection may already have been authorised and the error is shown. Other policy changes, reauthorisation and UDP reinjection remain unvalidated; do not rely on this experimental feature for production protection.
 
-Build the unsigned driver artifact from a Visual Studio developer command prompt with the C++ tools, matching Windows SDK, and WDK installed:
+Build the unsigned driver artefact from a Visual Studio developer command prompt with the C++ tools, matching Windows SDK, and WDK installed:
 
 ```powershell
 msbuild TinyWall.Driver\TinyWall.Driver.vcxproj /p:Configuration=Debug /p:Platform=x64
@@ -69,7 +69,7 @@ msbuild TinyWall.Driver\TinyWall.Driver.vcxproj /p:Configuration=Debug /p:Platfo
 
 The project defaults to SDK/WDK `10.0.28000.0`; override `WindowsTargetPlatformVersion` when using another matching SDK/WDK. `Release` and `ARM64` configurations are also available. Compilation stages an **unsigned, unvalidated** INF, driver and VM-only management script under `TinyWall.Driver\bin\<platform>\<configuration>\package`. It does not install or load the driver.
 
-Before VM installation, generate the catalog for the target Windows version and architecture with the WDK's Inf2Cat, and sign the driver and catalog with an appropriate test certificate. Configure test signing and certificate trust **only in the disposable VM**, following Microsoft's [test-signing guidance](https://learn.microsoft.com/windows-hardware/drivers/install/test-signing-driver-packages). These steps require separately supplied signing credentials; the repository contains none. Production deployment requires the applicable Microsoft kernel-driver signing process.
+Before VM installation, generate the catalogue for the target Windows version and architecture with the WDK's Inf2Cat, and sign the driver and catalogue with an appropriate test certificate. Configure test signing and certificate trust **only in the disposable VM**, following Microsoft's [test-signing guidance](https://learn.microsoft.com/windows-hardware/drivers/install/test-signing-driver-packages). These steps require separately supplied signing credentials; the repository contains none. Production deployment requires the applicable Microsoft kernel-driver signing process.
 
 On the isolated Hyper-V VM, use an elevated 64-bit PowerShell session in the signed package directory and run `.\Manage-TestDriver.ps1 -Action Install -IsolatedHyperVTestVm`. Restart the VM, confirm the driver is running, then enable the experimental setting. The script checks for Hyper-V and requests confirmation before making changes. To remove it, first disable the setting, stop the TinyWall service, then run `.\Manage-TestDriver.ps1 -Action Uninstall -IsolatedHyperVTestVm` with the same package and restart if requested. The installer and removal workflow themselves remain unvalidated.
 
@@ -130,7 +130,7 @@ The current Inno Setup packaging workflow publishes the `TinyWall` application f
 - `TinyWall` - original / legacy TinyWall application.
 - `TinyWall.Core` - shared core functionality.
 - `TinyWall.Shared` - shared source files compiled by both clients.
-- `TinyWall.Driver` - separate experimental WDK project for pending outbound authorization.
+- `TinyWall.Driver` - separate experimental WDK project for pending outbound authorisation.
 - `ModernTinyWall.Windows` - Windows platform helpers and native interop wrappers.
 - `ModernTinyWall.Windows.WFP` - Windows Filtering Platform integration.
 - `ModernTinyWall.Windows.Services` - Windows service-control helpers.
