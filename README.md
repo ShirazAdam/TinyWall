@@ -10,9 +10,21 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications and their shipped libraries use version **4.5.2**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.2`) when the changes are pushed to `master` and its builds pass.
+Both applications and their shipped libraries use version **4.5.3**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.3`) when the changes are pushed to `master` and its builds pass.
 
-<img width="1412" height="816" alt="image" src="https://github.com/user-attachments/assets/e373c109-fa36-40af-8acf-907d57264af5" />
+![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
+
+*The running application, not a design mock-up. This screenshot was taken without the TinyWall service installed: protection status and classified Internet/local traffic are unavailable, while live adapter totals and established TCP connection counts remain visible. “Blocked today” is unavailable because complete daily blocked-connection history is not provided.*
+
+## What's new in Modern TinyWall
+
+- **A refreshed Windows interface:** shield branding, an integrated title bar, coordinated cards and outlined protection-mode tiles. Colours follow Windows light/dark mode, with system colours for contrast themes.
+- **A compact Overview:** protection status, established TCP connection counts, a five-minute traffic chart and all five protection modes. The selected mode reflects verified service state, not an assumed default.
+- **Six selectable traffic series:** Internet, local and total upload/download, with smooth filled curves, automatic scaling and an inline legend. Selections are saved immediately and survive restarts.
+- **Subtle motion:** animated navigation, page fades and protection-tile hover effects, respecting Windows animation settings. Dashboard sampling pauses while hidden or minimised.
+- **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
+
+The TinyWall service is still required for firewall control and classified traffic tracking. Without it, the dashboard clearly reports unavailable service data and labels total rates as adapter traffic.
 
 TinyWall is a free, lightweight and non-intrusive firewall for Windows. It is designed to harden the built-in Windows Firewall while keeping day-to-day use simple: no drivers required by default and no unnecessary background clutter. Modern TinyWall shows a decision prompt when it detects a blocked outbound connection from an application that has not already been approved.
 
