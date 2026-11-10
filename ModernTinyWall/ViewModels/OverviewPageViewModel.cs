@@ -9,6 +9,9 @@ using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 namespace ModernTinyWall.ViewModels;
 
 public sealed class OverviewPageViewModel : INotifyPropertyChanged
@@ -27,11 +30,129 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     private string _localDownloadRate = "0 B/s";
     private string _localUploadRate = "0 B/s";
     private string _networkActivityStatus = "Waiting for traffic tracking...";
-    private string _statusMessage = "Choose a protection mode to apply.";
+    private string _statusMessage = string.Empty;
     private string _downloadRate = "0 B/s";
     private string _uploadRate = "0 B/s";
     private readonly AsyncRelayCommand<FirewallModeOption> _applyModeCommand;
     private bool _isApplyingMode;
+    private bool _isRefreshingSummary;
+    public string CurrentModeName { get; private set; } = "Checking...";
+    public string ProtectionStatus { get; private set; } = "Checking protection";
+    public string ProtectionDetail { get; private set; } = "Reading the TinyWall service state.";
+    public string ActiveConnections { get; private set; } = "Checking...";
+    public string ConnectionsDetail { get; private set; } = "Established IPv4 and IPv6 TCP connections.";
+    public SolidColorBrush ProtectionBrush { get; private set; } = new(Colors.Gray);
+
+    public async Task RefreshSummaryAsync()
+    {
+        if (_isRefreshingSummary)
+            return;
+        _isRefreshingSummary = true;
+        var generation = _samplingGeneration;
+        try
+        {
+            var result = await Task.Run(() =>
+            {
+                var changeset = Guid.Empty;
+                var response = _controller.GetServerConfig(out _, out var state, ref changeset);
+                return (response, state);
+            });
+            if (generation != _samplingGeneration)
+                return;
+            if (result.response == MessageType.GET_SETTINGS && result.state is not null)
+                SetCurrentMode(result.state.Mode);
+            else
+            {
+                SetCurrentMode(FirewallMode.Unknown);
+                ProtectionDetail = $"Could not read the TinyWall service state: {result.response}.";
+                OnPropertyChanged(nameof(ProtectionDetail));
+            }
+        }
+        catch (Exception ex)
+        {
+            if (generation != _samplingGeneration)
+                return;
+            Debug.WriteLine($"Could not refresh protection summary: {ex}");
+            SetCurrentMode(FirewallMode.Unknown);
+            ProtectionDetail = $"Could not read protection status: {ex.Message}";
+            OnPropertyChanged(nameof(ProtectionDetail));
+        }
+        finally
+        {
+            try
+            {
+                await RefreshActiveConnectionsAsync(generation);
+            }
+            finally
+            {
+                _isRefreshingSummary = false;
+            }
+        }
+    }
+
+    private async Task RefreshActiveConnectionsAsync(int generation)
+    {
+        if (generation != _samplingGeneration)
+            return;
+        try
+        {
+            var count = await Task.Run(() => IPGlobalProperties.GetIPGlobalProperties()
+                .GetActiveTcpConnections().Count(connection => connection.State == TcpState.Established));
+            if (generation != _samplingGeneration)
+                return;
+            ActiveConnections = count.ToString("N0");
+            ConnectionsDetail = "Established IPv4 and IPv6 TCP connections. UDP has no established connection state.";
+        }
+        catch (Exception ex)
+        {
+            if (generation != _samplingGeneration)
+                return;
+            Debug.WriteLine($"Could not count active connections: {ex}");
+            ActiveConnections = "Unavailable";
+            ConnectionsDetail = $"Could not count active connections: {ex.Message}";
+        }
+        OnPropertyChanged(nameof(ActiveConnections));
+        OnPropertyChanged(nameof(ConnectionsDetail));
+    }
+
+    private void SetCurrentMode(FirewallMode mode)
+    {
+        var modernMode = mode switch
+        {
+            FirewallMode.Normal => ModernFirewallMode.Normal,
+            FirewallMode.AllowOutgoing => ModernFirewallMode.AllowOutgoing,
+            FirewallMode.BlockAll => ModernFirewallMode.BlockAll,
+            FirewallMode.Disabled => ModernFirewallMode.Disabled,
+            FirewallMode.Learning => ModernFirewallMode.Learning,
+            _ => ModernFirewallMode.Unknown
+        };
+        var selected = ModeOptions.FirstOrDefault(option => option.Mode == modernMode);
+        foreach (var option in ModeOptions)
+            option.IsSelected = option == selected;
+        CurrentModeName = selected?.DisplayName ?? "Unavailable";
+        ProtectionStatus = modernMode switch
+        {
+            ModernFirewallMode.Normal => "Protection active",
+            ModernFirewallMode.BlockAll => "All traffic blocked",
+            ModernFirewallMode.AllowOutgoing => "Outgoing allowed",
+            ModernFirewallMode.Disabled => "Protection disabled",
+            ModernFirewallMode.Learning => "Learning mode",
+            _ => "Service unavailable"
+        };
+        ProtectionDetail = selected?.Description ?? "The TinyWall service is unavailable. Protection status cannot be verified.";
+        ProtectionBrush = new SolidColorBrush(modernMode switch
+        {
+            ModernFirewallMode.Normal => ColorHelper.FromArgb(255, 77, 221, 145),
+            ModernFirewallMode.AllowOutgoing => ColorHelper.FromArgb(255, 0, 190, 163),
+            ModernFirewallMode.BlockAll or ModernFirewallMode.Disabled => ColorHelper.FromArgb(255, 255, 83, 104),
+            ModernFirewallMode.Learning => ColorHelper.FromArgb(255, 255, 215, 0),
+            _ => Colors.Gray
+        });
+        OnPropertyChanged(nameof(CurrentModeName));
+        OnPropertyChanged(nameof(ProtectionStatus));
+        OnPropertyChanged(nameof(ProtectionDetail));
+        OnPropertyChanged(nameof(ProtectionBrush));
+    }
 
     public OverviewPageViewModel()
         : this(new FirewallModeService())
@@ -88,6 +209,9 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     public string TotalDownloadRate { get; private set; } = "0 B/s";
     public string TotalUploadRate { get; private set; } = "0 B/s";
     public string NetworkActivityStatus => _networkActivityStatus;
+    public string TrafficSourceLabel => _usingAdapterFallback
+        ? "Last 5 minutes - adapter totals only"
+        : "Last 5 minutes";
 
     public string StatusMessage
     {
@@ -99,8 +223,11 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
 
             _statusMessage = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(ModeStatusVisibility));
         }
     }
+    public Microsoft.UI.Xaml.Visibility ModeStatusVisibility => string.IsNullOrEmpty(StatusMessage)
+        ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
 
     public bool IsApplyingMode
     {
@@ -127,6 +254,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         {
             var result = await _firewallModeService.SetModeAsync(option.Mode);
             StatusMessage = result.Message;
+            await RefreshSummaryAsync();
         }
         finally
         {
@@ -184,6 +312,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             _previousSampleTimestamp = timestamp;
             _networkActivityStatus = snapshot.Warning ?? "Internet and local TCP/UDP traffic";
             OnPropertyChanged(nameof(NetworkActivityStatus));
+            OnPropertyChanged(nameof(TrafficSourceLabel));
         }
         catch (Exception ex)
         {
@@ -237,6 +366,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
                 _networkActivityStatus = $"Traffic unavailable: {ex.Message} Adapter counters: {adapterError.Message}";
             }
             OnPropertyChanged(nameof(NetworkActivityStatus));
+            OnPropertyChanged(nameof(TrafficSourceLabel));
         }
         finally
         {
@@ -260,6 +390,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(TotalDownloadRate));
         OnPropertyChanged(nameof(TotalUploadRate));
         OnPropertyChanged(nameof(NetworkActivityStatus));
+        OnPropertyChanged(nameof(TrafficSourceLabel));
     }
 
     private void AddNetworkActivitySample(NetworkActivitySample sample)

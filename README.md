@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications and their shipped libraries use version **4.5.1**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.1`) when the changes are pushed to `master` and its builds pass.
+Both applications and their shipped libraries use version **4.5.2**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.2`) when the changes are pushed to `master` and its builds pass.
 
 <img width="1412" height="816" alt="image" src="https://github.com/user-attachments/assets/e373c109-fa36-40af-8acf-907d57264af5" />
 
@@ -26,7 +26,9 @@ Modern TinyWall uses WinUI 3 dialogs. The legacy WinForms application uses the b
 
 Modern TinyWall uses WinUI's animated sidebar selection indicator and fades between views. Navigation animations follow the Windows animation setting and do not run while the window is hidden or minimised.
 
-The refreshed shell and Overview use coordinated navy surfaces in Windows dark mode and pale blue/white surfaces in light mode, switching with the system theme. Contrast themes use system colours. The dashboard shows live total rates, a larger filled traffic chart and responsive protection tiles with subtle hover lift; the lift is disabled when Windows animations are off or a contrast theme is active. Summary values come from traffic tracking, not illustrative protection or blocked-connection counts.
+The refreshed shell and Overview follow the design reference with a shield wordmark, a seamless title bar, coordinated navy surfaces in Windows dark mode and pale blue/white surfaces in light mode, switching with the system theme. Contrast themes use system colours. The compact dashboard has three summary cards, a filled traffic chart with an inline two-row legend, and five outlined protection tiles. Verified service state determines the protection badge and selected tile; unavailable service state never appears as active protection. Active connections counts established IPv4/IPv6 TCP connections. The **Blocked today** card explicitly shows **Unavailable**, because the service does not provide complete daily blocked-connection history. Summary cards lead to protection modes or Connections. Traffic status details are available from the chart's information button; the subtitle identifies adapter-only totals when classified tracking is unavailable.
+
+The window initially fits the reference proportions within the current monitor's work area. Shorter or narrower windows use a shorter chart, reflowed cards/legend and scrolling rather than clipping controls. Protection tiles have subtle hover lift, disabled when Windows animations are off or a contrast theme is active.
 
 The Connections view keeps headers and results aligned, with horizontal scrolling on narrower windows. Press Enter/Return in the search box or select **Filter/Refresh** to reload results using the search text and selected connection types.
 

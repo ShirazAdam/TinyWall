@@ -41,6 +41,7 @@ public sealed partial class OverviewPage
     private bool _optionsReady;
     private readonly UISettings _uiSettings = new();
     private readonly AccessibilitySettings _accessibilitySettings = new();
+    private long _lastSummaryRefresh;
 
     public OverviewPageViewModel ViewModel { get; } = new();
 
@@ -49,8 +50,45 @@ public sealed partial class OverviewPage
         InitializeComponent();
         Loaded += OverviewPage_Loaded;
         Unloaded += OverviewPage_Unloaded;
-        ActualThemeChanged += (_, _) => UpdateNetworkActivityGraph();
+        ActualThemeChanged += (_, _) => UpdateTheme();
         _networkActivityTimer.Tick += NetworkActivityTimer_Tick;
+    }
+
+    private void Dashboard_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var height = Math.Clamp(e.NewSize.Height - 590, 90, 210);
+        PlotHeight.Height = new GridLength(height);
+        BandwidthScaleUpperText.Margin = new Thickness(0, height / 4 - 7, 0, 0);
+        BandwidthScaleLowerText.Margin = new Thickness(0, 0, 0, height / 4 - 7);
+    }
+
+    private void ProtectionSummary_Click(object sender, RoutedEventArgs e)
+    {
+        ProtectionPanel.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = _uiSettings.AnimationsEnabled });
+    }
+
+    private void ConnectionsSummary_Click(object sender, RoutedEventArgs e)
+    {
+        _mainWindow?.ShowConnections();
+    }
+
+    private void UpdateTheme()
+    {
+        var theme = _accessibilitySettings.HighContrast ? "HighContrast" : ActualTheme.ToString();
+        var palette = (ResourceDictionary)Resources.ThemeDictionaries[theme];
+        foreach (var option in ViewModel.ModeOptions)
+        {
+            var brush = option.Mode switch
+            {
+                ModernFirewallMode.Normal => "NetworkDownloadBrush",
+                ModernFirewallMode.AllowOutgoing => "NetworkUploadBrush",
+                ModernFirewallMode.BlockAll => "LocalUploadBrush",
+                ModernFirewallMode.Learning => "LocalDownloadBrush",
+                _ => "TotalUploadBrush"
+            };
+            option.ModeBrush.Color = ((SolidColorBrush)palette[brush]).Color;
+        }
+        UpdateNetworkActivityGraph();
     }
 
     private void SummaryPanels_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -60,7 +98,7 @@ public sealed partial class OverviewPage
 
     private void SeriesSelectors_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        ArrangeColumns((Grid)sender, e.NewSize.Width >= 660 ? 3 : e.NewSize.Width >= 440 ? 2 : 1);
+        ArrangeColumns((Grid)sender, e.NewSize.Width >= 740 ? 3 : e.NewSize.Width >= 490 ? 2 : 1);
     }
 
     private static void ArrangeColumns(Grid panel, int columns)
@@ -111,6 +149,7 @@ public sealed partial class OverviewPage
     private async void OverviewPage_Loaded(object sender, RoutedEventArgs e)
     {
         _isPageLoaded = true;
+        UpdateTheme();
         _mainWindow = App.MainWindow as MainWindow;
         if (_mainWindow is not null)
         {
@@ -136,6 +175,7 @@ public sealed partial class OverviewPage
         {
             Debug.WriteLine($"Could not restore traffic series selection: {ex}");
             SeriesSettingsStatus.Text = $"Could not restore chart settings: {ex.Message}";
+            SeriesSettingsStatus.Visibility = Visibility.Visible;
         }
         finally
         {
@@ -174,6 +214,8 @@ public sealed partial class OverviewPage
         if (shouldMonitor)
         {
             ViewModel.ResetNetworkActivityBaseline();
+            _lastSummaryRefresh = 0;
+            _ = ViewModel.RefreshSummaryAsync();
             ViewModel.NetworkActivitySamples.CollectionChanged += NetworkActivitySamples_CollectionChanged;
             _networkActivityTimer.Start();
             UpdateNetworkActivityGraph();
@@ -202,7 +244,14 @@ public sealed partial class OverviewPage
     private async void NetworkActivityTimer_Tick(object? sender, object e)
     {
         if (_isMonitoring)
+        {
+            if (_lastSummaryRefresh == 0 || Stopwatch.GetElapsedTime(_lastSummaryRefresh).TotalSeconds >= 10)
+            {
+                _lastSummaryRefresh = Stopwatch.GetTimestamp();
+                _ = ViewModel.RefreshSummaryAsync();
+            }
             await ViewModel.UpdateNetworkActivityAsync();
+        }
     }
 
     private void NetworkActivityCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -226,11 +275,13 @@ public sealed partial class OverviewPage
         {
             _optionsService.UpdateAsync(options => options with { VisibleNetworkSeries = series }).GetAwaiter().GetResult();
             SeriesSettingsStatus.Text = string.Empty;
+            SeriesSettingsStatus.Visibility = Visibility.Collapsed;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Could not save traffic series selection: {ex}");
             SeriesSettingsStatus.Text = $"Could not save chart settings: {ex.Message}";
+            SeriesSettingsStatus.Visibility = Visibility.Visible;
         }
     }
 
@@ -260,6 +311,8 @@ public sealed partial class OverviewPage
         }
 
         BandwidthScaleTopText.Text = FormatRate(maxValue);
+        BandwidthScaleUpperText.Text = FormatRate((long)(maxValue * 0.75));
+        BandwidthScaleLowerText.Text = FormatRate(maxValue / 4);
         BandwidthScaleMiddleText.Text = FormatRate(maxValue / 2);
 
         _totalDownloadPath.Visibility = TotalDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
@@ -325,12 +378,25 @@ public sealed partial class OverviewPage
         var geometry = new PathGeometry();
         geometry.Figures.Add(figure);
         path.Data = geometry;
-        path.Fill = new SolidColorBrush(((SolidColorBrush)brush).Color) { Opacity = 0.25 };
+        var colour = ((SolidColorBrush)brush).Color;
+        var transparent = colour;
+        transparent.A = 0;
+        path.Fill = new LinearGradientBrush
+        {
+            StartPoint = new(0, 0),
+            EndPoint = new(0, 1),
+            Opacity = 0.3,
+            GradientStops =
+            {
+                new GradientStop { Color = colour, Offset = 0 },
+                new GradientStop { Color = transparent, Offset = 1 }
+            }
+        };
         if (!NetworkActivityCanvas.Children.Contains(path))
             NetworkActivityCanvas.Children.Add(path);
         if (!_outlines.TryGetValue(path, out var outlinePath))
         {
-            outlinePath = new Path { StrokeThickness = 2 };
+            outlinePath = new Path { StrokeThickness = 1.25 };
             Canvas.SetZIndex(outlinePath, 1);
             _outlines.Add(path, outlinePath);
             NetworkActivityCanvas.Children.Add(outlinePath);

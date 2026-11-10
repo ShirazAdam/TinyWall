@@ -4,56 +4,76 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Modern TinyWall">
 
-    <NavigationView
+    <Grid x:Name="ShellRoot" Background="{ThemeResource ModernShellBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="28" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid x:Name="WindowDragRegion" Background="Transparent" />
+    <NavigationView Grid.Row="1"
         x:Name="ShellNavigation"
-        Background="{ThemeResource ModernShellBrush}"
+        Background="Transparent"
         PaneDisplayMode="Left"
-        OpenPaneLength="248"
+        OpenPaneLength="232"
         CompactPaneLength="48"
+        IsPaneToggleButtonVisible="False"
         IsBackButtonVisible="Collapsed"
         IsSettingsVisible="False"
         PaneTitle=""
         SelectionChanged="ShellNavigation_SelectionChanged">
         <NavigationView.PaneHeader>
-            <Grid Margin="12,8,12,24" ColumnSpacing="12">
+            <Grid Margin="22,16,12,28" ColumnSpacing="14">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="48" />
+                    <ColumnDefinition Width="46" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Width="44" Height="48" CornerRadius="14"
-                        Background="{ThemeResource SystemControlBackgroundAccentBrush}">
-                    <FontIcon Glyph="&#xEA18;" FontSize="28"
-                              Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
-                              HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                    <TextBlock Text="Modern TinyWall" FontSize="16" FontWeight="SemiBold" />
-                    <TextBlock Text="FIREWALL CONTROL" FontSize="10" CharacterSpacing="90"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Viewbox Width="46" Height="54" AutomationProperties.Name="Modern TinyWall shield">
+                    <Canvas Width="48" Height="56">
+                        <Path Data="M24,2 Q12,8 3,9 L4,29 Q6,44 24,54 Q42,44 44,29 L45,9 Q34,8 24,2 Z"
+                              Fill="#1677C8" Stroke="#49C2FF" StrokeThickness="4" />
+                        <Path Data="M24,7 L24,49 Q38,40 39,28 L40,13 Z" Fill="#084D9C" />
+                        <Path Data="M8,14 L23,9 L23,26 L8,26 Z" Fill="#36B8F4" Opacity="0.8" />
+                    </Canvas>
+                </Viewbox>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
+                    <TextBlock Text="Modern" FontSize="19" FontWeight="SemiBold" />
+                    <TextBlock Text="TinyWall" FontSize="19" FontWeight="SemiBold" />
                 </StackPanel>
             </Grid>
         </NavigationView.PaneHeader>
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" IsSelected="True" Margin="4,3" />
-            <NavigationViewItem Content="Data usage" Icon="World" Tag="DataUsage" Margin="4,3" />
-            <NavigationViewItemSeparator />
-            <NavigationViewItem Content="Connections" Icon="ViewAll" Tag="Connections" Margin="4,3" />
-            <NavigationViewItem Content="Processes" Icon="Library" Tag="Processes" Margin="4,3" />
-            <NavigationViewItem Content="Services" Icon="Repair" Tag="Services" Margin="4,3" />
-            <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" Margin="4,3" />
-            <NavigationViewItemSeparator />
-            <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" Margin="4,3" />
-            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" Margin="4,3" />
-            <NavigationViewItem Content="Options" Tag="Options" Margin="4,3">
+            <NavigationViewItem Content="Overview" Icon="ViewAll" Tag="Overview" IsSelected="True" Margin="12,4" />
+            <NavigationViewItem Content="Data usage" Tag="DataUsage" Margin="12,4">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE9D9;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Connections" Tag="Connections" Margin="12,4">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE968;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Processes" Tag="Processes" Margin="12,4">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE737;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Services" Icon="Setting" Tag="Services" Margin="12,4" />
+            <NavigationViewItem Content="Packages" Tag="Packages" Margin="12,4">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE7B8;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Exceptions" Tag="Exceptions" Margin="12,4">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xEA18;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" Margin="12,4" />
+            <NavigationViewItem Content="Options" Tag="Options" Margin="12,4">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE9E9;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
         </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems>
-            <NavigationViewItem Content="About" Icon="Help" Tag="About" />
+            <NavigationViewItemSeparator />
+            <NavigationViewItem Content="About" Tag="About" Margin="12,8">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE946;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
         </NavigationView.FooterMenuItems>
 
         <Frame x:Name="ContentFrame" />
     </NavigationView>
+    </Grid>
 </Window>

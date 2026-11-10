@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Media;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
@@ -55,10 +54,16 @@ public sealed partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(WindowDragRegion);
         ShellNavigation.ActualThemeChanged += ShellNavigation_ActualThemeChanged;
         _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
         ApplySystemTheme();
         _windowHandle = WindowNative.GetWindowHandle(this);
+        var display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest);
+        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(
+            Math.Min(1536, display.WorkArea.Width - 32),
+            Math.Min(1024, display.WorkArea.Height - 32)));
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
@@ -104,7 +109,7 @@ public sealed partial class MainWindow
     private void ApplySystemTheme()
     {
         var background = _uiSettings.GetColorValue(UIColorType.Background);
-        ShellNavigation.RequestedTheme = new AccessibilitySettings().HighContrast
+        ShellRoot.RequestedTheme = new AccessibilitySettings().HighContrast
             ? ElementTheme.Default
             : background.R + background.G + background.B >= 384 ? ElementTheme.Light : ElementTheme.Dark;
         UpdateTitleBarTheme();
@@ -116,19 +121,15 @@ public sealed partial class MainWindow
             return;
 
         var highContrast = new AccessibilitySettings().HighContrast;
-        var theme = highContrast ? "HighContrast" : ShellNavigation.ActualTheme.ToString();
-        var palette = (ResourceDictionary)Application.Current.Resources.ThemeDictionaries[theme];
         var foreground = highContrast ? _uiSettings.GetColorValue(UIColorType.Foreground)
             : ShellNavigation.ActualTheme == ElementTheme.Dark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
-        var background = ((SolidColorBrush)palette["ModernSurfaceBrush"]).Color;
-        background.A = 255;
         var titleBar = AppWindow.TitleBar;
-        titleBar.BackgroundColor = background;
+        titleBar.BackgroundColor = Microsoft.UI.Colors.Transparent;
         titleBar.ForegroundColor = foreground;
-        titleBar.ButtonBackgroundColor = background;
+        titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
         titleBar.ButtonForegroundColor = foreground;
-        titleBar.InactiveBackgroundColor = background;
-        titleBar.ButtonInactiveBackgroundColor = background;
+        titleBar.InactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+        titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
     }
 
     private async Task MonitorFirewallEventsAsync(CancellationToken cancellationToken)
@@ -574,6 +575,12 @@ public sealed partial class MainWindow
             return;
 
         NavigateTo(GetPageType(tag));
+    }
+
+    internal void ShowConnections()
+    {
+        ShellNavigation.SelectedItem = ShellNavigation.MenuItems.OfType<NavigationViewItem>()
+            .First(item => item.Tag is "Connections");
     }
 
     private static Type GetPageType(string tag)
