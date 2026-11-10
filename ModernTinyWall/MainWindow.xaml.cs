@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
@@ -54,6 +55,9 @@ public sealed partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
+        ShellNavigation.ActualThemeChanged += ShellNavigation_ActualThemeChanged;
+        _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
+        ApplySystemTheme();
         _windowHandle = WindowNative.GetWindowHandle(this);
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
@@ -71,6 +75,8 @@ public sealed partial class MainWindow
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
         _isTerminating = true;
+        ShellNavigation.ActualThemeChanged -= ShellNavigation_ActualThemeChanged;
+        _uiSettings.ColorValuesChanged -= UiSettings_ColorValuesChanged;
         _navigationFadeCancellation?.Cancel();
         _promptMonitoringCancellation.Cancel();
         _trayIconService.CommandInvoked -= TrayIconService_CommandInvoked;
@@ -79,6 +85,50 @@ public sealed partial class MainWindow
         _trayIconService.Dispose();
         if (_previousWindowProc != IntPtr.Zero)
             _ = SetWindowLongPtr(_windowHandle, GwlpWndproc, _previousWindowProc);
+    }
+
+    private void ShellNavigation_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        UpdateTitleBarTheme();
+    }
+
+    private void UiSettings_ColorValuesChanged(UISettings sender, object args)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!_isTerminating)
+                ApplySystemTheme();
+        });
+    }
+
+    private void ApplySystemTheme()
+    {
+        var background = _uiSettings.GetColorValue(UIColorType.Background);
+        ShellNavigation.RequestedTheme = new AccessibilitySettings().HighContrast
+            ? ElementTheme.Default
+            : background.R + background.G + background.B >= 384 ? ElementTheme.Light : ElementTheme.Dark;
+        UpdateTitleBarTheme();
+    }
+
+    private void UpdateTitleBarTheme()
+    {
+        if (!Microsoft.UI.Windowing.AppWindowTitleBar.IsCustomizationSupported())
+            return;
+
+        var highContrast = new AccessibilitySettings().HighContrast;
+        var theme = highContrast ? "HighContrast" : ShellNavigation.ActualTheme.ToString();
+        var palette = (ResourceDictionary)Application.Current.Resources.ThemeDictionaries[theme];
+        var foreground = highContrast ? _uiSettings.GetColorValue(UIColorType.Foreground)
+            : ShellNavigation.ActualTheme == ElementTheme.Dark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
+        var background = ((SolidColorBrush)palette["ModernSurfaceBrush"]).Color;
+        background.A = 255;
+        var titleBar = AppWindow.TitleBar;
+        titleBar.BackgroundColor = background;
+        titleBar.ForegroundColor = foreground;
+        titleBar.ButtonBackgroundColor = background;
+        titleBar.ButtonForegroundColor = foreground;
+        titleBar.InactiveBackgroundColor = background;
+        titleBar.ButtonInactiveBackgroundColor = background;
     }
 
     private async Task MonitorFirewallEventsAsync(CancellationToken cancellationToken)

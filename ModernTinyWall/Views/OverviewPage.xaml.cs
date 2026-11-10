@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
 using ModernTinyWall.Models;
 using ModernTinyWall.ViewModels;
 using ModernTinyWall.Services;
@@ -9,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Numerics;
+using Windows.UI.ViewManagement;
 
 namespace ModernTinyWall.Views;
 
@@ -35,6 +39,8 @@ public sealed partial class OverviewPage
     private readonly IOptionsService _optionsService = new OptionsService();
     private bool _isRestoringSeries;
     private bool _optionsReady;
+    private readonly UISettings _uiSettings = new();
+    private readonly AccessibilitySettings _accessibilitySettings = new();
 
     public OverviewPageViewModel ViewModel { get; } = new();
 
@@ -43,7 +49,63 @@ public sealed partial class OverviewPage
         InitializeComponent();
         Loaded += OverviewPage_Loaded;
         Unloaded += OverviewPage_Unloaded;
+        ActualThemeChanged += (_, _) => UpdateNetworkActivityGraph();
         _networkActivityTimer.Tick += NetworkActivityTimer_Tick;
+    }
+
+    private void SummaryPanels_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ArrangeColumns((Grid)sender, e.NewSize.Width >= 660 ? 3 : e.NewSize.Width >= 420 ? 2 : 1);
+    }
+
+    private void SeriesSelectors_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ArrangeColumns((Grid)sender, e.NewSize.Width >= 660 ? 3 : e.NewSize.Width >= 440 ? 2 : 1);
+    }
+
+    private static void ArrangeColumns(Grid panel, int columns)
+    {
+        if (panel.ColumnDefinitions.Count == columns)
+            return;
+
+        panel.ColumnDefinitions.Clear();
+        panel.RowDefinitions.Clear();
+        for (var column = 0; column < columns; column++)
+            panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        for (var row = 0; row < (panel.Children.Count + columns - 1) / columns; row++)
+            panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        for (var index = 0; index < panel.Children.Count; index++)
+        {
+            Grid.SetRow((FrameworkElement)panel.Children[index], index / columns);
+            Grid.SetColumn((FrameworkElement)panel.Children[index], index % columns);
+        }
+    }
+
+    private void ModeTile_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        AnimateModeTile((Button)sender, -3);
+    }
+
+    private void ModeTile_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        AnimateModeTile((Button)sender, 0);
+    }
+
+    private void AnimateModeTile(Button button, float offset)
+    {
+        ElementCompositionPreview.SetIsTranslationEnabled(button, true);
+        var visual = ElementCompositionPreview.GetElementVisual(button);
+        if (!_uiSettings.AnimationsEnabled || _accessibilitySettings.HighContrast)
+        {
+            visual.StopAnimation("Translation.Y");
+            visual.Properties.InsertVector3("Translation", Vector3.Zero);
+            return;
+        }
+
+        var animation = visual.Compositor.CreateScalarKeyFrameAnimation();
+        animation.InsertKeyFrame(1, offset);
+        animation.Duration = TimeSpan.FromMilliseconds(180);
+        visual.StartAnimation("Translation.Y", animation);
     }
 
     private async void OverviewPage_Loaded(object sender, RoutedEventArgs e)
@@ -206,12 +268,14 @@ public sealed partial class OverviewPage
         _uploadPath.Visibility = classified && InternetUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         _localDownloadPath.Visibility = classified && LocalDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         _localUploadPath.Visibility = classified && LocalUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-        UpdateSeries(_totalDownloadPath, samples, maxValue, static sample => sample.TotalReceivedBytesPerSecond, (Brush)Resources["TotalDownloadBrush"]);
-        UpdateSeries(_totalUploadPath, samples, maxValue, static sample => sample.TotalSentBytesPerSecond, (Brush)Resources["TotalUploadBrush"]);
-        UpdateSeries(_downloadPath, samples, maxValue, static sample => sample.ReceivedBytesPerSecond, (Brush)Resources["NetworkDownloadBrush"]);
-        UpdateSeries(_uploadPath, samples, maxValue, static sample => sample.SentBytesPerSecond, (Brush)Resources["NetworkUploadBrush"]);
-        UpdateSeries(_localDownloadPath, samples, maxValue, static sample => sample.LocalReceivedBytesPerSecond, (Brush)Resources["LocalDownloadBrush"]);
-        UpdateSeries(_localUploadPath, samples, maxValue, static sample => sample.LocalSentBytesPerSecond, (Brush)Resources["LocalUploadBrush"]);
+        var theme = _accessibilitySettings.HighContrast ? "HighContrast" : ActualTheme.ToString();
+        var palette = (ResourceDictionary)Resources.ThemeDictionaries[theme];
+        UpdateSeries(_totalDownloadPath, samples, maxValue, static sample => sample.TotalReceivedBytesPerSecond, (Brush)palette["TotalDownloadBrush"]);
+        UpdateSeries(_totalUploadPath, samples, maxValue, static sample => sample.TotalSentBytesPerSecond, (Brush)palette["TotalUploadBrush"]);
+        UpdateSeries(_downloadPath, samples, maxValue, static sample => sample.ReceivedBytesPerSecond, (Brush)palette["NetworkDownloadBrush"]);
+        UpdateSeries(_uploadPath, samples, maxValue, static sample => sample.SentBytesPerSecond, (Brush)palette["NetworkUploadBrush"]);
+        UpdateSeries(_localDownloadPath, samples, maxValue, static sample => sample.LocalReceivedBytesPerSecond, (Brush)palette["LocalDownloadBrush"]);
+        UpdateSeries(_localUploadPath, samples, maxValue, static sample => sample.LocalSentBytesPerSecond, (Brush)palette["LocalUploadBrush"]);
     }
 
     private void UpdateSeries(Path path, IReadOnlyList<NetworkActivitySample> samples, long maxValue, Func<NetworkActivitySample, long> valueSelector, Brush brush)

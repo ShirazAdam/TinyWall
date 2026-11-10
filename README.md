@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications and their shipped libraries use version **4.5.0**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.0`) when the changes are pushed to `master` and its builds pass.
+Both applications and their shipped libraries use version **4.5.1**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.1`) when the changes are pushed to `master` and its builds pass.
 
 <img width="1412" height="816" alt="image" src="https://github.com/user-attachments/assets/e373c109-fa36-40af-8acf-907d57264af5" />
 
@@ -25,6 +25,8 @@ The applications provide tray-based control for managing firewall modes, applica
 Modern TinyWall uses WinUI 3 dialogs. The legacy WinForms application uses the built-in .NET Windows Task Dialog API, replacing the former third-party wrapper while retaining its prompts, command-link choices, expandable details, progress indicators, and cancellation options.
 
 Modern TinyWall uses WinUI's animated sidebar selection indicator and fades between views. Navigation animations follow the Windows animation setting and do not run while the window is hidden or minimised.
+
+The refreshed shell and Overview use coordinated navy surfaces in Windows dark mode and pale blue/white surfaces in light mode, switching with the system theme. Contrast themes use system colours. The dashboard shows live total rates, a larger filled traffic chart and responsive protection tiles with subtle hover lift; the lift is disabled when Windows animations are off or a contrast theme is active. Summary values come from traffic tracking, not illustrative protection or blocked-connection counts.
 
 The Connections view keeps headers and results aligned, with horizontal scrolling on narrower windows. Press Enter/Return in the search box or select **Filter/Refresh** to reload results using the search text and selected connection types.
 

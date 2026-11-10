@@ -53,9 +53,9 @@
             </Grid>
             <TextBlock Text="{x:Bind ViewModel.Summary, Mode=OneWay}" TextWrapping="Wrap" />
         </StackPanel>
-        <Border Grid.Row="4" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        <Border Grid.Row="4" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                Background="{ThemeResource ModernSurfaceBrush}">
         <ListView ItemsSource="{x:Bind ViewModel.Applications}"
                   SelectionMode="None" HorizontalContentAlignment="Stretch"
                   ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"

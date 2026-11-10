@@ -6,6 +6,7 @@
 
     <NavigationView
         x:Name="ShellNavigation"
+        Background="{ThemeResource ModernShellBrush}"
         PaneDisplayMode="Left"
         OpenPaneLength="248"
         CompactPaneLength="48"
@@ -14,36 +15,40 @@
         PaneTitle=""
         SelectionChanged="ShellNavigation_SelectionChanged">
         <NavigationView.PaneHeader>
-            <Grid Margin="12,0,12,12" ColumnSpacing="12">
+            <Grid Margin="12,8,12,24" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="48" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Width="36" Height="36" CornerRadius="10"
+                <Border Width="44" Height="48" CornerRadius="14"
                         Background="{ThemeResource SystemControlBackgroundAccentBrush}">
-                    <FontIcon Glyph="&#xEA18;" FontSize="18"
+                    <FontIcon Glyph="&#xEA18;" FontSize="28"
                               Foreground="{ThemeResource SystemControlForegroundAltHighBrush}"
                               HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                    <TextBlock Text="Modern TinyWall" FontSize="14" FontWeight="SemiBold" />
+                    <TextBlock Text="Modern TinyWall" FontSize="16" FontWeight="SemiBold" />
                     <TextBlock Text="FIREWALL CONTROL" FontSize="10" CharacterSpacing="90"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
             </Grid>
         </NavigationView.PaneHeader>
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" IsSelected="True" />
-            <NavigationViewItem Content="Data usage" Icon="World" Tag="DataUsage" />
+            <NavigationViewItem Content="Overview" Icon="Home" Tag="Overview" IsSelected="True" Margin="4,3" />
+            <NavigationViewItem Content="Data usage" Icon="World" Tag="DataUsage" Margin="4,3" />
             <NavigationViewItemSeparator />
-            <NavigationViewItem Content="Connections" Icon="ViewAll" Tag="Connections" />
-            <NavigationViewItem Content="Processes" Icon="Library" Tag="Processes" />
-            <NavigationViewItem Content="Services" Icon="Repair" Tag="Services" />
-            <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" />
+            <NavigationViewItem Content="Connections" Icon="ViewAll" Tag="Connections" Margin="4,3" />
+            <NavigationViewItem Content="Processes" Icon="Library" Tag="Processes" Margin="4,3" />
+            <NavigationViewItem Content="Services" Icon="Repair" Tag="Services" Margin="4,3" />
+            <NavigationViewItem Content="Packages" Icon="AllApps" Tag="Packages" Margin="4,3" />
             <NavigationViewItemSeparator />
-            <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" />
-            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" />
-            <NavigationViewItem Content="Options" Icon="Setting" Tag="Options" />
+            <NavigationViewItem Content="Exceptions" Icon="ReportHacked" Tag="Exceptions" Margin="4,3" />
+            <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" Margin="4,3" />
+            <NavigationViewItem Content="Options" Tag="Options" Margin="4,3">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE9E9;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
         </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems>
             <NavigationViewItem Content="About" Icon="Help" Tag="About" />

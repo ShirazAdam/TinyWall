@@ -36,9 +36,9 @@
             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <Border Grid.Row="3" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        <Border Grid.Row="3" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                Background="{ThemeResource ModernSurfaceBrush}">
         <ListView ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}"
                   Background="Transparent">
             <ListView.Header>

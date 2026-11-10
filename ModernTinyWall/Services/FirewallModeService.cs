@@ -10,11 +10,11 @@ internal sealed class FirewallModeService : IFirewallModeService
 {
     private static readonly IReadOnlyList<FirewallModeOption> ModeOptions =
     [
-        new FirewallModeOption(ModernFirewallMode.Normal, "Normal protection", "Recommended Modern TinyWall mode. Blocks unsolicited inbound traffic and allows trusted configured traffic."),
-        new FirewallModeOption(ModernFirewallMode.AllowOutgoing, "Allow outgoing", "Allows outgoing connections while retaining inbound protection."),
+        new FirewallModeOption(ModernFirewallMode.Normal, "Normal", "Allows trusted traffic; blocks unsolicited inbound traffic."),
+        new FirewallModeOption(ModernFirewallMode.AllowOutgoing, "Allow outgoing", "Allows outgoing traffic; retains inbound protection."),
         new FirewallModeOption(ModernFirewallMode.BlockAll, "Block all", "Blocks inbound and outbound traffic."),
-        new FirewallModeOption(ModernFirewallMode.Disabled, "Disabled", "Turns Modern TinyWall filtering off."),
-        new FirewallModeOption(ModernFirewallMode.Learning, "Learning", "Temporarily learns allowed traffic. Use with care.")
+        new FirewallModeOption(ModernFirewallMode.Disabled, "Disabled", "Turns filtering off."),
+        new FirewallModeOption(ModernFirewallMode.Learning, "Learning", "Learns allowed traffic. Use with care.")
     ];
 
     private readonly Controller _controller = new("TinyWallController");

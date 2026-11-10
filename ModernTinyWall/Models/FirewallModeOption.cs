@@ -17,8 +17,8 @@ public sealed record FirewallModeOption(ModernFirewallMode Mode, string DisplayN
 {
     public SolidColorBrush ModeBrush { get; } = new(Mode switch
     {
-        ModernFirewallMode.Normal => ColorHelper.FromArgb(255, 16, 124, 16),
-        ModernFirewallMode.AllowOutgoing => ColorHelper.FromArgb(255, 0, 120, 212),
+        ModernFirewallMode.Normal => ColorHelper.FromArgb(255, 0, 120, 212),
+        ModernFirewallMode.AllowOutgoing => ColorHelper.FromArgb(255, 0, 133, 117),
         ModernFirewallMode.BlockAll => ColorHelper.FromArgb(255, 196, 43, 28),
         ModernFirewallMode.Learning => ColorHelper.FromArgb(255, 255, 215, 0),
         _ => ColorHelper.FromArgb(255, 93, 101, 112)
@@ -32,9 +32,9 @@ public sealed record FirewallModeOption(ModernFirewallMode Mode, string DisplayN
     {
         ModernFirewallMode.Normal => "\uEA18",
         ModernFirewallMode.AllowOutgoing => "\uE72A",
-        ModernFirewallMode.BlockAll => "\uE711",
-        ModernFirewallMode.Disabled => "\uE7E8",
-        ModernFirewallMode.Learning => "\uE82D",
+        ModernFirewallMode.BlockAll => "\uE72E",
+        ModernFirewallMode.Disabled => "\uE769",
+        ModernFirewallMode.Learning => "\uE7BE",
         _ => "\uE9CE"
     };
 }
