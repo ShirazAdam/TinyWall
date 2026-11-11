@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.6**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.6`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.7**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.7`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
 
@@ -122,7 +122,7 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To build an installer
 
-Build `TinyWallSetup\TinyWallSetup.vdproj` from `TinyWall.slnx` using Visual Studio and the Installer Projects extension. This is the only supported installer route and produces an MSI. The separate `installer\build-package.ps1` script publishes matching application files, checks dependency collisions and versions, and creates ZIP staging archives; it does not compile an installer or install/start the service. Archive checks do not validate the MSI payload, prerequisites or service actions. Follow the build instructions and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md).
+Run `.\installer\build-msi.ps1` to publish matching self-contained x64 applications, refresh the file list in `TinyWallSetup\TinyWallSetup.vdproj` and build that project using Visual Studio Installer Projects. This is the only installer technology used and produces `TinyWallSetup\Release\TinyWallSetup.msi`. The MSI includes the catalogue seed, executable shortcuts, administrator-protected installation directory and service installation/removal actions. Building never installs or starts the service. The separate `installer\build-package.ps1` script creates ZIP staging archives, not installers. Follow the build instructions and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md).
 
 ### Main projects
 

@@ -102,13 +102,24 @@ namespace ModernTinyWall.TinyWall
             {
                 using var process = Process.Start(new ProcessStartInfo
                 {
-                    FileName = "sc.exe",
-                    Arguments = $"create \"{TinyWallService.SERVICE_NAME}\" binPath= \"{Utils.ExecutablePath}\" start= auto DisplayName= \"{TinyWallService.ServiceDisplayName}\" depend= \"{string.Join('/', TinyWallService.SERVICE_DEPENDENCIES)}\"",
+                    FileName = System.IO.Path.Combine(Environment.SystemDirectory, "sc.exe"),
+                    ArgumentList =
+                    {
+                        "create", TinyWallService.SERVICE_NAME,
+                        "binPath=", $"\"{Utils.ExecutablePath}\" /service",
+                        "start=", "auto",
+                        "DisplayName=", TinyWallService.ServiceDisplayName,
+                        "depend=", string.Join('/', TinyWallService.SERVICE_DEPENDENCIES)
+                    },
                     CreateNoWindow = true,
                     UseShellExecute = false
                 });
 
-                process?.WaitForExit();
+                if (process is null)
+                    throw new InvalidOperationException("The service installation process could not be started.");
+                process.WaitForExit();
+                if (process.ExitCode != 0 && process.ExitCode != 1073)
+                    throw new System.ComponentModel.Win32Exception(process.ExitCode);
             }
             catch (Exception e)
             {
@@ -116,10 +127,17 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        internal static int Uninstall()
+        internal static int Uninstall(bool unattended = false)
         {
-            using (var frm = new System.Windows.Forms.Form())
+            if (unattended && !Utils.RunningAsAdmin())
             {
+                Utils.Log("Unattended uninstallation requires administrator privileges.", Utils.LOG_ID_INSTALLER);
+                return -1;
+            }
+
+            if (!unattended)
+            {
+                using var frm = new System.Windows.Forms.Form();
                 // See http://www.codeproject.com/Articles/18612/TopMost-MessageBox
                 // for an explanation as for why this is needed.
                 frm.Size = new System.Drawing.Size(1, 1);
@@ -152,6 +170,11 @@ namespace ModernTinyWall.TinyWall
                     // Unlock server
                     while (twController.IsServerLocked)
                     {
+                        if (unattended)
+                        {
+                            Utils.Log("Unlock TinyWall before uninstalling it.", Utils.LOG_ID_INSTALLER);
+                            return -1;
+                        }
                         using var pf = new PasswordForm();
                         pf.BringToFront();
                         pf.Activate();

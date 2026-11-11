@@ -1,6 +1,6 @@
 # Visual Studio MSI installer and application staging
 
-`TinyWallSetup\TinyWallSetup.vdproj` is the sole installer project. Build it through Visual Studio Installer Projects to produce an MSI. The PowerShell script in this directory only publishes and validates application staging archives; it does not build an installer.
+`TinyWallSetup\TinyWallSetup.vdproj` is the sole installer project. `build-msi.ps1` stages both applications, refreshes that project's explicit file list and invokes Visual Studio Installer Projects to produce an x64 MSI. `build-package.ps1` only publishes and validates application staging archives.
 
 ## Requirements
 
@@ -14,18 +14,21 @@ TinyWall currently resolves newer `System.CodeDom`, `System.Collections.Immutabl
 
 ## Build the MSI
 
-1. Open `TinyWall.slnx` in Visual Studio with the Installer Projects extension already available.
-2. Select the required Release configuration and review `TinyWallSetup`'s target platform, project outputs and prerequisites.
-3. Build the `TinyWallSetup` project. Its Release output is `TinyWallSetup\Release\TinyWallSetup.msi`.
-4. Validate that MSI in a disposable Windows 11 Hyper-V VM before distributing it.
-
-From a Visual Studio developer command prompt, the equivalent build command is:
-
 ```powershell
-devenv.com TinyWall.slnx /Build Release /Project TinyWallSetup
+# Publish, verify, refresh the setup project and compile an x64 MSI.
+.\installer\build-msi.ps1
+
+# Rebuild using an already-published, matching and verified payload.
+.\installer\build-msi.ps1 -UsePublishedFiles
 ```
 
-**MSI readiness:** the staging checks below do not validate or automatically populate the Visual Studio project's payload. Its published outputs, SQLite seed, prerequisites, protected installation path, service installation/removal actions and upgrade behaviour must be checked separately. Do not treat a successful ZIP build as a completed or validated MSI.
+The output is `TinyWallSetup\Release\TinyWallSetup.msi` with a SHA-256 sidecar. The isolated `TinyWallSetup\TinyWallSetup.sln` avoids rebuilding unrelated solution projects. After staging, the same `.vdproj` can also be opened and built in Visual Studio. Both applications are self-contained; no .NET runtime prerequisite or bootstrapper download is needed. The setup project targets x64 only, even when the archive script publishes other architectures.
+
+The project's post-build step uses the Windows Installer API (`complete-msi.ps1`) to add elevated, deferred service actions to the MSI produced by Visual Studio; it is not another installer toolchain. Installation invokes the packaged `TinyWall.exe /install`. Uninstallation invokes `/uninstall /quiet` before file removal, using TinyWall's own authenticated service-stop and WFP cleanup rather than an SCM stop that the Release service deliberately rejects. Quiet uninstallation requires administrator privileges and rejects a locked service without displaying an inaccessible password prompt; unlock TinyWall before uninstalling. A rollback action cleans up a failed first installation. Existing ProgramData settings and catalogue files are not MSI payload files.
+
+`test-msi.ps1` opens the MSI read-only and checks its file count, destination paths and sizes against the staged payload, required application/runtime/catalogue files, and service action ordering. These are build checks, not proof of installation behaviour. Install, upgrade, failure recovery and uninstall still require the VM checklist below. The build scripts do not install tools, change registry settings, run the MSI or start either application on the build host.
+
+**VM validation status:** the 4.5.7 x64 MSI builds and installs successfully in the Windows 11 Hyper-V development VM. Installed payload hashes and catalogue initialisation have passed, but the service stops after startup. Investigation and the remaining live checks are paused; this package is not yet validated for distribution.
 
 ## Publish and validate application staging archives
 
