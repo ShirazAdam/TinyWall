@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.Models;
+using ModernTinyWall.Windows;
 using System;
 
 namespace ModernTinyWall;
@@ -33,8 +34,12 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         PreviewOptions = UiPreviewOptions.Parse(Environment.GetCommandLineArgs()[1..]);
-        _window = new MainWindow();
-        MainWindow = _window;
-        _window.Activate();
+        var window = new MainWindow();
+        _window = window;
+        MainWindow = window;
+        if (ModernClientStartup.IsStartup(Environment.GetCommandLineArgs()[1..]))
+            window.StartInTray();
+        else
+            window.Activate();
     }
 }

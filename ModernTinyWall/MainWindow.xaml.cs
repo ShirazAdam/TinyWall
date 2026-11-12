@@ -934,6 +934,8 @@ public sealed partial class MainWindow
         }
     }
 
+    internal void StartInTray() => HideWindow();
+
     private void HideWindow()
     {
         _ = ShowWindow(_windowHandle, SwHide);
