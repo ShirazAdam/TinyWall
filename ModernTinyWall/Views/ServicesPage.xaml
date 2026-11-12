@@ -3,7 +3,8 @@
     x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:viewModels="using:ModernTinyWall.ViewModels">
+    xmlns:viewModels="using:ModernTinyWall.ViewModels"
+    xmlns:controls="using:ModernTinyWall.Controls">
 
     <Grid Padding="32" RowSpacing="16">
         <Grid.RowDefinitions>
@@ -67,7 +68,11 @@
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="3*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{x:Bind DisplayName}" TextTrimming="CharacterEllipsis" />
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:ApplicationIcon SourcePath="{x:Bind ExecutablePath}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind DisplayName}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        </Grid>
                         <TextBlock Grid.Column="1" Text="{x:Bind ServiceName}" TextTrimming="CharacterEllipsis" />
                         <TextBlock Grid.Column="2" Text="{x:Bind ExecutablePath}" TextTrimming="CharacterEllipsis" />
                     </Grid>

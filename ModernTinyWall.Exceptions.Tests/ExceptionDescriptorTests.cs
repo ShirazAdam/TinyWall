@@ -31,6 +31,30 @@ public sealed class ExceptionDescriptorTests
     }
 
     [TestMethod]
+    public void CreateRowProvidesExecutablePathForServiceIcon()
+    {
+        var exception = new FirewallExceptionV3(
+            new ServiceSubject(@"C:\Program Files\App\app.exe", "ExampleService"), HardBlockPolicy.Instance);
+
+        var row = ExceptionDescriptor.CreateRow(exception);
+
+        Assert.AreEqual(@"C:\Program Files\App\app.exe", row.IconPath);
+        Assert.AreEqual(string.Empty, row.PackageFamilyName);
+    }
+
+    [TestMethod]
+    public void CreateRowProvidesPackageFamilyForPackageIcon()
+    {
+        var exception = new FirewallExceptionV3(
+            new AppContainerSubject("S-1-15-2-1", "PackageName", "Publisher", "PublisherId"), HardBlockPolicy.Instance);
+
+        var row = ExceptionDescriptor.CreateRow(exception);
+
+        Assert.AreEqual(string.Empty, row.IconPath);
+        Assert.AreEqual("PackageName_PublisherId", row.PackageFamilyName);
+    }
+
+    [TestMethod]
     public void DescribePolicyWhenHardBlockThenReturnsHardBlock()
     {
         var result = ExceptionDescriptor.DescribePolicy(HardBlockPolicy.Instance);

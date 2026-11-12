@@ -18,7 +18,10 @@ public static class ExceptionDescriptor
             subjectType,
             details,
             DescribePolicy(exception.Policy),
-            exception.CreationDate.ToString("yyyy/MM/dd HH:mm"));
+            exception.CreationDate.ToString("yyyy/MM/dd HH:mm"),
+            exception.Subject is ExecutableSubject executable
+                ? PathMapper.Instance.ConvertPathIgnoreErrors(executable.ExecutablePath, PathFormat.Win32) : string.Empty,
+            exception.Subject is AppContainerSubject app ? $"{app.DisplayName}_{app.PublisherId}" : string.Empty);
     }
 
     public static (string Name, string SubjectType, string Details) DescribeSubject(ExceptionSubject subject)
