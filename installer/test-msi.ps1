@@ -19,7 +19,7 @@ function Get-Rows([string] $Sql, [int] $Columns) {
     finally { [void] $view.Close() }
 }
 try {
-    $files = @(Get-Rows 'SELECT `File`, `FileName`, `FileSize`, `Component_` FROM `File`' 4)
+    $files = @(Get-Rows 'SELECT `File`, `FileName`, `FileSize`, `Component_`, `Version` FROM `File`' 5)
     $actions = @(Get-Rows 'SELECT `Action`, `Type`, `Source`, `Target` FROM `CustomAction`' 4)
     $sequence = @(Get-Rows 'SELECT `Action`, `Condition`, `Sequence` FROM `InstallExecuteSequence`' 3)
     foreach ($row in $actions) { Write-Output ($row -join ' | ') }
@@ -58,6 +58,8 @@ try {
         $seen[$relative] = $true
         $source = Get-Item -LiteralPath (Join-Path $payload $relative)
         if ($source.Length -ne [long] $row[2]) { throw "Wrong MSI file size: $relative" }
+        $version = $installer.FileVersion($source.FullName, 0)
+        if ($version -and $row[4] -ne $version) { throw "Wrong MSI file version: $relative" }
     }
     foreach ($name in @('TinyWall.exe', 'ModernTinyWall.exe', 'profiles.db', 'ModernTinyWall.pri', 'coreclr.dll')) {
         if (@($files | Where-Object { ($_[1] -split '\|')[-1] -eq $name }).Count -ne 1) {

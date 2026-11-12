@@ -25,14 +25,41 @@ function Get-Rows([string] $Sql, [int] $Columns) {
     finally { [void] $view.Close() }
 }
 
-$files = @(Get-Rows 'SELECT `File`, `FileName`, `FileSize` FROM `File`' 3)
+$files = @(Get-Rows 'SELECT `File`, `FileName`, `FileSize`, `Version` FROM `File`' 4)
 $service = @($files | Where-Object { ($_[1] -split '\|')[-1] -eq 'TinyWall.exe' })
 if ($service.Count -ne 1) { throw 'MSI must contain exactly one TinyWall.exe service executable.' }
 $serviceFile = $service[0][0]
 $root = Split-Path -Parent $PSScriptRoot
-$payload = Join-Path $root 'artifacts\publish\TinyWallDual\win-x64'
+$payload = (Resolve-Path -LiteralPath (Join-Path $root 'artifacts\publish\TinyWallDual\win-x64')).Path
 $expected = @(Get-ChildItem -LiteralPath $payload -File -Recurse)
 if ($files.Count -ne $expected.Count) { throw 'MSI file count differs from the verified application staging payload.' }
+
+# Visual Studio can omit version metadata for versioned files, causing Windows
+# Installer to skip them before removing an older product during an upgrade.
+$sourceFiles = @{}
+foreach ($file in $expected) {
+    $relative = $file.FullName.Substring($payload.Length + 1)
+    if ($relative -eq 'TinyWall.exe') { $key = '_B8E0172398E9477D924345B603244624' }
+    elseif ($relative -eq 'ModernTinyWall.exe') { $key = '_5F1F70204337480FA68AEDD0C00101BE' }
+    else {
+        $sha = [Security.Cryptography.SHA256]::Create()
+        try {
+            $hash = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes("file\$relative".ToLowerInvariant()))
+            $key = '_' + [BitConverter]::ToString($hash).Replace('-', '').Substring(0, 32)
+        }
+        finally { $sha.Dispose() }
+    }
+    if ($sourceFiles.ContainsKey($key)) { throw "Duplicate MSI file key: $key" }
+    $sourceFiles[$key] = $file.FullName
+}
+foreach ($file in $files) {
+    if (-not $sourceFiles.ContainsKey($file[0])) { throw "Unknown MSI file key: $($file[0])" }
+    $version = $installer.FileVersion($sourceFiles[$file[0]], 0)
+    if ($version -and -not $file[3]) {
+        if ($version -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw "Invalid file version: $version" }
+        Invoke-Sql "UPDATE ``File`` SET ``Version`` = '$version' WHERE ``File`` = '$($file[0])'"
+    }
+}
 
 # The Release service deliberately rejects SCM stop requests. Its own authenticated
 # uninstall command must stop it and remove persistent WFP filters before file removal.

@@ -28,7 +28,7 @@ The project's post-build step uses the Windows Installer API (`complete-msi.ps1`
 
 `test-msi.ps1` opens the MSI read-only and checks its file count, destination paths and sizes against the staged payload, required application/runtime/catalogue files, and service action ordering. These are build checks, not proof of installation behaviour. Install, upgrade, failure recovery and uninstall still require the VM checklist below. The build scripts do not install tools, change registry settings, run the MSI or start either application on the build host.
 
-**VM validation status:** the 4.5.7 x64 MSI installed in the Windows 11 Hyper-V development VM, but its service failed with a stack overflow in IP address parsing. Version 4.5.8 fixes the recursive parser; live validation of the new package remains necessary before distribution.
+**VM validation status:** the 4.5.7 x64 MSI installed in the Windows 11 Hyper-V development VM, but its service failed with a stack overflow in IP address parsing. Version 4.5.8 fixed the parser, but its upgrade omitted two UI libraries. Version 4.5.9 corrects the installer metadata; live validation remains necessary before distribution.
 
 ## Publish and validate application staging archives
 
