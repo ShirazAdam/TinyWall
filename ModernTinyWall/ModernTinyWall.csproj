@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<OutputType>WinExe</OutputType>
-	<Version>4.5.16</Version>
+	<Version>4.6.0</Version>
 	<Product>Modern TinyWall</Product>
 	<AssemblyTitle>Modern TinyWall</AssemblyTitle>
 	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -33,6 +33,7 @@
 
   <ItemGroup>
 	<Content Include="Assets\ModernTinyWall*.ico" CopyToOutputDirectory="PreserveNewest" />
+	<Content Include="Assets\ModernTinyWall*.png" CopyToOutputDirectory="PreserveNewest" />
 	<Content Include="..\TinyWall\Resources\img\firewall.ico" Link="Assets\firewall.ico" CopyToOutputDirectory="PreserveNewest" />
 	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Licence.rtf" Link="Licence.rtf" CopyToOutputDirectory="PreserveNewest" />
 	<Content Include="..\TinyWallSetup\Sources\ProgramFiles\TinyWall\Attributions.txt" Link="Attributions.txt" CopyToOutputDirectory="PreserveNewest" />

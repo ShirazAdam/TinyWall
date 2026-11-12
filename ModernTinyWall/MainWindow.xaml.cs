@@ -68,6 +68,7 @@ public sealed partial class MainWindow
         ApplySystemTheme();
         _windowHandle = WindowNative.GetWindowHandle(this);
         AppWindow.SetIcon(ProtectionModeIcon.GetPath(FirewallMode.Unknown));
+        SetSidebarProtectionIcon(FirewallMode.Unknown);
         CentreOnScreen();
         ShellRoot.Loaded += ShellRoot_Loaded;
         _windowProc = WndProc;
@@ -575,8 +576,10 @@ public sealed partial class MainWindow
                         _displayedProtectionMode = null;
                         _trayIconService.SetProtectionMode(mode);
                         AppWindow.SetIcon(ProtectionModeIcon.GetPath(mode));
+                        SetSidebarProtectionIcon(mode);
                         _displayedProtectionMode = mode;
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -599,6 +602,21 @@ public sealed partial class MainWindow
             if (!queued)
                 Interlocked.Exchange(ref _protectionModeRefreshInProgress, 0);
         }
+    }
+
+    private void SetSidebarProtectionIcon(FirewallMode mode)
+    {
+        SidebarProtectionIcon.Source = new BitmapImage(new Uri(ProtectionModeIcon.GetImagePath(mode), UriKind.Absolute));
+        var description = mode switch
+        {
+            FirewallMode.Normal => "normal",
+            FirewallMode.AllowOutgoing => "allow outgoing",
+            FirewallMode.BlockAll => "block all",
+            FirewallMode.Learning => "learning",
+            FirewallMode.Disabled => "disabled",
+            _ => "unavailable"
+        };
+        AutomationProperties.SetName(SidebarProtectionIcon, $"Modern TinyWall, protection mode {description}");
     }
 
     private async Task RefreshTraySnapshotAsync()

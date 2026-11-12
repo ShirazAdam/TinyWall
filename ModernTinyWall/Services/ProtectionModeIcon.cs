@@ -18,4 +18,6 @@ internal static class ProtectionModeIcon
         };
         return Path.Combine(AppContext.BaseDirectory, "Assets", fileName);
     }
+
+    internal static string GetImagePath(FirewallMode mode) => Path.ChangeExtension(GetPath(mode), ".png");
 }

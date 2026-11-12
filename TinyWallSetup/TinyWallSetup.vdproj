@@ -117,7 +117,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_1A0A25893356FA859B257A07AB2A67FE"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_DD0089237C8E96A9FE3285765291B102"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5B0D63A809CD5EF4C9E165C3125D59F0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -129,13 +141,31 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_4AFF7EDFEA363DFEB46330214AFA2DC9"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C9C17DF8902CC914587EE9585EDD1E45"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+        "MsmKey" = "8:_49FCB003308A1F3B484833F34755F926"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C3267EF03082DF34FF603607219900EC"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_2F0FD8C0DC869902B3AAB4E0C8B9081B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -4460,10 +4490,50 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1A0A25893356FA859B257A07AB2A67FE"
+            {
+            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall-allow-outgoing.png"
+            "TargetName" = "8:ModernTinyWall-allow-outgoing.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DD0089237C8E96A9FE3285765291B102"
             {
             "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall-block-all.ico"
             "TargetName" = "8:ModernTinyWall-block-all.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5B0D63A809CD5EF4C9E165C3125D59F0"
+            {
+            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall-block-all.png"
+            "TargetName" = "8:ModernTinyWall-block-all.png"
             "Tag" = "8:"
             "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
             "Condition" = "8:"
@@ -4500,6 +4570,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4AFF7EDFEA363DFEB46330214AFA2DC9"
+            {
+            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall-disabled.png"
+            "TargetName" = "8:ModernTinyWall-disabled.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C9C17DF8902CC914587EE9585EDD1E45"
             {
             "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall-learning.ico"
@@ -4520,10 +4610,50 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_49FCB003308A1F3B484833F34755F926"
+            {
+            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall-learning.png"
+            "TargetName" = "8:ModernTinyWall-learning.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C3267EF03082DF34FF603607219900EC"
             {
             "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall.ico"
             "TargetName" = "8:ModernTinyWall.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2F0FD8C0DC869902B3AAB4E0C8B9081B"
+            {
+            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\Assets\\ModernTinyWall.png"
+            "TargetName" = "8:ModernTinyWall.png"
             "Tag" = "8:"
             "Folder" = "8:_F8CF29158E62D606996C7AF0E41BBCF6"
             "Condition" = "8:"
@@ -18879,15 +19009,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TinyWall"
-        "ProductCode" = "8:{7C71FDC0-2F65-4EB3-9A46-A47138B4B1C4}"
-        "PackageCode" = "8:{E0638956-981C-481D-8061-D8109F0A9C5E}"
+        "ProductCode" = "8:{C177B4E4-0EB6-4573-B0CE-28CEEC1C3292}"
+        "PackageCode" = "8:{E56B4682-2441-4744-89B1-1C95EC83F684}"
         "UpgradeCode" = "8:{1AAB1576-7FE1-4E1B-97EF-752836D76325}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:4.5.16"
+        "ProductVersion" = "8:4.6.0"
         "Manufacturer" = "8:Károly Pados"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

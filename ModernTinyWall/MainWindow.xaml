@@ -27,14 +27,8 @@
                     <ColumnDefinition Width="46" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Viewbox Width="46" Height="54" AutomationProperties.Name="Modern TinyWall shield">
-                    <Canvas Width="48" Height="56">
-                        <Path Data="M24,2 Q12,8 3,9 L4,29 Q6,44 24,54 Q42,44 44,29 L45,9 Q34,8 24,2 Z"
-                              Fill="#1677C8" Stroke="#49C2FF" StrokeThickness="4" />
-                        <Path Data="M24,7 L24,49 Q38,40 39,28 L40,13 Z" Fill="#084D9C" />
-                        <Path Data="M8,14 L23,9 L23,26 L8,26 Z" Fill="#36B8F4" Opacity="0.8" />
-                    </Canvas>
-                </Viewbox>
+                <Image x:Name="SidebarProtectionIcon" Width="46" Height="54" Stretch="Uniform"
+                       AutomationProperties.Name="Modern TinyWall, protection mode unavailable" />
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
                     <TextBlock Text="Modern" FontSize="19" FontWeight="SemiBold" />
                     <TextBlock Text="TinyWall" FontSize="19" FontWeight="SemiBold" />

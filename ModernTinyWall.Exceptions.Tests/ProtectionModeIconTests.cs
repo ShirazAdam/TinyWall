@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -34,5 +35,25 @@ public sealed class ProtectionModeIconTests
         Assert.AreEqual(ProtectionModeIcon.GetPath(FirewallMode.Disabled), ProtectionModeIcon.GetPath(FirewallMode.Unknown));
         Assert.AreEqual(ProtectionModeIcon.GetPath(FirewallMode.Disabled), ProtectionModeIcon.GetPath((FirewallMode)999));
         Assert.AreNotEqual(ProtectionModeIcon.GetPath(FirewallMode.Normal), ProtectionModeIcon.GetPath(FirewallMode.Unknown));
+    }
+
+    [TestMethod]
+    public void SidebarImagesMatchTheTaskbarModeColours()
+    {
+        var modes = new[] { FirewallMode.Normal, FirewallMode.AllowOutgoing, FirewallMode.BlockAll, FirewallMode.Learning, FirewallMode.Disabled };
+        foreach (var mode in modes)
+        {
+            using var icon = new Icon(ProtectionModeIcon.GetPath(mode), new Size(256, 256));
+            using var original = icon.ToBitmap();
+            using var sidebar = new Bitmap(ProtectionModeIcon.GetImagePath(mode));
+            Assert.AreEqual(new Size(256, 256), sidebar.Size);
+            var iconColour = original.GetPixel(original.Width / 2, original.Height / 2);
+            var sidebarColour = sidebar.GetPixel(sidebar.Width / 2, sidebar.Height / 2);
+            Assert.IsTrue(Math.Abs(iconColour.R - sidebarColour.R) <= 10
+                && Math.Abs(iconColour.G - sidebarColour.G) <= 10
+                && Math.Abs(iconColour.B - sidebarColour.B) <= 10
+                && Math.Abs(iconColour.A - sidebarColour.A) <= 10,
+                $"The sidebar and taskbar colours differ for {mode}.");
+        }
     }
 }

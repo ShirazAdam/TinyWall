@@ -98,7 +98,9 @@ function Assert-PublishRuntime([string] $Path, [string] $Application, [string] $
             'ModernTinyWall.pri', 'App.xbf', 'MainWindow.xbf', 'Views\OverviewPage.xbf',
             'Assets\ModernTinyWall.ico', 'Assets\ModernTinyWall-allow-outgoing.ico',
             'Assets\ModernTinyWall-block-all.ico', 'Assets\ModernTinyWall-learning.ico',
-            'Assets\ModernTinyWall-disabled.ico')) {
+            'Assets\ModernTinyWall-disabled.ico', 'Assets\ModernTinyWall.png',
+            'Assets\ModernTinyWall-allow-outgoing.png', 'Assets\ModernTinyWall-block-all.png',
+            'Assets\ModernTinyWall-learning.png', 'Assets\ModernTinyWall-disabled.png')) {
             if (-not (Test-Path -LiteralPath (Join-Path $Path $name) -PathType Leaf)) {
                 throw "Incomplete self-contained Windows App SDK output: missing $name."
             }

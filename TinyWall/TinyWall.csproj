@@ -23,7 +23,7 @@
 	<Company>Modern TinyWall</Company>
 	<Description>A free, lightweight and non-intrusive firewall.</Description>
 	<Copyright>Copyright © 2026 Modern TinyWall</Copyright>
-	<Version>4.5.16</Version>
+	<Version>4.6.0</Version>
   </PropertyGroup>
   <PropertyGroup>
 	<ApplicationIcon>Resources\img\firewall.ico</ApplicationIcon>
