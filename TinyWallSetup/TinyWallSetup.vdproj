@@ -1953,7 +1953,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_45E5C05B35BF07B7B1C293FEA6E9695D"
+        "MsmKey" = "8:_3E10713F038551CA56FF64CBBC9E7007"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -10550,10 +10550,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_45E5C05B35BF07B7B1C293FEA6E9695D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3E10713F038551CA56FF64CBBC9E7007"
             {
-            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\mscordaccore_amd64_amd64_10.0.1426.52326.dll"
-            "TargetName" = "8:mscordaccore_amd64_amd64_10.0.1426.52326.dll"
+            "SourcePath" = "8:..\\artifacts\\publish\\TinyWallDual\\win-x64\\mscordaccore_amd64_amd64_10.0.1526.53008.dll"
+            "TargetName" = "8:mscordaccore_amd64_amd64_10.0.1526.53008.dll"
             "Tag" = "8:"
             "Folder" = "8:_64AD8F8B898B4B8BAB23CAB916A74340"
             "Condition" = "8:"
@@ -18749,15 +18749,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TinyWall"
-        "ProductCode" = "8:{276F74C7-A887-458C-A0D0-668CC6009E35}"
-        "PackageCode" = "8:{B7563350-2B05-4B4A-B83E-C04918D68556}"
+        "ProductCode" = "8:{11A56BD4-3F3E-4CA4-A6CD-7C85C4E70520}"
+        "PackageCode" = "8:{67E07617-A5F1-455E-A42B-44516BAEA666}"
         "UpgradeCode" = "8:{1AAB1576-7FE1-4E1B-97EF-752836D76325}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:4.5.7"
+        "ProductVersion" = "8:4.5.8"
         "Manufacturer" = "8:Károly Pados"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

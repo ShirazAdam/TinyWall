@@ -213,7 +213,7 @@ namespace ModernTinyWall.Utilities
 
         public static IpAddrMask Parse(string str)
         {
-            return Parse(str);
+            return Parse(str.AsSpan());
         }
 
         public static IpAddrMask Parse(ReadOnlySpan<char> str)
