@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.10**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.10`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.11**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.11`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
 
@@ -19,6 +19,7 @@ Both applications, their shipped libraries and the Visual Studio MSI installer p
 ## What's new in Modern TinyWall
 
 - **A refreshed Windows interface:** shield branding, an integrated title bar, coordinated cards and outlined protection-mode tiles. Colours follow Windows light/dark mode, with system colours for contrast themes.
+- **Matching protection icons:** the Modern TinyWall shortcut, taskbar and notification area share the same shield design. Taskbar and notification icons reflect the service mode: blue for normal, green for allow outgoing, red for block all, yellow for learning, and grey for disabled or unavailable.
 - **A compact Overview:** protection status, established TCP connection counts, a five-minute traffic chart and all five protection modes. The selected mode reflects verified service state, not an assumed default.
 - **Six selectable traffic series:** Internet, local and total upload/download, with smooth filled curves, automatic scaling and an inline legend. Selections are saved immediately and survive restarts.
 - **Subtle motion:** animated navigation, page fades and protection-tile hover effects, respecting Windows animation settings. Dashboard sampling pauses while hidden or minimised.

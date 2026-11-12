@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ModernTinyWall.TinyWall;
 
 namespace ModernTinyWall.Services;
 
@@ -10,6 +11,7 @@ internal interface ITrayIconService : IDisposable
     event EventHandler<TrayCommand>? CommandInvoked;
 
     void Initialise(IntPtr windowHandle);
+    void SetProtectionMode(FirewallMode mode);
     void SetStatus(string tooltip);
     void SetSnapshot(TrayStateSnapshot snapshot);
     bool IsTrayCallbackMessage(uint message, IntPtr lParam);

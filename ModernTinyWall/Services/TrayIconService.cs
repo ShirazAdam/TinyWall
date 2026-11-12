@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using ModernTinyWall.TinyWall;
 
 namespace ModernTinyWall.Services;
 
@@ -61,7 +63,7 @@ internal sealed partial class TrayIconService : ITrayIconService
 
     private IntPtr _windowHandle;
     private IntPtr _iconHandle;
-    private bool _ownsIconHandle;
+    private string? _iconPath;
     private bool _isVisible;
     private const string TooltipText = "Modern TinyWall";
     private readonly Dictionary<uint, string> _menuCommandMap = [];
@@ -77,9 +79,35 @@ internal sealed partial class TrayIconService : ITrayIconService
     public void Initialise(IntPtr windowHandle)
     {
         _windowHandle = windowHandle;
-        (_iconHandle, _ownsIconHandle) = LoadFirewallIcon();
-        UpdateIcon(NimAdd);
+        _iconPath = ProtectionModeIcon.GetPath(FirewallMode.Unknown);
+        _iconHandle = LoadFirewallIcon(_iconPath);
+        if (!UpdateIcon(NimAdd, _iconHandle))
+        {
+            _ = DestroyIcon(_iconHandle);
+            _iconHandle = IntPtr.Zero;
+            throw new InvalidOperationException("Could not add the Modern TinyWall notification icon.");
+        }
         _isVisible = true;
+    }
+
+    public void SetProtectionMode(FirewallMode mode)
+    {
+        var path = ProtectionModeIcon.GetPath(mode);
+        if (path == _iconPath)
+            return;
+
+        var newHandle = LoadFirewallIcon(path);
+        if (_isVisible && !UpdateIcon(NimModify, newHandle))
+        {
+            _ = DestroyIcon(newHandle);
+            throw new InvalidOperationException("Could not update the Modern TinyWall notification icon.");
+        }
+
+        var oldHandle = _iconHandle;
+        _iconHandle = newHandle;
+        _iconPath = path;
+        if (oldHandle != IntPtr.Zero)
+            _ = DestroyIcon(oldHandle);
     }
 
     public void SetSnapshot(TrayStateSnapshot snapshot)
@@ -129,17 +157,12 @@ internal sealed partial class TrayIconService : ITrayIconService
         return false;
     }
 
-    private static (IntPtr Handle, bool OwnsHandle) LoadFirewallIcon()
+    private static IntPtr LoadFirewallIcon(string iconPath)
     {
-        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "firewall.ico");
-        if (File.Exists(iconPath))
-        {
-            var handle = LoadImage(IntPtr.Zero, iconPath, ImageIcon, 0, 0, LrLoadfromfile | LrDefaultsize);
-            if (handle != IntPtr.Zero)
-                return (handle, true);
-        }
-
-        return (LoadIcon(IntPtr.Zero, new IntPtr(32512)), false);
+        if (!File.Exists(iconPath))
+            throw new FileNotFoundException("The protection mode icon is missing.", iconPath);
+        var handle = LoadImage(IntPtr.Zero, iconPath, ImageIcon, 0, 0, LrLoadfromfile | LrDefaultsize);
+        return handle != IntPtr.Zero ? handle : throw new Win32Exception(Marshal.GetLastPInvokeError(), $"Could not load icon '{iconPath}'.");
     }
 
     public bool IsTrayCallbackMessage(uint message, IntPtr lParam)
@@ -293,7 +316,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     public void SetStatus(string tooltip)
     {
         if (_isVisible)
-            UpdateIcon(NimModify);
+            _ = UpdateIcon(NimModify, _iconHandle);
     }
 
     public IReadOnlyList<TrayCommand> GetCommands()
@@ -311,21 +334,21 @@ internal sealed partial class TrayIconService : ITrayIconService
     {
         if (_isVisible)
         {
-            UpdateIcon(NimDelete);
+            _ = UpdateIcon(NimDelete, _iconHandle);
             _isVisible = false;
         }
 
-        if (_ownsIconHandle && _iconHandle != IntPtr.Zero)
+        if (_iconHandle != IntPtr.Zero)
         {
             _ = DestroyIcon(_iconHandle);
-            _ownsIconHandle = false;
         }
 
         _windowHandle = IntPtr.Zero;
         _iconHandle = IntPtr.Zero;
+        _iconPath = null;
     }
 
-    private void UpdateIcon(int message)
+    private bool UpdateIcon(int message, IntPtr iconHandle)
     {
         var data = new NotifyIconData
         {
@@ -334,13 +357,13 @@ internal sealed partial class TrayIconService : ITrayIconService
             uID = 1,
             uFlags = NifMessage | NifIcon | NifTip | NifShowtip,
             uCallbackMessage = TrayCallbackMessage,
-            hIcon = _iconHandle
+            hIcon = iconHandle
         };
 
         unsafe
         {
             CopyString(data.szTip, 128, TooltipText);
-            _ = Shell_NotifyIcon(message, &data);
+            return Shell_NotifyIcon(message, &data);
         }
     }
 
@@ -356,9 +379,6 @@ internal sealed partial class TrayIconService : ITrayIconService
     [LibraryImport("shell32.dll", EntryPoint = "Shell_NotifyIconW", StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static unsafe partial bool Shell_NotifyIcon(int dwMessage, NotifyIconData* lpData);
-
-    [LibraryImport("user32.dll", EntryPoint = "LoadIconW", SetLastError = true)]
-    private static partial IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
 
     [LibraryImport("user32.dll", EntryPoint = "LoadImageW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     private static partial IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);

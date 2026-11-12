@@ -18,6 +18,75 @@ function Get-Rows([string] $Sql, [int] $Columns) {
     }
     finally { [void] $view.Close() }
 }
+Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+
+public static class TinyWallMsiIconReader
+{
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiOpenDatabase(string path, IntPtr mode, out uint database);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiDatabaseOpenView(uint database, string query, out uint view);
+    [DllImport("msi.dll")] private static extern uint MsiCreateRecord(uint fields);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiRecordSetString(uint record, uint field, string value);
+    [DllImport("msi.dll")] private static extern uint MsiViewExecute(uint view, uint record);
+    [DllImport("msi.dll")] private static extern uint MsiViewFetch(uint view, out uint record);
+    [DllImport("msi.dll")] private static extern uint MsiRecordDataSize(uint record, uint field);
+    [DllImport("msi.dll")] private static extern uint MsiRecordReadStream(uint record, uint field, byte[] buffer, ref uint size);
+    [DllImport("msi.dll")] private static extern uint MsiCloseHandle(uint handle);
+
+    private static void Check(uint result) { if (result != 0) throw new Win32Exception((int)result); }
+
+    public static byte[] Read(string path, string name)
+    {
+        uint database = 0, view = 0, parameter = 0, record = 0;
+        try
+        {
+            Check(MsiOpenDatabase(path, IntPtr.Zero, out database));
+            Check(MsiDatabaseOpenView(database, "SELECT `Data` FROM `Icon` WHERE `Name` = ?", out view));
+            parameter = MsiCreateRecord(1);
+            if (parameter == 0) throw new InvalidOperationException("Could not create an MSI query record.");
+            Check(MsiRecordSetString(parameter, 1, name));
+            Check(MsiViewExecute(view, parameter));
+            Check(MsiViewFetch(view, out record));
+            uint size = MsiRecordDataSize(record, 1);
+            var bytes = new byte[size];
+            Check(MsiRecordReadStream(record, 1, bytes, ref size));
+            if (size != bytes.Length) throw new InvalidOperationException("Incomplete MSI icon stream.");
+            return bytes;
+        }
+        finally
+        {
+            if (record != 0) MsiCloseHandle(record);
+            if (parameter != 0) MsiCloseHandle(parameter);
+            if (view != 0) MsiCloseHandle(view);
+            if (database != 0) MsiCloseHandle(database);
+        }
+    }
+}
+'@
+function Get-ComparableIconHash([byte[]] $Bytes) {
+    if ($Bytes.Length -lt 6 -or [BitConverter]::ToUInt16($Bytes, 0) -ne 0 -or
+        [BitConverter]::ToUInt16($Bytes, 2) -ne 1) { throw 'Invalid ICO header.' }
+    $count = [BitConverter]::ToUInt16($Bytes, 4)
+    if ($count -eq 0 -or $Bytes.Length -lt 6 + 16 * $count) { throw 'Invalid ICO directory.' }
+    for ($index = 0; $index -lt $count; $index++) {
+        $entry = 6 + 16 * $index
+        $size = [BitConverter]::ToUInt32($Bytes, $entry + 8)
+        $offset = [BitConverter]::ToUInt32($Bytes, $entry + 12)
+        if ($size -lt 40 -or [long] $offset + $size -gt $Bytes.Length -or
+            [BitConverter]::ToUInt32($Bytes, $offset) -ne 40) {
+            throw 'Invalid bitmap-backed ICO frame.'
+        }
+        # Visual Studio normalises the directory planes and uncompressed bitmap size.
+        $Bytes[$entry + 4] = 0
+        $Bytes[$entry + 5] = 0
+        [Array]::Clear($Bytes, [int] $offset + 20, 4)
+    }
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($sha.ComputeHash($Bytes)).Replace('-', '') }
+    finally { $sha.Dispose() }
+}
 try {
     $files = @(Get-Rows 'SELECT `File`, `FileName`, `FileSize`, `Component_`, `Version` FROM `File`' 5)
     $actions = @(Get-Rows 'SELECT `Action`, `Type`, `Source`, `Target` FROM `CustomAction`' 4)
@@ -49,6 +118,19 @@ try {
         return $name
     }
     $payload = (Resolve-Path (Join-Path $PSScriptRoot '..\artifacts\publish\TinyWallDual\win-x64')).Path
+    $modernIconHash = Get-ComparableIconHash ([IO.File]::ReadAllBytes((Join-Path $payload 'Assets\ModernTinyWall.ico')))
+    $modernShortcuts = @(Get-Rows 'SELECT `Name`, `Icon_` FROM `Shortcut`' 2 | Where-Object {
+        (($_[0] -split '\|')[-1]) -eq 'Modern TinyWall'
+    })
+    if ($modernShortcuts.Count -ne 2) { throw 'MSI must contain two Modern TinyWall shortcuts.' }
+    foreach ($shortcut in $modernShortcuts) {
+        if (-not $shortcut[1]) { throw 'A Modern TinyWall shortcut has no icon.' }
+        $shortcutIconHash = Get-ComparableIconHash (
+            [TinyWallMsiIconReader]::Read((Resolve-Path -LiteralPath $Path).Path, $shortcut[1]))
+        if ($shortcutIconHash -ne $modernIconHash) {
+            throw "A Modern TinyWall shortcut has the wrong icon: $shortcutIconHash, expected $modernIconHash."
+        }
+    }
     $seen = @{}
     foreach ($row in $files) {
         $directory = Get-RelativeDirectory $components[$row[3]]

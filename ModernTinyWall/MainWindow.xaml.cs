@@ -47,6 +47,9 @@ public sealed partial class MainWindow
     private Type? _pendingPageType;
     private bool _isNavigating;
     private CancellationTokenSource? _navigationFadeCancellation;
+    private readonly DispatcherTimer _protectionModeTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private FirewallMode? _displayedProtectionMode = FirewallMode.Unknown;
+    private int _protectionModeRefreshInProgress;
 
     internal event Action<bool>? WindowVisibilityChanged;
 
@@ -61,12 +64,16 @@ public sealed partial class MainWindow
         _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
         ApplySystemTheme();
         _windowHandle = WindowNative.GetWindowHandle(this);
+        AppWindow.SetIcon(ProtectionModeIcon.GetPath(FirewallMode.Unknown));
         CentreOnScreen();
         ShellRoot.Loaded += ShellRoot_Loaded;
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
         _trayIconService.Initialise(_windowHandle);
+        _protectionModeTimer.Tick += ProtectionModeTimer_Tick;
+        _protectionModeTimer.Start();
+        RefreshProtectionModeInBackground();
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Initialise(_windowHandle);
         _trayIconService.SetStatus("Modern TinyWall firewall controls");
@@ -94,6 +101,8 @@ public sealed partial class MainWindow
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
         _isTerminating = true;
+        _protectionModeTimer.Stop();
+        _protectionModeTimer.Tick -= ProtectionModeTimer_Tick;
         ShellNavigation.ActualThemeChanged -= ShellNavigation_ActualThemeChanged;
         _uiSettings.ColorValuesChanged -= UiSettings_ColorValuesChanged;
         _navigationFadeCancellation?.Cancel();
@@ -495,6 +504,67 @@ public sealed partial class MainWindow
         _ = RefreshTraySnapshotAsync();
     }
 
+    private void ProtectionModeTimer_Tick(object? sender, object args)
+    {
+        RefreshProtectionModeInBackground();
+    }
+
+    private void RefreshProtectionModeInBackground()
+    {
+        if (!_isTerminating && Interlocked.Exchange(ref _protectionModeRefreshInProgress, 1) == 0)
+            _ = RefreshProtectionModeAsync();
+    }
+
+    private async Task RefreshProtectionModeAsync()
+    {
+        var queued = false;
+        try
+        {
+            FirewallMode mode;
+            try
+            {
+                mode = await _controllerCommandService.GetProtectionModeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Could not read the protection mode: {ex}");
+                mode = FirewallMode.Unknown;
+            }
+            queued = DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    if (!_isTerminating && mode != _displayedProtectionMode)
+                    {
+                        _displayedProtectionMode = null;
+                        _trayIconService.SetProtectionMode(mode);
+                        AppWindow.SetIcon(ProtectionModeIcon.GetPath(mode));
+                        _displayedProtectionMode = mode;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Could not update the protection mode icons: {ex}");
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _protectionModeRefreshInProgress, 0);
+                }
+            });
+            if (!queued)
+                Debug.WriteLine("Could not dispatch the protection mode icon update.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not dispatch the protection mode icon update: {ex}");
+        }
+        finally
+        {
+            if (!queued)
+                Interlocked.Exchange(ref _protectionModeRefreshInProgress, 0);
+        }
+    }
+
     private async Task RefreshTraySnapshotAsync()
     {
         try
@@ -747,6 +817,7 @@ public sealed partial class MainWindow
         var result = await _firewallModeService.SetModeAsync(mode);
         _trayIconService.SetStatus(result.Message);
         RefreshTraySnapshotInBackground();
+        RefreshProtectionModeInBackground();
         NavigateTo(typeof(OverviewPage));
     }
 
@@ -771,6 +842,7 @@ public sealed partial class MainWindow
         var result = await commandTask;
         _trayIconService.SetStatus(result.Message);
         RefreshTraySnapshotInBackground();
+        RefreshProtectionModeInBackground();
     }
 
     private async Task<ModernTinyWallOptions> LoadOptionsAsync()
