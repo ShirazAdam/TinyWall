@@ -1,4 +1,5 @@
 using ModernTinyWall.TinyWall;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 
@@ -26,7 +27,8 @@ public static class ExceptionDescriptor
 
         return subject switch
         {
-            ExecutableSubject executable => (executable.ExecutableName, "Executable", executable.ExecutablePath),
+            ExecutableSubject executable => (executable.ExecutableName, "Executable",
+                PathMapper.Instance.ConvertPathIgnoreErrors(executable.ExecutablePath, PathFormat.Win32)),
             AppContainerSubject appContainer => (appContainer.DisplayName, "UWP app", $"{appContainer.PublisherId}, {appContainer.Publisher}"),
             GlobalSubject => ("All applications", "Global", string.Empty),
             _ => (subject.ToString() ?? string.Empty, subject.SubjectType.ToString(), string.Empty)

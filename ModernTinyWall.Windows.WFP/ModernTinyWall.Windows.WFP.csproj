@@ -18,7 +18,7 @@
 	<AssemblyTitle>ModernTinyWall.Windows.WFP</AssemblyTitle>
 	<Company>Modern TinyWall</Company>
 	<Copyright>Copyright © 2026 Modern TinyWall</Copyright>
-	<Version>4.5.11</Version>
+	<Version>4.5.12</Version>
 	<NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

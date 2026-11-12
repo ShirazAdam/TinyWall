@@ -213,12 +213,12 @@ namespace ModernTinyWall.TinyWall
                 case SubjectType.Executable:
                     li.Text = exeSubj!.ExecutableName;
                     li.SubItems.Add(Resources.Messages.SubjectTypeExecutable);
-                    li.SubItems.Add(exeSubj.ExecutablePath);
+                    li.SubItems.Add(PathMapper.Instance.ConvertPathIgnoreErrors(exeSubj.ExecutablePath, PathFormat.Win32));
                     break;
                 case SubjectType.Service:
                     li.Text = srvSubj!.ServiceName;
                     li.SubItems.Add(Resources.Messages.SubjectTypeService);
-                    li.SubItems.Add(srvSubj.ExecutablePath);
+                    li.SubItems.Add(PathMapper.Instance.ConvertPathIgnoreErrors(srvSubj.ExecutablePath, PathFormat.Win32));
                     break;
                 case SubjectType.Global:
                     li.Text = Resources.Messages.AllApplications;

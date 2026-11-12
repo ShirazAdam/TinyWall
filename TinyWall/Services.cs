@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,7 @@ namespace ModernTinyWall.TinyWall
 
             // Remove quotes
             imagePath = imagePath.Replace("\"", string.Empty);
+            imagePath = PathMapper.Instance.ConvertPathIgnoreErrors(imagePath, PathFormat.Win32);
 
             // ImagePath often contains command line arguments.
             // Try to get only the executable path.

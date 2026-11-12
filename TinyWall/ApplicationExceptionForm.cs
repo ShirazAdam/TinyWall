@@ -191,14 +191,16 @@ namespace ModernTinyWall.TinyWall
                 case SubjectType.Executable:
                     listViewAppPath.Items.Add(new ListViewItem()
                     {
-                        Text = exeSubj!.ExecutablePath,
+                        Text = PathMapper.Instance.ConvertPathIgnoreErrors(exeSubj!.ExecutablePath, PathFormat.Win32),
+                        Tag = ExceptionSettings[index],
                         SubItems = { Resources.Messages.SubjectTypeExecutable }
                     });
                     break;
                 case SubjectType.Service:
                     listViewAppPath.Items.Add(new ListViewItem()
                     {
-                        Text = $@"{srvSubj!.ServiceName} ({srvSubj.ExecutablePath})",
+                        Text = $@"{srvSubj!.ServiceName} ({PathMapper.Instance.ConvertPathIgnoreErrors(srvSubj.ExecutablePath, PathFormat.Win32)})",
+                        Tag = ExceptionSettings[index],
                         SubItems = { Resources.Messages.SubjectTypeService }
                     });
                     break;
@@ -206,6 +208,7 @@ namespace ModernTinyWall.TinyWall
                     listViewAppPath.Items.Add(new ListViewItem()
                     {
                         Text = uwpSubj!.DisplayName,
+                        Tag = ExceptionSettings[index],
                         SubItems = { Resources.Messages.SubjectTypeUwpApp }
                     });
                     break;
@@ -534,9 +537,7 @@ namespace ModernTinyWall.TinyWall
                 return;
             }
 
-            FirewallExceptionV3 firewallExceptionV3 = ExceptionSettings.Find(f => listViewAppPath.SelectedItems[0].Text.Contains(f.ToString()));
-
-            if (firewallExceptionV3 is null) return;
+            if (listViewAppPath.SelectedItems[0].Tag is not FirewallExceptionV3 firewallExceptionV3) return;
 
             ExceptionSettings.Remove(firewallExceptionV3);
             listViewAppPath.SelectedItems[0].Remove();

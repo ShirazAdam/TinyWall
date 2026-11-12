@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using ModernTinyWall.TinyWall;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,6 +54,7 @@ internal sealed class ServicesService : IServicesService
             using RegistryKey keyHklm = Registry.LocalMachine;
             using RegistryKey key = keyHklm.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\" + serviceName) ?? throw new InvalidOperationException();
             var imagePath = (key.GetValue("ImagePath") as string ?? string.Empty).Replace("\"", string.Empty);
+            imagePath = PathMapper.Instance.ConvertPathIgnoreErrors(imagePath, PathFormat.Win32);
 
             while (true)
             {

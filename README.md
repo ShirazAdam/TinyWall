@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.11**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.11`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.5.12**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.5.12`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
 
@@ -51,6 +51,8 @@ The Overview traffic chart uses the same TCP/UDP tracking and Internet/local cla
 For Release builds, install `ModernTinyWall.exe` in the same directory as the matching `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this co-located modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
 
 Modern TinyWall's outbound connection prompt displays the application's name, icon, executable path, protocol, and destination. Users can allow the destination for five minutes, always allow the application, deny the attempt, or always block the application. The initial connection attempt is blocked before the prompt appears, so the application may need to retry after it is allowed. Existing approved rules continue to work without prompting.
+
+Windows device paths are displayed as drive-letter or mounted-volume paths where Windows can resolve them. If a device has no accessible mount point, the original path is retained rather than guessing.
 
 ### Experimental pending-connection driver
 

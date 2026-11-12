@@ -49,7 +49,7 @@ namespace ModernTinyWall.Windows
         }
 
         private readonly ManualResetEvent _cacheReadyEvent = new(false);
-        private readonly string _systemRoot = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        private readonly string _systemRoot = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         private readonly Lock _locker = new();
 
         private bool _cacheRebuilding;
