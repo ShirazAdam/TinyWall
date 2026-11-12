@@ -34,5 +34,6 @@
     <Compile Include="..\ModernTinyWall\Services\IOptionsService.cs" Link="IOptionsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\OptionsService.cs" Link="OptionsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\ProtectionModeIcon.cs" Link="ProtectionModeIcon.cs" />
+    <Compile Include="..\ModernTinyWall\Services\FirewallPromptBacklog.cs" Link="FirewallPromptBacklog.cs" />
   </ItemGroup>
 </Project>

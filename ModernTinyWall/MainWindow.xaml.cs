@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Automation;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
@@ -33,6 +35,7 @@ public sealed partial class MainWindow
     private readonly FirewallPromptMonitor _firewallPromptMonitor = App.Services.GetRequiredService<FirewallPromptMonitor>();
     private readonly ITinyWallExceptionStore _exceptionStore = App.Services.GetRequiredService<ITinyWallExceptionStore>();
     private readonly GlobalHotkeyService _globalHotkeyService = new();
+    private readonly FirewallPromptBacklog _firewallPromptBacklog = new();
     private readonly CancellationTokenSource _promptMonitoringCancellation = new();
     private readonly Channel<FirewallLogEntry> _promptQueue = Channel.CreateBounded<FirewallLogEntry>(
         new BoundedChannelOptions(128) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = true });
@@ -216,6 +219,8 @@ public sealed partial class MainWindow
                 {
                     if (entry.PendingConnectionId != 0 && !_firewallPromptMonitor.IsPending(entry.PendingConnectionId))
                         continue;
+                    if (_firewallPromptBacklog.IsObsolete(entry))
+                        continue;
                     if (await ShowFirewallPromptAsync(entry) && entry.PendingConnectionId != 0)
                         _firewallPromptMonitor.ForgetPending(entry.PendingConnectionId);
                 }
@@ -300,22 +305,60 @@ public sealed partial class MainWindow
             XamlRoot = Content.XamlRoot,
             Title = isPending ? "Outbound connection awaiting permission" : "Outbound connection blocked",
             Content = content,
-            PrimaryButtonText = "Allow destination (5 min)",
-            SecondaryButtonText = "Allow always",
             CloseButtonText = "Deny once",
             DefaultButton = ContentDialogButton.Close
         };
-        var denyAlwaysButton = new Button
+        const string denyOnceTip = "Deny this connection without saving a rule. The application may prompt again.";
+        var closeStyle = new Style(typeof(Button));
+        closeStyle.Setters.Add(new Setter(ToolTipService.ToolTipProperty, denyOnceTip));
+        closeStyle.Setters.Add(new Setter(AutomationProperties.HelpTextProperty, denyOnceTip));
+        if (!new AccessibilitySettings().HighContrast)
         {
-            Content = "Deny always",
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-        denyAlwaysButton.Click += (_, _) =>
+            closeStyle.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 164, 38, 44))));
+            closeStyle.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Microsoft.UI.Colors.White)));
+        }
+        dialog.CloseButtonStyle = closeStyle;
+
+        var buttons = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
+        buttons.ColumnDefinitions.Add(new ColumnDefinition());
+        buttons.ColumnDefinitions.Add(new ColumnDefinition());
+        buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        void AddDecisionButton(string label, string tooltip, FirewallPromptDecision choice, int row, int column, SolidColorBrush colour)
         {
-            decision = FirewallPromptDecision.DenyAlways;
-            dialog.Hide();
-        };
-        content.Children.Add(denyAlwaysButton);
+            var button = new Button
+            {
+                Content = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center },
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                MinHeight = 44
+            };
+            if (!new AccessibilitySettings().HighContrast)
+            {
+                button.Background = colour;
+                button.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+            }
+            ToolTipService.SetToolTip(button, tooltip);
+            AutomationProperties.SetHelpText(button, tooltip);
+            button.Click += (_, _) => { decision = choice; dialog.Hide(); };
+            Grid.SetRow(button, row);
+            Grid.SetColumn(button, column);
+            buttons.Children.Add(button);
+        }
+
+        var green = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 11, 106, 57));
+        var blue = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 0, 90, 158));
+        var red = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 164, 38, 44));
+        AddDecisionButton("Allow all outbound", "Always allow this executable to make outbound connections to any IP address or port. This affects every process using it and replaces its application-wide block. Other block rules may still apply.",
+            FirewallPromptDecision.AllowAlways, 0, 0, green);
+        AddDecisionButton("Deny all traffic", "Always block inbound and outbound traffic for this executable.",
+            FirewallPromptDecision.DenyAlways, 0, 1, red);
+        AddDecisionButton("Allow IP and port (5 min)", "Allow this executable to connect to the displayed IP address and port using this protocol for five minutes.",
+            FirewallPromptDecision.AllowOnce, 1, 0, blue);
+        AddDecisionButton("Allow IP and port always", "Always allow this executable to connect to the displayed IP address and port using this protocol. This replaces its application-wide block; other block rules may still apply.",
+            FirewallPromptDecision.AllowDestinationAlways, 1, 1, blue);
+        content.Children.Add(buttons);
 
         var expired = false;
         var expiryTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
@@ -329,10 +372,9 @@ public sealed partial class MainWindow
             }
         };
         expiryTimer.Start();
-        ContentDialogResult result;
         try
         {
-            result = await ShowDialogAsync(dialog);
+            _ = await ShowDialogAsync(dialog);
         }
         finally
         {
@@ -343,15 +385,7 @@ public sealed partial class MainWindow
             _trayIconService.SetStatus("Pending connection expired or was withdrawn. No rule was saved.");
             return true;
         }
-        decision = result switch
-        {
-            ContentDialogResult.Primary => FirewallPromptDecision.AllowOnce,
-            ContentDialogResult.Secondary => FirewallPromptDecision.AllowAlways,
-            _ when decision == FirewallPromptDecision.DenyAlways => decision,
-            _ => FirewallPromptDecision.DenyOnce
-        };
-
-        var allow = decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways;
+        var allow = decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways or FirewallPromptDecision.AllowDestinationAlways;
         if (isPending && allow)
         {
             if (!FirewallPromptValidation.TryGetDestination(entry, out _, out _))
@@ -372,6 +406,8 @@ public sealed partial class MainWindow
             }
         }
         var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+        if (mutationResult.Success && decision == FirewallPromptDecision.AllowAlways)
+            _firewallPromptBacklog.MarkApplicationAllowed(executablePath, DateTime.Now);
         if (isPending && !allow)
         {
             var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);

@@ -29,7 +29,8 @@ public enum FirewallPromptDecision
     AllowOnce,
     AllowAlways,
     DenyOnce,
-    DenyAlways
+    DenyAlways,
+    AllowDestinationAlways
 }
 
 public static class FirewallPromptValidation

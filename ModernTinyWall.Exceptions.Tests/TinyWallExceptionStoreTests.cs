@@ -151,6 +151,58 @@ public sealed class TinyWallExceptionStoreTests
     }
 
     [TestMethod]
+    public async Task ApplyFirewallPromptDestinationAlwaysThenAddsPermanentSpecificRule()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowDestinationAlways);
+
+        Assert.IsTrue(result.Success);
+        var exception = client.Config.ActiveProfile.AppExceptions[0];
+        Assert.AreEqual(AppExceptionTimer.Permanent, exception.Timer);
+        var policy = Assert.IsInstanceOfType<RuleListPolicy>(exception.Policy);
+        Assert.HasCount(1, policy.Rules);
+        Assert.AreEqual(RuleDirection.Out, policy.Rules[0].Direction);
+        Assert.AreEqual(Protocol.TCP, policy.Rules[0].Protocol);
+        Assert.AreEqual("203.0.113.8", policy.Rules[0].RemoteAddresses);
+        Assert.AreEqual("443", policy.Rules[0].RemotePorts);
+    }
+
+    [TestMethod]
+    [DataRow(FirewallPromptDecision.AllowAlways)]
+    [DataRow(FirewallPromptDecision.AllowDestinationAlways)]
+    public async Task PermanentAllowReplacesExistingApplicationBlock(FirewallPromptDecision decision)
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        client.Config.ActiveProfile.AppExceptions.Add(
+            new FirewallExceptionV3(new ExecutableSubject(@"C:\Program Files\App\app.exe"), HardBlockPolicy.Instance));
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), decision);
+
+        Assert.IsTrue(result.Success);
+        Assert.HasCount(1, client.Config.ActiveProfile.AppExceptions);
+        Assert.IsInstanceOfType<RuleListPolicy>(client.Config.ActiveProfile.AppExceptions[0].Policy);
+    }
+
+    [TestMethod]
+    public async Task ApplicationAllowDoesNotRemoveServiceSpecificBlock()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var serviceBlock = new FirewallExceptionV3(
+            new ServiceSubject(@"C:\Program Files\App\app.exe", "ExampleService"), HardBlockPolicy.Instance);
+        client.Config.ActiveProfile.AppExceptions.Add(serviceBlock);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowAlways);
+
+        Assert.IsTrue(result.Success);
+        Assert.HasCount(2, client.Config.ActiveProfile.AppExceptions);
+        CollectionAssert.Contains(client.Config.ActiveProfile.AppExceptions, serviceBlock);
+    }
+
+    [TestMethod]
     public async Task ApplyFirewallPromptDenyAlwaysThenAddsAppWideBlock()
     {
         var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
