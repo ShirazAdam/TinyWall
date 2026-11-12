@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.Exceptions.Tests;
@@ -217,6 +218,31 @@ public sealed class DataUsageTests
         Assert.AreEqual("Large.exe", viewModel.Applications[0].Application);
         viewModel.SortIndex = 5;
         Assert.AreEqual("400 B", viewModel.Applications[0].LocalSent);
+    }
+
+    [TestMethod]
+    [DataRow("en-US")]
+    [DataRow("de-DE")]
+    public async Task TrackingStatusUsesUkDateAnd24HourTime(string cultureName)
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+            var localStart = new DateTime(2026, 11, 6, 16, 7, 0, DateTimeKind.Local);
+            var snapshot = new DataUsageSnapshot([], new DateTimeOffset(localStart).ToUniversalTime(), null, null);
+            var viewModel = new DataUsagePageViewModel(_ => Task.FromResult(snapshot));
+
+            await viewModel.RefreshAsync();
+
+            Assert.IsTrue(Regex.IsMatch(viewModel.StatusMessage,
+                @"^Tracking since 06/11/2026 16:07\. Updated (?:[01]\d|2[0-3]):[0-5]\d\.$"),
+                viewModel.StatusMessage);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+        }
     }
 
     [TestMethod]

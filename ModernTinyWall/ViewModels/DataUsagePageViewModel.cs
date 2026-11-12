@@ -101,7 +101,8 @@ internal sealed class DataUsagePageViewModel : ObservableObject
                     _applications = snapshot.Applications;
                     RebuildRows();
                     var tracking = snapshot.TrackingStarted is { } started
-                        ? $"Tracking since {started.ToLocalTime():g}. Updated {DateTime.Now:t}."
+                        ? $"Tracking since {started.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture)}. " +
+                          $"Updated {DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture)}."
                         : "No traffic has been recorded yet.";
                     StatusMessage = snapshot.Error is { } error
                         ? $"{error} Displayed totals may be incomplete."
