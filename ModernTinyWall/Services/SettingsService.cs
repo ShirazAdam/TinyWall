@@ -109,8 +109,7 @@ internal sealed class SettingsService : ISettingsService
                 [
                     new SettingsItem("maintenance.import", "Import settings", "Import TinyWall settings from a file.", false, false),
                     new SettingsItem("maintenance.export", "Export settings", "Export TinyWall settings to a file.", false, false),
-                    new SettingsItem("maintenance.update", "Check for updates", "Check whether a newer TinyWall version is available.", serviceConfig.AutoUpdateCheck, false),
-                    new SettingsItem("maintenance.licence", "Licence and attributions", "Show licence and third-party attribution information.", false, false)
+                    new SettingsItem("maintenance.update", "Check for updates", "Check whether a newer TinyWall version is available.", serviceConfig.AutoUpdateCheck, false)
                 ])
         ];
     }
