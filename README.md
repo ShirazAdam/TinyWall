@@ -144,6 +144,8 @@ You're welcome to hack and slash at it. Enjoy!
 
 Run `.\installer\build-msi.ps1` to publish matching self-contained x64 applications, refresh the file list in `TinyWallSetup\TinyWallSetup.vdproj` and build that project using Visual Studio Installer Projects. This is the only installer technology used and produces `TinyWallSetup\Release\TinyWallSetup.msi`. The MSI includes the catalogue seed, executable shortcuts, administrator-protected installation directory and service installation/removal actions. Building never installs or starts the service. The separate `installer\build-package.ps1` script creates ZIP staging archives, not installers. Follow the build instructions and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md).
 
+The `.NET 10 Desktop` GitHub Actions workflow builds and validates the MSI on the `windows-2025-vs2026` runner, which includes Visual Studio 2026 and the Installer Projects extension. Each run uploads `ModernTinyWall-<version>-win-x64.msi` and its SHA-256 file as a workflow artefact; pushes to `master` also attach them to the GitHub release alongside the ZIP archives. The MSI is unsigned.
+
 ### Main projects
 
 - `ModernTinyWall` - modern .NET 10 Windows desktop client.

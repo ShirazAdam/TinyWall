@@ -47,8 +47,53 @@ jobs:
     - name: Test
       run: dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --configuration ${{ matrix.configuration }} --filter 'TestCategory!=LiveETW'
 
-  release:
+  installer:
     needs: build
+    # This image includes Visual Studio 2026 and the Visual Studio Installer Projects extension.
+    runs-on: windows-2025-vs2026
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Allow command-line Installer Projects builds
+      shell: pwsh
+      run: ./installer/enable-ci-msi-build.ps1
+
+    - name: Build and validate MSI (not installed)
+      id: msi
+      shell: pwsh
+      run: |
+        .\installer\build-msi.ps1
+        [xml]$project = Get-Content ModernTinyWall\ModernTinyWall.csproj -Raw
+        $version = $project.Project.PropertyGroup |
+          Where-Object { $_.Version } |
+          Select-Object -First 1 -ExpandProperty Version
+        $name = "ModernTinyWall-$version-win-x64.msi"
+        $output = Join-Path artifacts\installer $name
+        Copy-Item TinyWallSetup\Release\TinyWallSetup.msi $output -Force
+        $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
+        Set-Content -LiteralPath "$output.sha256" -Value "$hash  $name" -Encoding ascii
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "name=$name"
+
+    - name: Upload MSI artefact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.msi.outputs.name }}
+        path: |
+          artifacts/installer/*.msi
+          artifacts/installer/*.msi.sha256
+        if-no-files-found: error
+
+  release:
+    needs: [build, installer]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: windows-latest
     permissions:
@@ -103,7 +148,14 @@ jobs:
 
         Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
 
-    - name: Publish application archives (not MSI installers)
+    - name: Download MSI artefact
+      uses: actions/download-artifact@v4
+      with:
+        pattern: ModernTinyWall-*.msi
+        path: artifacts/msi
+        merge-multiple: true
+
+    - name: Publish application archives and MSI
       id: package
       shell: pwsh
       run: |
@@ -111,7 +163,12 @@ jobs:
         $assets = @(
           Get-ChildItem artifacts\release\*.zip -File | ForEach-Object { $_.FullName }
           Get-ChildItem artifacts\release\*.zip.sha256 -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\msi\*.msi -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\msi\*.msi.sha256 -File | ForEach-Object { $_.FullName }
         )
+        if (-not (Get-ChildItem artifacts\msi\*.msi -File)) {
+          throw "The MSI artefact is missing."
+        }
         if (-not $assets) {
           throw "Packaging produced no release assets."
         }
