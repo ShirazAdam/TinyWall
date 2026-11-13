@@ -1,6 +1,6 @@
 # Visual Studio MSI installer and application staging
 
-`TinyWallSetup\TinyWallSetup.vdproj` is the sole installer project. `build-msi.ps1` stages both applications, refreshes that project's explicit file list and invokes Visual Studio Installer Projects to produce an x64 MSI. `build-package.ps1` only publishes and validates application staging archives.
+`TinyWallSetup\TinyWallSetup.vdproj` is the sole installer project. `build-msi.ps1` stages both applications and invokes Visual Studio Installer Projects to produce separate native x86 and x64 MSIs. `build-package.ps1` only publishes and validates application staging archives, including ARM64. No WiX tooling is used.
 
 ## Requirements
 
@@ -15,18 +15,24 @@ TinyWall currently resolves newer `System.CodeDom`, `System.Collections.Immutabl
 ## Build the MSI
 
 ```powershell
-# Publish, verify, refresh the setup project and compile an x64 MSI.
+# Publish, verify and compile both x86 and x64 MSIs.
 .\installer\build-msi.ps1
 
-# Rebuild using an already-published, matching and verified payload.
-.\installer\build-msi.ps1 -UsePublishedFiles
+# Build just one native MSI architecture.
+.\installer\build-msi.ps1 -Architecture win-x86
+.\installer\build-msi.ps1 -Architecture win-x64
+
+# Rebuild using already-published, matching and verified payloads.
+.\installer\build-msi.ps1 -Architecture All -UsePublishedFiles
 ```
 
-The output is `TinyWallSetup\Release\TinyWallSetup.msi` with a SHA-256 sidecar. The isolated `TinyWallSetup\TinyWallSetup.sln` avoids rebuilding unrelated solution projects. After staging, the same `.vdproj` can also be opened and built in Visual Studio. Both applications are self-contained; no .NET runtime prerequisite or bootstrapper download is needed. The setup project targets x64 only, even when the archive script publishes other architectures.
+Outputs are `artifacts\installer\ModernTinyWall-<version>-win-x86.msi` and `ModernTinyWall-<version>-win-x64.msi`, each with a SHA-256 sidecar. Each build generates an isolated copy of the setup project and solution under `artifacts\installer\<runtime>`, with matching absolute payload paths, target platform, Program Files directory and post-build arguments. These copies can also be opened in Visual Studio. The source project remains unchanged by packaging. Both applications are self-contained; no .NET runtime prerequisite or bootstrapper download is needed.
 
-The project's post-build step uses the Windows Installer API (`complete-msi.ps1`) to add elevated, deferred service actions to the MSI produced by Visual Studio; it is not another installer toolchain. Installation invokes the packaged `TinyWall.exe /install`. Uninstallation invokes `/uninstall /quiet` before file removal, using TinyWall's own authenticated service-stop and WFP cleanup rather than an SCM stop that the Release service deliberately rejects. Quiet uninstallation requires administrator privileges and rejects a locked service without displaying an inaccessible password prompt; unlock TinyWall before uninstalling. A rollback action cleans up a failed first installation. Existing ProgramData settings and catalogue files are not MSI payload files.
+The x86 MSI targets 32-bit Windows and enforces `[ProgramFilesFolder]\TinyWall`; the x64 MSI enforces `[ProgramFiles64Folder]\TinyWall`. Each generated package has distinct ProductCode and PackageCode values; both retain the existing UpgradeCode so they represent the same application rather than installing two competing services. **There is no native ARM64 MSI or combined installer.** The current Visual Studio Installer Projects tooling has no ARM64 target; ARM64 remains a ZIP staging archive. Do not treat x64 emulation as validated ARM64 installation support.
 
-`test-msi.ps1` opens the MSI read-only and checks its file count, destination paths and sizes against the staged payload, required application/runtime/catalogue files, and service action ordering. These are build checks, not proof of installation behaviour. Install, upgrade, failure recovery and uninstall still require the VM checklist below. The build scripts do not install tools, change registry settings, run the MSI or start either application on the build host.
+The project's post-build step uses the Windows Installer API (`complete-msi.ps1 -Architecture <runtime>`) to add elevated, deferred service actions to the MSI produced by Visual Studio; it is not another installer toolchain. Installation invokes the packaged `TinyWall.exe /install`. Uninstallation invokes `/uninstall /quiet` before file removal, using TinyWall's own authenticated service-stop and WFP cleanup rather than an SCM stop that the Release service deliberately rejects. Quiet uninstallation requires administrator privileges and rejects a locked service without displaying an inaccessible password prompt; unlock TinyWall before uninstalling. A rollback action cleans up a failed first installation. Existing ProgramData settings and catalogue files are not MSI payload files.
+
+`test-msi.ps1 -Path <msi> -Architecture <runtime>` opens the MSI read-only and checks its platform summary, component bitness, version, per-machine scope, UpgradeCode, application/runtime PE architecture, protected installation path, launch condition, file count, destination paths and sizes against the staged payload, required files, shortcut icons and service action ordering. These are build checks, not proof of installation behaviour. Install, upgrade, failure recovery and uninstall still require the VM checklist below on matching OS architectures. The build scripts do not install tools, change registry settings, run the MSI or start either application on the build host.
 
 **VM validation status:** the 4.5.7 x64 MSI installed in the Windows 11 Hyper-V development VM, but its service failed with a stack overflow in IP address parsing. Version 4.5.8 fixed the parser, but its upgrade omitted two UI libraries. Version 4.5.9 corrects the installer metadata; live validation remains necessary before distribution.
 
@@ -41,7 +47,7 @@ Run these commands from the repository root:
 # Publish both apps, validate shared-file collisions, combine outputs, and create archives.
 .\installer\build-package.ps1 -Architecture All
 
-# Publish just one architecture; this does not select the MSI target platform.
+# Publish just one architecture without building an MSI.
 .\installer\build-package.ps1 -Architecture win-x64
 
 # Validate already-published inputs without building or changing them.
@@ -51,9 +57,9 @@ Run these commands from the repository root:
 .\installer\build-package.ps1 -Architecture win-x64 -VerifyArchive
 ```
 
-`All` supports `win-x86`, `win-x64`, and `win-arm64` application archives; any other value fails explicitly. This does not imply matching MSI platform support or change the Visual Studio setup project's target platform. Architecture-specific publish or COM resolution failures stop packaging for that runtime. Shared relative filenames are compared by SHA-256 before combining: identical files are retained once, while differing files stop the build instead of being overwritten.
+`All` supports `win-x86`, `win-x64`, and `win-arm64` application archives; any other value fails explicitly. MSI builds support only `win-x86` and `win-x64`; asking `build-msi.ps1` for `win-arm64` fails explicitly. Architecture-specific publish or COM resolution failures stop packaging for that runtime. Shared relative filenames are compared by SHA-256 before combining: identical files are retained once, while differing files stop the build instead of being overwritten.
 
-The application inputs are written to `artifacts\publish\TinyWall\<runtime>` and `artifacts\publish\ModernTinyWall\<runtime>`. Combined files go to `artifacts\publish\TinyWallDual\<runtime>` and archives to `artifacts\release\TinyWall-<version>-<runtime>.zip`. Each archive contains `package-manifest.json` with the release version, runtime, and every payload file's size and SHA-256. A sibling `.zip.sha256` records the archive hash. Packaging verifies the full archive before reporting success. These checks detect corruption, not authenticity; no signing is performed. CI also builds the x64 MSI with `build-msi.ps1` on the `windows-2025-vs2026` runner after running `enable-ci-msi-build.ps1`, which disables out-of-process Installer Projects builds so `devenv.com` can compile the `.vdproj` headlessly. The MSI and its `.sha256` file are uploaded as workflow artefacts and attached to `master` releases with the ZIP archives.
+The application inputs are written to `artifacts\publish\TinyWall\<runtime>` and `artifacts\publish\ModernTinyWall\<runtime>`. Combined files go to `artifacts\publish\TinyWallDual\<runtime>` and archives to `artifacts\release\TinyWall-<version>-<runtime>.zip`. Each archive contains `package-manifest.json` with the release version, runtime, and every payload file's size and SHA-256. A sibling `.zip.sha256` records the archive hash. Packaging verifies the full archive before reporting success. These checks detect corruption, not authenticity; no signing is performed. CI builds the two MSI architectures in separate matrix jobs on the `windows-2025-vs2026` runner after running `enable-ci-msi-build.ps1`, which disables out-of-process Installer Projects builds so `devenv.com` can compile the `.vdproj` headlessly. Both MSIs and their `.sha256` files are uploaded as separate workflow artefacts and required for `master` releases alongside the x86, x64 and ARM64 ZIP archives.
 
 Packaging builds files and invokes only the freshly published legacy executable's explicit offline compiler:
 
@@ -70,9 +76,9 @@ The service owns the authoritative `%ProgramData%\TinyWall\profiles.db`. On firs
 
 Staging and MSI compilation must not launch either UI, install a service, run an installer or change Windows configuration. Archives are staging/review artefacts, not portable service installations. Release service authentication requires matching `TinyWall.exe` and `ModernTinyWall.exe` in the same administrator-protected installation directory; copying them into a user-writable directory is insufficient. Driver files are excluded from staging.
 
-## Windows 11 Hyper-V manual test checklist (VM only)
+## Architecture-matching VM manual test checklist
 
-Use a disposable Windows 11 Hyper-V VM with a checkpoint and a clean snapshot. Never run these installer/service tests on a developer or CI host.
+Use disposable VMs with checkpoints and clean snapshots: x64 Windows for the x64 MSI, and supported 32-bit Windows 10 for the x86 MSI (Windows 11 has no x86 edition). Never run these installer/service tests on a developer or CI host.
 
 1. **Secure install:** Copy the architecture-matching MSI into the VM from a verified release source. Signing is not provided by the staging workflow; do not treat publisher metadata as a digital signature. Verify administrator elevation, an administrator-protected Program Files location and rejection of user-writable installation paths. Confirm a standard user cannot replace either executable or its dependencies, both executables are in the same directory and no driver was installed.
 2. **Both clients communicate and preview UI:** Start TinyWall and Modern TinyWall separately. Confirm each reads service status/settings and can submit a harmless setting change; verify the other client observes the resulting state. In the VM, launch Modern TinyWall with `--preview-theme=light`, `--preview-theme=dark`, and `--preview-theme=system`; also verify `--preview-reduced-motion` and `--preview-size=1024x768` (these flags are per-process previews and should not change Windows settings). Verify the opening window is centred within the monitor work area, remains inside the taskbar margins, and does not jump off-screen after first-show DPI adjustment. Record any connection, compatibility, or rendering errors.

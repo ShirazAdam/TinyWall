@@ -49,6 +49,10 @@ jobs:
 
   installer:
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x86, win-x64]
     # This image includes Visual Studio 2026 and the Visual Studio Installer Projects extension.
     runs-on: windows-2025-vs2026
 
@@ -71,16 +75,16 @@ jobs:
       id: msi
       shell: pwsh
       run: |
-        .\installer\build-msi.ps1
+        .\installer\build-msi.ps1 -Architecture ${{ matrix.runtime }}
         [xml]$project = Get-Content ModernTinyWall\ModernTinyWall.csproj -Raw
         $version = $project.Project.PropertyGroup |
           Where-Object { $_.Version } |
           Select-Object -First 1 -ExpandProperty Version
-        $name = "ModernTinyWall-$version-win-x64.msi"
+        $name = "ModernTinyWall-$version-${{ matrix.runtime }}.msi"
         $output = Join-Path artifacts\installer $name
-        Copy-Item TinyWallSetup\Release\TinyWallSetup.msi $output -Force
-        $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash
-        Set-Content -LiteralPath "$output.sha256" -Value "$hash  $name" -Encoding ascii
+        if (-not (Test-Path -LiteralPath $output) -or -not (Test-Path -LiteralPath "$output.sha256")) {
+          throw "The ${{ matrix.runtime }} MSI or checksum is missing."
+        }
         Add-Content -Path $env:GITHUB_OUTPUT -Value "name=$name"
 
     - name: Upload MSI artefact
@@ -88,8 +92,8 @@ jobs:
       with:
         name: ${{ steps.msi.outputs.name }}
         path: |
-          artifacts/installer/*.msi
-          artifacts/installer/*.msi.sha256
+          artifacts/installer/${{ steps.msi.outputs.name }}
+          artifacts/installer/${{ steps.msi.outputs.name }}.sha256
         if-no-files-found: error
 
   release:
@@ -165,8 +169,11 @@ jobs:
           Get-ChildItem artifacts\msi\*.msi -File | ForEach-Object { $_.FullName }
           Get-ChildItem artifacts\msi\*.msi.sha256 -File | ForEach-Object { $_.FullName }
         )
-        if (-not (Get-ChildItem artifacts\msi\*.msi -File)) {
-          throw "The MSI artefact is missing."
+        foreach ($runtime in @('win-x86', 'win-x64')) {
+          $msi = "artifacts\msi\ModernTinyWall-${{ steps.version.outputs.version }}-$runtime.msi"
+          if (-not (Test-Path -LiteralPath $msi) -or -not (Test-Path -LiteralPath "$msi.sha256")) {
+            throw "The $runtime MSI artefact or checksum is missing."
+          }
         }
         if (-not $assets) {
           throw "Packaging produced no release assets."

@@ -1,10 +1,16 @@
 [CmdletBinding()]
 param(
-    [string] $Path
+    [string] $Path,
+    [ValidateSet('win-x86', 'win-x64')]
+    [string] $Architecture = 'win-x64'
 )
 
 $ErrorActionPreference = 'Stop'
-if (-not $Path) { $Path = Join-Path $PSScriptRoot '..\TinyWallSetup\Release\TinyWallSetup.msi' }
+$payload = (Resolve-Path (Join-Path $PSScriptRoot "..\artifacts\publish\TinyWallDual\$Architecture")).Path
+$manifest = Get-Content -LiteralPath (Join-Path $payload 'package-manifest.json') -Raw | ConvertFrom-Json
+if (-not $Path) {
+    $Path = Join-Path $PSScriptRoot "..\artifacts\installer\ModernTinyWall-$($manifest.version)-$Architecture.msi"
+}
 $installer = New-Object -ComObject WindowsInstaller.Installer
 $database = $installer.OpenDatabase((Resolve-Path -LiteralPath $Path).Path, 0)
 function Get-Rows([string] $Sql, [int] $Columns) {
@@ -22,6 +28,8 @@ Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
+using System.Text;
 
 public static class TinyWallMsiIconReader
 {
@@ -34,8 +42,26 @@ public static class TinyWallMsiIconReader
     [DllImport("msi.dll")] private static extern uint MsiRecordDataSize(uint record, uint field);
     [DllImport("msi.dll")] private static extern uint MsiRecordReadStream(uint record, uint field, byte[] buffer, ref uint size);
     [DllImport("msi.dll")] private static extern uint MsiCloseHandle(uint handle);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiGetSummaryInformation(uint database, string path, uint updateCount, out uint summary);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiSummaryInfoGetProperty(uint summary, uint property, out uint type, out int number, out FILETIME time, StringBuilder value, ref uint length);
 
     private static void Check(uint result) { if (result != 0) throw new Win32Exception((int)result); }
+
+    public static string GetTemplate(string path)
+    {
+        uint summary = 0;
+        try
+        {
+            Check(MsiGetSummaryInformation(0, path, 0, out summary));
+            var value = new StringBuilder(1024);
+            uint length = (uint)value.Capacity, type;
+            int number;
+            FILETIME time;
+            Check(MsiSummaryInfoGetProperty(summary, 7, out type, out number, out time, value, ref length));
+            return value.ToString();
+        }
+        finally { if (summary != 0) MsiCloseHandle(summary); }
+    }
 
     public static byte[] Read(string path, string name)
     {
@@ -88,6 +114,25 @@ function Get-ComparableIconHash([byte[]] $Bytes) {
     finally { $sha.Dispose() }
 }
 try {
+    $template = [TinyWallMsiIconReader]::GetTemplate((Resolve-Path -LiteralPath $Path).Path)
+    $expectedPlatform = if ($Architecture -eq 'win-x86') { 'Intel' } else { 'x64' }
+    if (($template -split ';')[0] -ne $expectedPlatform) {
+        throw "Wrong MSI platform: $template; expected $expectedPlatform for $Architecture."
+    }
+    $properties = @{}
+    foreach ($row in (Get-Rows 'SELECT `Property`, `Value` FROM `Property`' 2)) { $properties[$row[0]] = $row[1] }
+    if ($manifest.runtime -ne $Architecture -or $properties.ProductVersion -ne $manifest.version -or
+        $properties.UpgradeCode -ne '{1AAB1576-7FE1-4E1B-97EF-752836D76325}' -or $properties.ALLUSERS -ne '1') {
+        throw 'MSI version, runtime, upgrade identity or per-machine installation scope is incorrect.'
+    }
+    $expectedMachine = if ($Architecture -eq 'win-x86') { 0x014c } else { 0x8664 }
+    foreach ($name in @('TinyWall.exe', 'ModernTinyWall.exe', 'coreclr.dll')) {
+        $bytes = [IO.File]::ReadAllBytes((Join-Path $payload $name))
+        $pe = [BitConverter]::ToInt32($bytes, 0x3c)
+        if ([BitConverter]::ToUInt16($bytes, $pe + 4) -ne $expectedMachine) {
+            throw "$name does not match the $Architecture MSI architecture."
+        }
+    }
     $files = @(Get-Rows 'SELECT `File`, `FileName`, `FileSize`, `Component_`, `Version` FROM `File`' 5)
     $actions = @(Get-Rows 'SELECT `Action`, `Type`, `Source`, `Target` FROM `CustomAction`' 4)
     $sequence = @(Get-Rows 'SELECT `Action`, `Condition`, `Sequence` FROM `InstallExecuteSequence`' 3)
@@ -97,15 +142,18 @@ try {
             Write-Output ($row -join ' | ')
         }
     }
-    $expected = @(Get-ChildItem (Join-Path $PSScriptRoot '..\artifacts\publish\TinyWallDual\win-x64') -File -Recurse)
+    $expected = @(Get-ChildItem -LiteralPath $payload -File -Recurse)
     if ($files.Count -ne $expected.Count) { throw "Wrong MSI file count: $($files.Count)." }
     $directories = @{}
     foreach ($row in (Get-Rows 'SELECT `Directory`, `Directory_Parent`, `DefaultDir` FROM `Directory`' 3)) {
         $directories[$row[0]] = $row
     }
     $components = @{}
-    foreach ($row in (Get-Rows 'SELECT `Component`, `Directory_` FROM `Component`' 2)) {
+    foreach ($row in (Get-Rows 'SELECT `Component`, `Directory_`, `Attributes` FROM `Component`' 3)) {
         $components[$row[0]] = $row[1]
+        if ((([int] $row[2] -band 256) -ne 0) -ne ($Architecture -eq 'win-x64')) {
+            throw "MSI component has incorrect bitness: $($row[0])."
+        }
     }
     function Get-RelativeDirectory([string] $Key) {
         if ($Key -eq 'TARGETDIR') { return '' }
@@ -117,7 +165,6 @@ try {
         if ($parent) { return "$parent\$name" }
         return $name
     }
-    $payload = (Resolve-Path (Join-Path $PSScriptRoot '..\artifacts\publish\TinyWallDual\win-x64')).Path
     $modernIconHash = Get-ComparableIconHash ([IO.File]::ReadAllBytes((Join-Path $payload 'Assets\ModernTinyWall.ico')))
     $modernShortcuts = @(Get-Rows 'SELECT `Name`, `Icon_` FROM `Shortcut`' 2 | Where-Object {
         (($_[0] -split '\|')[-1]) -eq 'Modern TinyWall'
@@ -154,6 +201,15 @@ try {
             throw "Missing or duplicate MSI lifecycle action: $name."
         }
     }
+    $protectedDirectory = @($actions | Where-Object { $_[0] -eq 'TinyWallProtectedDirectory' })[0]
+    $expectedDirectory = if ($Architecture -eq 'win-x86') { '[ProgramFilesFolder]TinyWall\' } else { '[ProgramFiles64Folder]TinyWall\' }
+    if ($protectedDirectory[2] -ne 'TARGETDIR' -or $protectedDirectory[3] -ne $expectedDirectory) {
+        throw 'MSI must enforce the architecture-matching protected Program Files directory.'
+    }
+    $expectedCondition = if ($Architecture -eq 'win-x86') { 'Installed OR NOT VersionNT64' } else { 'Installed OR VersionNT64' }
+    if (@(Get-Rows 'SELECT `Condition`, `Description` FROM `LaunchCondition`' 2 | Where-Object { $_[0] -eq $expectedCondition }).Count -ne 1) {
+        throw 'MSI is missing its CPU platform launch condition.'
+    }
     $serviceInstall = @($sequence | Where-Object { $_[0] -eq 'TinyWallInstall' })[0]
     $finalise = @($sequence | Where-Object { $_[0] -eq 'InstallFinalize' })[0]
     $serviceUninstall = @($sequence | Where-Object { $_[0] -eq 'TinyWallUninstall' })[0]
@@ -164,7 +220,7 @@ try {
     if ([int] $serviceUninstall[2] -ge [int] $removeFiles[2]) {
         throw 'Service shutdown and WFP cleanup must occur before MSI file removal.'
     }
-    Write-Output "Verified $($files.Count) MSI payload files and service lifecycle actions without installing the MSI."
+    Write-Output "Verified $Architecture MSI metadata, component bitness, $($files.Count) payload files and service lifecycle actions without installing the MSI."
 }
 finally {
     [Runtime.InteropServices.Marshal]::FinalReleaseComObject($database) | Out-Null

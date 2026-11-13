@@ -1,15 +1,18 @@
 [CmdletBinding()]
-param()
+param(
+    [ValidateSet('win-x86', 'win-x64')]
+    [string] $Architecture = 'win-x64'
+)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$payload = Join-Path $root 'artifacts\publish\TinyWallDual\win-x64'
+$payload = Join-Path $root "artifacts\publish\TinyWallDual\$Architecture"
 $projectPath = Join-Path $root 'TinyWallSetup\TinyWallSetup.vdproj'
 $project = Get-Content -LiteralPath $projectPath -Raw
 $manifest = Get-Content -LiteralPath (Join-Path $payload 'package-manifest.json') -Raw | ConvertFrom-Json
-if ($manifest.runtime -ne 'win-x64' -or
+if ($manifest.runtime -ne $Architecture -or
     $project -notmatch ('"ProductVersion" = "8:' + [regex]::Escape($manifest.version) + '"')) {
-    throw 'Publish a matching x64 application archive before preparing the MSI payload.'
+    throw "Publish a matching $Architecture application archive before preparing the MSI payload."
 }
 
 function Get-Key([string] $Path) {
@@ -61,7 +64,7 @@ foreach ($file in $files) {
     }
     $directory = [IO.Path]::GetDirectoryName($relative)
     $folder = if ($directory) { $folders[$directory] } else { $appFolder }
-    $source = ('..\artifacts\publish\TinyWallDual\win-x64\' + $relative).Replace('\', '\\')
+    $source = $file.FullName.Replace('\', '\\')
     $fileEntries.Add(@"
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:$key"
             {
@@ -119,6 +122,7 @@ $children
 $project = Set-Section $project 'Hierarchy' ($hierarchy -join "`r`n")
 $project = Set-Section $project 'File' ($fileEntries -join "`r`n")
 $project = Set-Section $project 'ProjectOutput' ''
+$programFiles = if ($Architecture -eq 'win-x86') { 'ProgramFilesFolder' } else { 'ProgramFiles64Folder' }
 $folderSection = @"
             "{1525181F-901A-416C-8A58-119130FE478E}:_080FEA96B8D944CCABDA982BC749BD65"
             {
@@ -133,7 +137,7 @@ $folderSection = @"
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:$appFolder"
             {
-            "DefaultLocation" = "8:[ProgramFiles64Folder]\\TinyWall"
+            "DefaultLocation" = "8:[$programFiles]\\TinyWall"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:TRUE"
             "Condition" = "8:"
@@ -159,5 +163,20 @@ $(Get-FolderEntries '')
 $project = Set-Section $project 'Folder' $folderSection
 $project = $project.Replace('"ARPPRODUCTICON" = "8:_BD68CFAA43D54F0EA07E7E5EFFD83FBA"',
     '"ARPPRODUCTICON" = "8:' + $fileKeys['Assets\firewall.ico'] + '"')
-[IO.File]::WriteAllText($projectPath, $project, [Text.UTF8Encoding]::new($true))
-Write-Output "Prepared $($files.Count) staged files in the Visual Studio MSI project."
+$platform = if ($Architecture -eq 'win-x86') { 0 } else { 1 }
+$project = [regex]::Replace($project, '"TargetPlatform" = "3:\d+"', '"TargetPlatform" = "3:' + $platform + '"')
+$project = [regex]::Replace($project, '"ProductCode" = "8:\{[^}]+\}"',
+    '"ProductCode" = "8:{' + [Guid]::NewGuid().ToString().ToUpperInvariant() + '}"')
+$project = [regex]::Replace($project, '"PackageCode" = "8:\{[^}]+\}"',
+    '"PackageCode" = "8:{' + [Guid]::NewGuid().ToString().ToUpperInvariant() + '}"')
+$postBuild = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"' +
+    (Join-Path $PSScriptRoot 'complete-msi.ps1').Replace('\', '\\') +
+    '\" -Path \"$(BuiltOuputPath)\" -Architecture ' + $Architecture
+$project = [regex]::Replace($project, '(?m)^([ ]*)"PostBuildEvent" = .*$', {
+    param($match)
+    return $match.Groups[1].Value + '"PostBuildEvent" = "8:' + $postBuild + '"'
+})
+$outputDirectory = Join-Path $root "artifacts\installer\$Architecture"
+New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+[IO.File]::WriteAllText((Join-Path $outputDirectory 'TinyWallSetup.vdproj'), $project, [Text.UTF8Encoding]::new($true))
+Write-Output "Prepared $($files.Count) staged $Architecture files in an isolated Visual Studio MSI project."

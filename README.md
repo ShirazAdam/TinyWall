@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.5**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.5`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.6**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.6`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -158,9 +158,9 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To build an installer
 
-Run `.\installer\build-msi.ps1` to publish matching self-contained x64 applications, refresh the file list in `TinyWallSetup\TinyWallSetup.vdproj` and build that project using Visual Studio Installer Projects. This is the only installer technology used and produces `TinyWallSetup\Release\TinyWallSetup.msi`. The MSI includes the catalogue seed, executable shortcuts, administrator-protected installation directory and service installation/removal actions. Building never installs or starts the service. The separate `installer\build-package.ps1` script creates ZIP staging archives, not installers. Follow the build instructions and Windows 11 Hyper-V checklist in [`installer/README.md`](installer/README.md).
+Run `.\installer\build-msi.ps1` to publish matching self-contained applications and build **separate x86 and x64 MSIs** using Visual Studio Installer Projects. Use `-Architecture win-x86` or `-Architecture win-x64` to build just one. Isolated copies of `TinyWallSetup\TinyWallSetup.vdproj` select the matching payload and MSI platform without changing the source project. Outputs are `artifacts\installer\ModernTinyWall-<version>-win-x86.msi` and `ModernTinyWall-<version>-win-x64.msi`, each with a SHA-256 sidecar. Use the x86 MSI on 32-bit Windows and the x64 MSI on x64 Windows. Each includes the catalogue seed, executable shortcuts, administrator-protected installation directory and service installation/removal actions. Building never installs or starts the service. The separate `installer\build-package.ps1` script creates ZIP staging archives for x86, x64 and ARM64, not installers. **There is no native ARM64 MSI or combined installer:** ARM64 remains a ZIP staging package because the current Visual Studio setup tooling does not provide an ARM64 MSI target. Follow the build instructions and VM checklist in [`installer/README.md`](installer/README.md).
 
-The `.NET 10 Desktop` GitHub Actions workflow builds and validates the MSI on the `windows-2025-vs2026` runner, which includes Visual Studio 2026 and the Installer Projects extension. Each run uploads `ModernTinyWall-<version>-win-x64.msi` and its SHA-256 file as a workflow artefact; pushes to `master` also attach them to the GitHub release alongside the ZIP archives. The MSI is unsigned.
+The `.NET 10 Desktop` GitHub Actions workflow builds and validates both MSI architectures in separate jobs on the `windows-2025-vs2026` runner, which includes Visual Studio 2026 and the Installer Projects extension. Each job uploads its architecture-specific MSI and SHA-256 file as a workflow artefact; pushes to `master` require and attach both MSIs to the GitHub release alongside the x86, x64 and ARM64 ZIP archives. The MSIs are unsigned.
 
 ### Main projects
 
