@@ -10,7 +10,7 @@
 	<EnableNETAnalyzers>true</EnableNETAnalyzers>
 	<EnableWindowsTargeting>true</EnableWindowsTargeting>
 	<RootNamespace>ModernTinyWall.Windows.Services</RootNamespace>
-	<Version>4.6.3</Version>
+	<Version>4.6.4</Version>
 	<NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
 

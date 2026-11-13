@@ -24,6 +24,7 @@
     <ProjectReference Include="..\ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj" />
     <Compile Include="..\TinyWall\DataUsageHistory.cs" Link="DataUsageHistory.cs" />
     <Compile Include="..\TinyWall\BlockedTrafficHistory.cs" Link="BlockedTrafficHistory.cs" />
+    <Compile Include="..\TinyWall\ServiceRecoveryPolicy.cs" Link="ServiceRecoveryPolicy.cs" />
     <Compile Include="..\ModernTinyWall\Models\BlockedTrafficDisplay.cs" Link="BlockedTrafficDisplay.cs" />
     <Compile Include="..\TinyWall\DataUsageCollector.cs" Link="DataUsageCollector.cs" />
     <Compile Include="..\ModernTinyWall\ViewModels\DataUsagePageViewModel.cs" Link="DataUsagePageViewModel.cs" />

@@ -40,66 +40,24 @@ namespace ModernTinyWall.Windows.Services
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         }
 
-        /// <summary>
-        /// Sets the nominated service to restart on failure.
-        /// </summary>
-        public void SetRestartOnFailure(string serviceName, bool restartOnFailure)
+        public void SetRecoveryCommand(string serviceName, string command)
         {
             const uint delay = 1000;
-            const int MAX_ACTIONS = 2;
-            int SC_ACTION_SIZE = Marshal.SizeOf(typeof(SC_ACTION));
-
-            // Open the service
             using var service = OpenService(
                 serviceName,
-                ServiceAccessRights.SERVICE_CHANGE_CONFIG |
-                ServiceAccessRights.SERVICE_START);
+                ServiceAccessRights.SERVICE_CHANGE_CONFIG);
 
-            using var actionPtr = SafeHGlobalHandle.Alloc(SC_ACTION_SIZE * MAX_ACTIONS);
-            int actionCount;
-            if (restartOnFailure)
-            {
-                actionCount = 2;
+            var action = new SC_ACTION { Type = SC_ACTION_TYPE.SC_ACTION_RUN_COMMAND, Delay = delay };
+            using var actionPtr = SafeHGlobalHandle.FromStruct(action);
 
-                // Set up the restart action
-                var action1 = new SC_ACTION
-                {
-                    Type = SC_ACTION_TYPE.SC_ACTION_RESTART,
-                    Delay = delay
-                };
-                actionPtr.MarshalFromStruct(action1, 0);
-
-                // Set up the "do nothing" action
-                var action2 = new SC_ACTION
-                {
-                    Type = SC_ACTION_TYPE.SC_ACTION_NONE,
-                    Delay = delay
-                };
-                actionPtr.MarshalFromStruct(action2, SC_ACTION_SIZE);
-            }
-            else
-            {
-                actionCount = 1;
-
-                // Set up the "do nothing" action
-                var action1 = new SC_ACTION
-                {
-                    Type = SC_ACTION_TYPE.SC_ACTION_NONE,
-                    Delay = delay
-                };
-                actionPtr.MarshalFromStruct(action1);
-            }
-
-            // Set up the failure actions
             var failureActions = new SERVICE_FAILURE_ACTIONS();
-            failureActions.dwResetPeriod = 0;
-            failureActions.cActions = (uint)actionCount;
+            failureActions.dwResetPeriod = uint.MaxValue;
+            failureActions.cActions = 1;
             failureActions.lpsaActions = actionPtr.DangerousGetHandle();
             failureActions.lpRebootMsg = null;
-            failureActions.lpCommand = null;
+            failureActions.lpCommand = command;
             using var failureActionsPtr = SafeHGlobalHandle.FromManagedStruct(failureActions);
 
-            // Make the change
             int changeResult = NativeMethods.ChangeServiceConfig2(
                 service,
                 ServiceConfig2InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS,

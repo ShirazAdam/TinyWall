@@ -2172,19 +2172,20 @@ namespace ModernTinyWall.TinyWall
 
         private void FirewallWorkerMethod()
         {
+            var completedNormally = false;
             try
             {
                 using (_server = new TinyWallServer())
                 {
                     _server.Run(this);
                 }
+                completedNormally = true;
             }
             finally
             {
-                //do nothing
 #if !DEBUG
                 Thread.MemoryBarrier();
-                if (!IsComputerShuttingDown)    // cannot set service state if a shutdown is already in progress
+                if (completedNormally && !IsComputerShuttingDown)
                 {
                     SetServiceStateReached(ServiceState.Stopped);
                 }
@@ -2196,6 +2197,9 @@ namespace ModernTinyWall.TinyWall
         // Entry point for Windows service.
         protected override void OnStart(string[] args)
         {
+#if !DEBUG
+            ServiceRecovery.PrepareStart(args);
+#endif
             // Initialization on a new thread prevents stalling the SCM
             _firewallWorkerThread = new Thread(FirewallWorkerMethod)
             {

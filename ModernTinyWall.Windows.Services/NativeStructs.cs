@@ -156,9 +156,9 @@ namespace ModernTinyWall.Windows.Services
     public struct SERVICE_FAILURE_ACTIONS
     {
         internal uint dwResetPeriod;
-        [MarshalAs(UnmanagedType.LPStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         internal string? lpRebootMsg;
-        [MarshalAs(UnmanagedType.LPStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         internal string? lpCommand;
         internal uint cActions;
         internal IntPtr lpsaActions;

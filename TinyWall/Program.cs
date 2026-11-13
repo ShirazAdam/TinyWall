@@ -95,6 +95,9 @@ namespace ModernTinyWall.TinyWall
         [STAThread]
         static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == ServiceRecovery.CommandArgument)
+                return ServiceRecovery.Recover();
+
             if (DatabaseClasses.CatalogueCommand.TryExecute(args) is { } catalogueResult)
                 return catalogueResult;
 

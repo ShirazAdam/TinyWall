@@ -54,6 +54,20 @@ namespace ModernTinyWall.TinyWall
             if (TinyWallDoctor.IsServiceRunning(logContext, installing))
                 return true;
 
+            if (!installing)
+            {
+                try
+                {
+                    if (ServiceRecovery.RecoveryLimitReached())
+                        return false;
+                }
+                catch (Exception e)
+                {
+                    Utils.LogException(e, logContext);
+                    return false;
+                }
+            }
+
             if (Utils.RunningAsAdmin())
             {
                 InstallService(logContext);
@@ -292,7 +306,8 @@ namespace ModernTinyWall.TinyWall
             {
                 using var scm = new ServiceControlManager();
                 scm.SetStartupMode(TinyWallService.SERVICE_NAME, ServiceStartMode.Automatic);
-                scm.SetRestartOnFailure(TinyWallService.SERVICE_NAME, true);
+                scm.SetRecoveryCommand(TinyWallService.SERVICE_NAME,
+                    $"\"{Utils.ExecutablePath}\" {ServiceRecovery.CommandArgument}");
             }
             catch (System.ComponentModel.Win32Exception e)
             {

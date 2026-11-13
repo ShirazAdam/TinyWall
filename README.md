@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.3**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.3`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.4**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.4`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -52,6 +52,8 @@ The applications provide tray-based control for managing firewall modes, applica
 Modern TinyWall uses WinUI 3 dialogue boxes. The legacy WinForms application uses the built-in .NET Windows Task Dialog API, replacing the former third-party wrapper while retaining its prompts, command-link choices, expandable details, progress indicators, and cancellation options.
 
 After installation, Modern TinyWall starts in the notification area when a user signs in. The legacy TinyWall application remains available to open manually; the firewall service continues to run independently.
+
+After an unexpected service failure, Windows attempts to restart the service twice. After a third failure, it remains stopped until an administrator starts it manually; that start begins a new failure count. The count also resets when Windows restarts. A normally requested stop is not counted as a failure.
 
 Modern TinyWall uses WinUI's animated sidebar selection indicator and fades between views. Navigation animations follow the Windows animation setting and do not run while the window is hidden or minimised.
 
