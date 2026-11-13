@@ -22,12 +22,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
@@ -36,7 +36,7 @@ jobs:
       run: .\installer\build-package.ps1 -SelfTest
 
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@v3
 
     - name: Build Modern TinyWall
       run: dotnet build ModernTinyWall\ModernTinyWall.csproj --configuration ${{ matrix.configuration }}
@@ -54,12 +54,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
@@ -84,7 +84,7 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "name=$name"
 
     - name: Upload MSI artefact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.msi.outputs.name }}
         path: |
@@ -101,17 +101,17 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@v3
 
     - name: Read and validate release version
       id: version
@@ -148,7 +148,7 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
 
     - name: Download MSI artefact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         pattern: ModernTinyWall-*.msi
         path: artifacts/msi
@@ -176,7 +176,7 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "ASSETS"
 
     - name: Create GitHub release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ steps.version.outputs.version }}
         target_commitish: ${{ github.sha }}
