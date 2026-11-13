@@ -22,12 +22,12 @@
         PaneTitle=""
         SelectionChanged="ShellNavigation_SelectionChanged">
         <NavigationView.PaneHeader>
-            <Grid Margin="22,16,12,28" ColumnSpacing="14">
+            <Grid Margin="18,16,12,28" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="46" />
+                    <ColumnDefinition Width="60" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Image x:Name="SidebarProtectionIcon" Width="46" Height="54" Stretch="Uniform"
+                <Image x:Name="SidebarProtectionIcon" Width="60" Height="70" Stretch="Uniform"
                        AutomationProperties.Name="Modern TinyWall, protection mode unavailable" />
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
                     <TextBlock Text="Modern" FontSize="19" FontWeight="SemiBold" />

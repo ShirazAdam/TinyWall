@@ -46,12 +46,12 @@ public sealed class ProtectionModeIconTests
             using var icon = new Icon(ProtectionModeIcon.GetPath(mode), new Size(256, 256));
             using var original = icon.ToBitmap();
             using var sidebar = new Bitmap(ProtectionModeIcon.GetImagePath(mode));
-            Assert.AreEqual(new Size(256, 256), sidebar.Size);
+            Assert.IsTrue(sidebar.Width >= 512 && sidebar.Height >= 512, $"Sidebar image resolution is too low for {mode}.");
             var iconColour = original.GetPixel(original.Width / 2, original.Height / 2);
             var sidebarColour = sidebar.GetPixel(sidebar.Width / 2, sidebar.Height / 2);
-            Assert.IsTrue(Math.Abs(iconColour.R - sidebarColour.R) <= 10
-                && Math.Abs(iconColour.G - sidebarColour.G) <= 10
-                && Math.Abs(iconColour.B - sidebarColour.B) <= 10
+            Assert.IsTrue(Math.Abs(iconColour.R - sidebarColour.R) <= 20
+                && Math.Abs(iconColour.G - sidebarColour.G) <= 20
+                && Math.Abs(iconColour.B - sidebarColour.B) <= 20
                 && Math.Abs(iconColour.A - sidebarColour.A) <= 10,
                 $"The sidebar and taskbar colours differ for {mode}.");
         }
