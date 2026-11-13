@@ -2172,19 +2172,28 @@ namespace ModernTinyWall.TinyWall
 
         private void FirewallWorkerMethod()
         {
+#if !DEBUG
             var completedNormally = false;
+#endif
             try
             {
                 using (_server = new TinyWallServer())
                 {
                     _server.Run(this);
                 }
+#if !DEBUG
                 completedNormally = true;
+#endif
             }
             finally
             {
 #if !DEBUG
                 Thread.MemoryBarrier();
+                if (completedNormally)
+                {
+                    try { ServiceRecovery.MarkStopped(); }
+                    catch (Exception ex) { Utils.LogException(ex, Utils.LOG_ID_SERVICE); }
+                }
                 if (completedNormally && !IsComputerShuttingDown)
                 {
                     SetServiceStateReached(ServiceState.Stopped);
@@ -2198,7 +2207,12 @@ namespace ModernTinyWall.TinyWall
         protected override void OnStart(string[] args)
         {
 #if !DEBUG
-            ServiceRecovery.PrepareStart(args);
+            try { ServiceRecovery.PrepareStart(); }
+            catch (Exception ex)
+            {
+                Utils.LogException(ex, Utils.LOG_ID_SERVICE);
+                throw;
+            }
 #endif
             // Initialization on a new thread prevents stalling the SCM
             _firewallWorkerThread = new Thread(FirewallWorkerMethod)

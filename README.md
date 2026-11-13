@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.4**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.4`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.5**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.5`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -53,7 +53,9 @@ Modern TinyWall uses WinUI 3 dialogue boxes. The legacy WinForms application use
 
 After installation, Modern TinyWall starts in the notification area when a user signs in. The legacy TinyWall application remains available to open manually; the firewall service continues to run independently.
 
-After an unexpected service failure, Windows attempts to restart the service twice. After a third failure, it remains stopped until an administrator starts it manually; that start begins a new failure count. The count also resets when Windows restarts. A normally requested stop is not counted as a failure.
+After an unexpected service failure, Windows attempts to restart the service twice, with a one-minute delay each time. After a third failure, it remains stopped until an administrator starts it manually. TinyWall tracks this restart budget independently because Windows retains its own failure count across manual starts. A manual start after the limit begins a new cycle; restarting Windows also resets TinyWall's counter. A normally requested stop is not counted as a failure.
+
+The Windows service **Recovery** settings change dynamically: all three failure actions show **Restart the Service** while another automatic restart is permitted, then all three show **Take No Action** once both restarts have been used. Starting the service manually after the limit re-enables recovery. **Enable actions for stops with errors** is enabled, so stops that report an error also use this budget. No recovery command or separate watchdog process is used.
 
 Modern TinyWall uses WinUI's animated sidebar selection indicator and fades between views. Navigation animations follow the Windows animation setting and do not run while the window is hidden or minimised.
 

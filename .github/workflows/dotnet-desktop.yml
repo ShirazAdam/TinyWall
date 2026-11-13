@@ -130,11 +130,10 @@ jobs:
           if ($library.Project.PropertyGroup.IsPackable -contains 'false') {
             continue
           }
-          $projectVersion = $library.Project.PropertyGroup |
-            Where-Object { $_.Version } |
-            Select-Object -First 1 -ExpandProperty Version
-          if ($projectVersion -ne $version) {
-            throw "$($projectFile.Name) must use release version '$version', not '$projectVersion'."
+          $projectVersions = @($library.SelectNodes('/Project/PropertyGroup/Version') |
+            ForEach-Object { $_.InnerText.Trim() } | Select-Object -Unique)
+          if ($projectVersions.Count -ne 1 -or $projectVersions[0] -ne $version) {
+            throw "$($projectFile.Name) must define exactly one release version '$version', not '$($projectVersions -join ', ')'."
           }
         }
 

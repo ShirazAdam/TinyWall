@@ -1,6 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModernTinyWall.TinyWall;
-using System;
 
 namespace ModernTinyWall.Exceptions.Tests;
 
@@ -8,29 +7,48 @@ namespace ModernTinyWall.Exceptions.Tests;
 public sealed class ServiceRecoveryPolicyTests
 {
     [TestMethod]
-    public void RecoveryStopsAfterThreeFailuresAndManualStartResetsTheCycle()
+    public void TwoAutomaticRestartsDisableRecoveryUntilManualStartBeginsANewCycle()
     {
-        var failures = 0;
-        for (var cycle = 0; cycle < 2; cycle++)
+        var running = false;
+        var restarts = 0;
+        for (var cycle = 0; cycle < 3; cycle++)
         {
-            if (!ServiceRecoveryPolicy.IsAutomaticStart([]))
-                failures = 0;
+            // Manual start, followed by Windows' two automatic restarts.
+            var start = ServiceRecoveryPolicy.OnStart(running, restarts);
+            Assert.AreEqual(0, start.Restarts);
+            Assert.IsTrue(start.RestartOnFailure);
+            (running, restarts) = (true, start.Restarts);
 
-            for (var attempt = 1; attempt <= 3; attempt++)
+            for (var restart = 1; restart <= 2; restart++)
             {
-                failures = ServiceRecoveryPolicy.NextFailure(failures);
-                Assert.AreEqual(attempt < 3, ServiceRecoveryPolicy.ShouldRestart(failures));
-                if (attempt < 3)
-                    Assert.IsTrue(ServiceRecoveryPolicy.IsAutomaticStart([ServiceRecoveryPolicy.AutomaticStartArgument]));
+                Assert.IsFalse(ServiceRecoveryPolicy.LimitReached(running, restarts));
+                start = ServiceRecoveryPolicy.OnStart(running, restarts);
+                Assert.AreEqual(restart < 2, start.RestartOnFailure);
+                Assert.AreEqual(restart, start.Restarts);
+                restarts = start.Restarts;
             }
+
+            // The third failure leaves the service stopped.
+            Assert.IsTrue(ServiceRecoveryPolicy.LimitReached(running, restarts));
         }
     }
 
     [TestMethod]
-    public void InvalidCounterDoesNotPermitARecovery()
+    [DataRow(1)]
+    [DataRow(2)]
+    public void StartAfterACleanStopReenablesRecovery(int restarts)
     {
-        Assert.ThrowsExactly<InvalidOperationException>(() => ServiceRecoveryPolicy.NextFailure(-1));
-        Assert.ThrowsExactly<InvalidOperationException>(() => ServiceRecoveryPolicy.NextFailure(4));
-        Assert.AreEqual(3, ServiceRecoveryPolicy.NextFailure(3));
+        var start = ServiceRecoveryPolicy.OnStart(previousRunEndedUnexpectedly: false, restarts);
+        Assert.IsTrue(start.RestartOnFailure);
+        Assert.AreEqual(0, start.Restarts);
+        Assert.IsFalse(ServiceRecoveryPolicy.LimitReached(false, 2));
+    }
+
+    [TestMethod]
+    public void InvalidRestartCountBeginsANewCycle()
+    {
+        var start = ServiceRecoveryPolicy.OnStart(true, -1);
+        Assert.IsTrue(start.RestartOnFailure);
+        Assert.AreEqual(0, start.Restarts);
     }
 }

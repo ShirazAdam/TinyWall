@@ -109,7 +109,8 @@ namespace ModernTinyWall.Windows.Services
     public enum ServiceConfig2InfoLevel : int
     {
         SERVICE_CONFIG_DESCRIPTION = 0x00000001, // The lpBuffer parameter is a pointer to a SERVICE_DESCRIPTION structure.
-        SERVICE_CONFIG_FAILURE_ACTIONS = 0x00000002 // The lpBuffer parameter is a pointer to a SERVICE_FAILURE_ACTIONS structure.
+        SERVICE_CONFIG_FAILURE_ACTIONS = 0x00000002, // The lpBuffer parameter is a pointer to a SERVICE_FAILURE_ACTIONS structure.
+        SERVICE_CONFIG_FAILURE_ACTIONS_FLAG = 0x00000004 // The lpBuffer parameter is a pointer to a SERVICE_FAILURE_ACTIONS_FLAG structure.
     }
 
     public enum SC_ACTION_TYPE : uint
@@ -168,6 +169,11 @@ namespace ModernTinyWall.Windows.Services
     {
         internal SC_ACTION_TYPE Type;
         internal uint Delay;
+    }
+
+    public struct SERVICE_FAILURE_ACTIONS_FLAG
+    {
+        internal int fFailureActionsOnNonCrashFailures;
     }
 
     [Flags]

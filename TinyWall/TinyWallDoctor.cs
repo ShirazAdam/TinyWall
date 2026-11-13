@@ -306,8 +306,6 @@ namespace ModernTinyWall.TinyWall
             {
                 using var scm = new ServiceControlManager();
                 scm.SetStartupMode(TinyWallService.SERVICE_NAME, ServiceStartMode.Automatic);
-                scm.SetRecoveryCommand(TinyWallService.SERVICE_NAME,
-                    $"\"{Utils.ExecutablePath}\" {ServiceRecovery.CommandArgument}");
             }
             catch (System.ComponentModel.Win32Exception e)
             {

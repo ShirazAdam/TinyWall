@@ -1,74 +1,60 @@
 using Microsoft.Win32;
+using ModernTinyWall.Windows.Services;
 using System;
-using System.ServiceProcess;
 using System.Threading;
 
 namespace ModernTinyWall.TinyWall;
 
 internal static class ServiceRecovery
 {
-    internal const string CommandArgument = "/recover-service";
+    // Used by 4.6.4 recovery settings; ignored so that a stale configuration cannot start the GUI as SYSTEM.
+    internal const string LegacyCommandArgument = "/recover-service";
+    internal static readonly TimeSpan RestartDelay = TimeSpan.FromMinutes(1);
     private static readonly string MutexName = $@"Global\{TinyWallService.SERVICE_NAME}ServiceRecovery";
-    private static readonly string RegistryPath = $@"SOFTWARE\{TinyWallService.SERVICE_NAME}";
-    private const string CounterKey = "ServiceRecovery";
-    private const string CounterValue = "Failures";
+    private static readonly string KeyPath = $@"SOFTWARE\{TinyWallService.SERVICE_NAME}\ServiceRecovery";
+    private const string RunningValue = "Running";
+    private const string RestartsValue = "Restarts";
 
     internal static bool RecoveryLimitReached()
     {
-        using var key = Registry.LocalMachine.OpenSubKey($@"{RegistryPath}\{CounterKey}");
-        var value = key?.GetValue(CounterValue, 0) ?? 0;
-        if (value is not int failures || failures < 0 || failures > 3)
-            throw new InvalidOperationException("The service recovery counter is invalid.");
-        return failures == 3;
+        using var key = Registry.LocalMachine.OpenSubKey(KeyPath);
+        return key is not null && ServiceRecoveryPolicy.LimitReached(ReadRunning(key), ReadRestarts(key));
     }
 
-    internal static void PrepareStart(string[] args)
+    private static void ConfigureFailureActions(bool restartOnFailure)
     {
-        if (ServiceRecoveryPolicy.IsAutomaticStart(args))
-            return;
+        using var scm = new ServiceControlManager();
+        scm.SetFailureActions(TinyWallService.SERVICE_NAME, RestartDelay, restartOnFailure);
+    }
 
+    internal static void PrepareStart()
+    {
         using var recoveryLock = AcquireLock();
-        using var key = OpenCounter();
-        key.SetValue(CounterValue, 0, RegistryValueKind.DWord);
+        using var key = OpenKey();
+        var start = ServiceRecoveryPolicy.OnStart(ReadRunning(key), ReadRestarts(key));
+        // Windows retains its failure count across manual starts; enforce our budget independently.
+        ConfigureFailureActions(start.RestartOnFailure);
+        key.SetValue(RestartsValue, start.Restarts, RegistryValueKind.DWord);
+        key.SetValue(RunningValue, 1, RegistryValueKind.DWord);
     }
 
-    internal static int Recover()
+    internal static void MarkStopped()
     {
-        try
-        {
-            using var recoveryLock = AcquireLock();
-            using var service = new ServiceController(TinyWallService.SERVICE_NAME);
-            if (service.Status != ServiceControllerStatus.Stopped)
-                return 0;
-
-            using var key = OpenCounter();
-            var value = key.GetValue(CounterValue, 0);
-            if (value is not int failures)
-                throw new InvalidOperationException("The service recovery counter is invalid.");
-
-            failures = ServiceRecoveryPolicy.NextFailure(failures);
-            key.SetValue(CounterValue, failures, RegistryValueKind.DWord);
-            if (!ServiceRecoveryPolicy.ShouldRestart(failures))
-            {
-                Utils.Log("TinyWall service stopped after three unexpected failures; a manual start is required.", Utils.LOG_ID_SERVICE);
-                return 0;
-            }
-
-            service.Start([ServiceRecoveryPolicy.AutomaticStartArgument]);
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Utils.LogException(ex, Utils.LOG_ID_SERVICE);
-            return -1;
-        }
+        using var recoveryLock = AcquireLock();
+        using var key = OpenKey();
+        key.SetValue(RunningValue, 0, RegistryValueKind.DWord);
     }
 
-    private static RegistryKey OpenCounter()
+    private static bool ReadRunning(RegistryKey key) => key.GetValue(RunningValue, 0) is 1;
+
+    private static int ReadRestarts(RegistryKey key) => key.GetValue(RestartsValue, 0) is int restarts ? restarts : 0;
+
+    private static RegistryKey OpenKey()
     {
-        using var parent = Registry.LocalMachine.CreateSubKey(RegistryPath, writable: true);
-        return parent.CreateSubKey(CounterKey, RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryOptions.Volatile)
-            ?? throw new InvalidOperationException("Could not open the service recovery counter.");
+        // Only the recovery subkey is volatile; a volatile parent would prevent persistent sibling keys.
+        using var parent = Registry.LocalMachine.CreateSubKey($@"SOFTWARE\{TinyWallService.SERVICE_NAME}", writable: true);
+        return parent.CreateSubKey("ServiceRecovery", RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryOptions.Volatile)
+            ?? throw new InvalidOperationException("Could not open the service recovery state.");
     }
 
     private static IDisposable AcquireLock()
@@ -83,7 +69,7 @@ internal static class ServiceRecovery
             }
             catch (AbandonedMutexException)
             {
-                // The previous recovery process exited while holding the lock.
+                // The previous owner exited while holding the lock.
             }
             return new RecoveryLock(mutex);
         }
