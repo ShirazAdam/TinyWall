@@ -69,7 +69,21 @@ The Overview traffic chart uses the same TCP/UDP tracking and Internet/local cla
 
 For Release builds, install `ModernTinyWall.exe` in the same directory as the matching `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this co-located modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
 
-Modern TinyWall's outbound connection prompt displays the application's name, icon, publisher and description where available, alongside its executable path, protocol and destination. The publisher and description are unverified file metadata; shared executables may host several services. Users can allow the displayed IP address and port for five minutes or permanently, always allow outbound traffic for the executable, deny the attempt, or always block the executable. Permanent allow choices replace an existing application-wide hard block for that executable; other block rules can still take precedence. An application-wide allowance affects every process using that executable. The initial connection attempt is blocked before the prompt appears, so the application may need to retry after it is allowed. Existing approved rules continue to work without prompting.
+### Blocked-connection dialogue
+
+Modern TinyWall's outbound connection prompt displays the application's name, icon, publisher and description where available, alongside its executable path, protocol and destination. The publisher and description are unverified file metadata; shared executables may host several services.
+
+| Button | Effect |
+| --- | --- |
+| **Allow all outbound** | Saves a permanent rule allowing this executable to connect out to any IP address or port using any protocol. It does not grant inbound access. |
+| **Deny all traffic** | Saves a permanent rule blocking both inbound and outbound traffic for this executable, not just the displayed destination. |
+| **Allow IP and port (5 min)** | Saves a temporary outbound allowance for this executable to the displayed IP address and port using the displayed protocol. It lasts five minutes and can cover multiple connection attempts, not just one. |
+| **Allow IP and port always** | Saves a permanent outbound allowance for this executable to the displayed IP address and port using the displayed protocol. It does not grant access to other destinations. |
+| **Deny once** | Denies this attempt without saving a rule. Later attempts may prompt again. This is also the default choice when dismissing the dialogue. |
+
+These rules apply to every process using the same executable, not just the process that triggered the prompt. Permanent allow choices replace an existing application-wide hard block for that executable; the five-minute allowance does not remove it. Other block rules can still take precedence, and existing allowances to other destinations are not revoked by a destination-specific allowance.
+
+**By default, the initial connection attempt is blocked before the dialogue appears**; traffic is not allowed through while you decide. After choosing an allow button, the application may need to retry or be refreshed. Existing approved rules continue to work without prompting. With the optional experimental pending-connection driver below, the original request is held instead of immediately rejected and can proceed after approval if the application has not already cancelled or timed out; unanswered requests are denied after two minutes.
 
 Windows device paths are displayed as drive-letter or mounted-volume paths where Windows can resolve them. If a device has no accessible mount point, the original path is retained rather than guessing.
 
