@@ -15,8 +15,9 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/Installer/">
-    <File Path="Installer/README.md" />
-    <File Path="Installer/TinyWall.iss" />
+    <File Path="installer\README.md" />
+    <File Path="installer\build-package.ps1" />
+    <File Path="installer\Packaging.Dependencies.targets" />
   </Folder>
   <Project Path="ModernTinyWall.Exceptions.Tests/ModernTinyWall.Exceptions.Tests.csproj" />
   <Project Path="ModernTinyWall.Exceptions/ModernTinyWall.Exceptions.csproj" />

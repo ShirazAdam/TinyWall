@@ -133,7 +133,8 @@ namespace ModernTinyWall.TinyWall
 
         private static readonly Random Rng = new();
 
-        public static string ExecutablePath { get; } = System.Reflection.Assembly.GetEntryAssembly()!.Location;
+        public static string ExecutablePath { get; } = Environment.ProcessPath
+            ?? throw new InvalidOperationException("The TinyWall executable path could not be determined.");
 
         public static string HexEncode(byte[] binstr)
         {

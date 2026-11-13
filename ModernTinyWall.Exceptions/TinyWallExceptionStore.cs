@@ -1,5 +1,6 @@
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Exceptions.Resources;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -221,16 +222,31 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         {
             FirewallPromptDecision.DenyAlways => new FirewallExceptionV3(subject, HardBlockPolicy.Instance),
             FirewallPromptDecision.AllowAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: false, specificDestination: false),
+            FirewallPromptDecision.AllowDestinationAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: false),
             FirewallPromptDecision.AllowOnce => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: true),
             _ => throw new ArgumentOutOfRangeException(nameof(decision))
         };
 
         return MutateExceptions(
-            config => config.ActiveProfile.AddExceptions([exception]),
+            config =>
+            {
+                if (decision is FirewallPromptDecision.AllowAlways or FirewallPromptDecision.AllowDestinationAlways)
+                {
+                    config.ActiveProfile.AppExceptions.RemoveAll(existing =>
+                        existing.Policy is HardBlockPolicy &&
+                        existing.Subject.SubjectType == SubjectType.Executable &&
+                        existing.Subject is ExecutableSubject executable &&
+                        string.Equals(PathMapper.Instance.ConvertPathIgnoreErrors(executable.ExecutablePath, PathFormat.Win32),
+                            PathMapper.Instance.ConvertPathIgnoreErrors(subject.ExecutablePath, PathFormat.Win32),
+                            StringComparison.OrdinalIgnoreCase));
+                }
+                config.ActiveProfile.AddExceptions([exception]);
+            },
             decision switch
             {
                 FirewallPromptDecision.AllowOnce => ExceptionStoreStrings.ConnectionAllowedOnce,
                 FirewallPromptDecision.AllowAlways => ExceptionStoreStrings.ConnectionAllowedAlways,
+                FirewallPromptDecision.AllowDestinationAlways => ExceptionStoreStrings.ConnectionDestinationAllowedAlways,
                 FirewallPromptDecision.DenyAlways => ExceptionStoreStrings.ConnectionDeniedAlways,
                 _ => throw new ArgumentOutOfRangeException(nameof(decision))
             },

@@ -8,9 +8,74 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <LinearGradientBrush x:Key="ModernShellBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#102039" Offset="0" />
+                        <GradientStop Color="#091321" Offset="1" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="ModernSurfaceBrush" Color="#8514263C" />
+                    <SolidColorBrush x:Key="ModernBorderBrush" Color="#FF294566" />
+                    <SolidColorBrush x:Key="ModernAccentBrush" Color="#FF62B7FF" />
+                    <SolidColorBrush x:Key="ModernMutedBrush" Color="#FFADC6E6" />
+                    <SolidColorBrush x:Key="ModernInsetBrush" Color="#40102237" />
+                    <SolidColorBrush x:Key="ModernSelectionBrush" Color="#5031649E" />
+                    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#60102036" />
+                    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#AA204578" />
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#C7D9F0" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <LinearGradientBrush x:Key="ModernShellBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#EAF2FC" Offset="0" />
+                        <GradientStop Color="#F7F9FD" Offset="1" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="ModernSurfaceBrush" Color="#EFFFFFFF" />
+                    <SolidColorBrush x:Key="ModernBorderBrush" Color="#FFC4D3E5" />
+                    <SolidColorBrush x:Key="ModernAccentBrush" Color="#FF005EA8" />
+                    <SolidColorBrush x:Key="ModernMutedBrush" Color="#FF405774" />
+                    <SolidColorBrush x:Key="ModernInsetBrush" Color="#80EEF4FC" />
+                    <SolidColorBrush x:Key="ModernSelectionBrush" Color="#300078D4" />
+                    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#80E0EBF8" />
+                    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#C9DFF8" />
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#243D5B" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="ModernShellBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="ModernSurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="ModernBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="ModernAccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="ModernMutedBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="ModernInsetBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="ModernSelectionBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <Style x:Key="ModernPanelStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource ModernSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ModernBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="7" />
+                <Setter Property="Padding" Value="20" />
+            </Style>
+            <Style x:Key="DashboardSummaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{ThemeResource ModernSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ModernBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="7" />
+                <Setter Property="Padding" Value="18,12" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            </Style>
             <Style x:Key="PageTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="30" />
                 <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FontFamily" Value="Segoe UI Variable Display" />
             </Style>
             <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="18" />

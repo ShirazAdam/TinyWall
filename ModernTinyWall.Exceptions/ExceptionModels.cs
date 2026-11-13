@@ -7,7 +7,8 @@ namespace ModernTinyWall.Exceptions;
 
 public sealed record ExceptionQuery(string SearchText);
 
-public sealed record ExceptionRow(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created);
+public sealed record ExceptionRow(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created,
+    string IconPath = "", string PackageFamilyName = "");
 
 public sealed record ExceptionMutationResult(bool Success, string Message);
 
@@ -29,7 +30,8 @@ public enum FirewallPromptDecision
     AllowOnce,
     AllowAlways,
     DenyOnce,
-    DenyAlways
+    DenyAlways,
+    AllowDestinationAlways
 }
 
 public static class FirewallPromptValidation

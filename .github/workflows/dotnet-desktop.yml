@@ -22,17 +22,21 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
+    - name: Validate MSI project and application packaging checks
+      shell: pwsh
+      run: .\installer\build-package.ps1 -SelfTest
+
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@v3
 
     - name: Build Modern TinyWall
       run: dotnet build ModernTinyWall\ModernTinyWall.csproj --configuration ${{ matrix.configuration }}
@@ -41,10 +45,59 @@ jobs:
       run: msbuild TinyWall\TinyWall.csproj /restore /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU"
 
     - name: Test
-      run: dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --configuration ${{ matrix.configuration }}
+      run: dotnet test ModernTinyWall.Exceptions.Tests\ModernTinyWall.Exceptions.Tests.csproj --configuration ${{ matrix.configuration }} --filter 'TestCategory!=LiveETW'
+
+  installer:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x86, win-x64]
+    # This image includes Visual Studio 2026 and the Visual Studio Installer Projects extension.
+    runs-on: windows-2025-vs2026
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Allow command-line Installer Projects builds
+      shell: pwsh
+      run: ./installer/enable-ci-msi-build.ps1
+
+    - name: Build and validate MSI (not installed)
+      id: msi
+      shell: pwsh
+      run: |
+        .\installer\build-msi.ps1 -Architecture ${{ matrix.runtime }}
+        [xml]$project = Get-Content ModernTinyWall\ModernTinyWall.csproj -Raw
+        $version = $project.Project.PropertyGroup |
+          Where-Object { $_.Version } |
+          Select-Object -First 1 -ExpandProperty Version
+        $name = "ModernTinyWall-$version-${{ matrix.runtime }}.msi"
+        $output = Join-Path artifacts\installer $name
+        if (-not (Test-Path -LiteralPath $output) -or -not (Test-Path -LiteralPath "$output.sha256")) {
+          throw "The ${{ matrix.runtime }} MSI or checksum is missing."
+        }
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "name=$name"
+
+    - name: Upload MSI artefact
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ steps.msi.outputs.name }}
+        path: |
+          artifacts/installer/${{ steps.msi.outputs.name }}
+          artifacts/installer/${{ steps.msi.outputs.name }}.sha256
+        if-no-files-found: error
 
   release:
-    needs: build
+    needs: [build, installer]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: windows-latest
     permissions:
@@ -52,14 +105,17 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v3
 
     - name: Read and validate release version
       id: version
@@ -78,11 +134,10 @@ jobs:
           if ($library.Project.PropertyGroup.IsPackable -contains 'false') {
             continue
           }
-          $projectVersion = $library.Project.PropertyGroup |
-            Where-Object { $_.Version } |
-            Select-Object -First 1 -ExpandProperty Version
-          if ($projectVersion -ne $version) {
-            throw "$($projectFile.Name) must use release version '$version', not '$projectVersion'."
+          $projectVersions = @($library.SelectNodes('/Project/PropertyGroup/Version') |
+            ForEach-Object { $_.InnerText.Trim() } | Select-Object -Unique)
+          if ($projectVersions.Count -ne 1 -or $projectVersions[0] -ne $version) {
+            throw "$($projectFile.Name) must define exactly one release version '$version', not '$($projectVersions -join ', ')'."
           }
         }
 
@@ -96,35 +151,43 @@ jobs:
 
         Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
 
-    - name: Publish desktop binaries
+    - name: Download MSI artefact
+      uses: actions/download-artifact@v8
+      with:
+        pattern: ModernTinyWall-*.msi
+        path: artifacts/msi
+        merge-multiple: true
+
+    - name: Publish application archives and MSI
+      id: package
       shell: pwsh
       run: |
-        $version = "${{ steps.version.outputs.version }}"
-        New-Item -ItemType Directory -Force artifacts\release | Out-Null
-        foreach ($runtime in @("win-x86", "win-x64", "win-arm64")) {
-          $publishDirectory = "artifacts\publish\ModernTinyWall\$runtime"
-          dotnet publish ModernTinyWall\ModernTinyWall.csproj `
-            --configuration Release `
-            --runtime $runtime `
-            --self-contained true `
-            -p:WindowsAppSDKSelfContained=true `
-            --output $publishDirectory
-          if ($LASTEXITCODE -ne 0) {
-            throw "Publishing Modern TinyWall for $runtime failed."
+        .\installer\build-package.ps1 -Architecture All
+        $assets = @(
+          Get-ChildItem artifacts\release\*.zip -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\release\*.zip.sha256 -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\msi\*.msi -File | ForEach-Object { $_.FullName }
+          Get-ChildItem artifacts\msi\*.msi.sha256 -File | ForEach-Object { $_.FullName }
+        )
+        foreach ($runtime in @('win-x86', 'win-x64')) {
+          $msi = "artifacts\msi\ModernTinyWall-${{ steps.version.outputs.version }}-$runtime.msi"
+          if (-not (Test-Path -LiteralPath $msi) -or -not (Test-Path -LiteralPath "$msi.sha256")) {
+            throw "The $runtime MSI artefact or checksum is missing."
           }
-
-          Compress-Archive `
-            -Path "$publishDirectory\*" `
-            -DestinationPath "artifacts\release\ModernTinyWall-$version-$runtime.zip" `
-            -CompressionLevel Optimal
         }
+        if (-not $assets) {
+          throw "Packaging produced no release assets."
+        }
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "files<<ASSETS"
+        $assets | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "ASSETS"
 
     - name: Create GitHub release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ steps.version.outputs.version }}
         target_commitish: ${{ github.sha }}
         name: TinyWall ${{ steps.version.outputs.version }}
         generate_release_notes: true
         fail_on_unmatched_files: true
-        files: artifacts/release/*.zip
+        files: ${{ steps.package.outputs.files }}

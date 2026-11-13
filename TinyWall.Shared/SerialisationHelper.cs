@@ -36,6 +36,7 @@ namespace ModernTinyWall.TinyWall
     [JsonSerializable(typeof(TwMessageReadFwLog))]
     [JsonSerializable(typeof(TwMessagePendingConnections))]
     [JsonSerializable(typeof(TwMessageDataUsage))]
+    [JsonSerializable(typeof(TwMessageBlockedTraffic))]
     [JsonSerializable(typeof(TwMessageIsLocked))]
     [JsonSerializable(typeof(TwMessageUnlock))]
     [JsonSerializable(typeof(TwMessageModeSwitch))]

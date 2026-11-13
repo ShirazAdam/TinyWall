@@ -255,10 +255,10 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     }
 }
 
-internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created)
+internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created, string IconPath, string PackageFamilyName)
 {
     public static ExceptionRowViewModel FromModel(ExceptionRow row)
     {
-        return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created);
+        return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created, row.IconPath, row.PackageFamilyName);
     }
 }

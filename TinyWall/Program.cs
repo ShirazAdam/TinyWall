@@ -66,9 +66,9 @@ namespace ModernTinyWall.TinyWall
             return TinyWallDoctor.EnsureServiceInstalledAndRunning(Utils.LOG_ID_INSTALLER, true) ? 0 : -1;
         }
 
-        private static int UninstallService()
+        private static int UninstallService(bool unattended)
         {
-            return TinyWallDoctor.Uninstall();
+            return TinyWallDoctor.Uninstall(unattended);
         }
 
         public static IServiceProvider? ServiceProvider { get; set; }
@@ -95,6 +95,12 @@ namespace ModernTinyWall.TinyWall
         [STAThread]
         static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == ServiceRecovery.LegacyCommandArgument)
+                return 0;
+
+            if (DatabaseClasses.CatalogueCommand.TryExecute(args) is { } catalogueResult)
+                return catalogueResult;
+
             HierarchicalStopwatch.Enable = File.Exists(Path.Combine(Utils.AppDataPath, "enable-timings"));
             HierarchicalStopwatch.LogFileBase = Path.Combine(Utils.AppDataPath, @"logs\timings");
 
@@ -180,7 +186,7 @@ namespace ModernTinyWall.TinyWall
                 case StartUpMode.Install:
                     return InstallService();
                 case StartUpMode.Uninstall:
-                    return UninstallService();
+                    return UninstallService(Utils.StringArrayContains(args, "/quiet"));
                 case StartUpMode.Controller:
                     return StartController(opts);
                 case StartUpMode.DevelTool:

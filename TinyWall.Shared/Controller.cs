@@ -1,4 +1,5 @@
 using System;
+using ModernTinyWall.Windows;
 
 namespace ModernTinyWall.TinyWall
 {
@@ -42,6 +43,15 @@ namespace ModernTinyWall.TinyWall
             return Endpoint.QueueMessage(TwMessagePutSettings.CreateRequest(clientChangeset, serverConfig)).Response;
         }
 
+        public BlockedTrafficSnapshot ReadBlockedTraffic()
+        {
+            var response = Endpoint.QueueMessage(new TwMessageBlockedTraffic(null)).Response;
+            return response is TwMessageBlockedTraffic { Snapshot: not null } message
+                ? message.Snapshot
+                : new(DateOnly.FromDateTime(DateTime.Now), 0, null,
+                    $"Blocked traffic is unavailable (service response: {response.Type}). Install and run the matching service.", null);
+        }
+
         public TwRequest BeginReadFwLog()
         {
             return Endpoint.QueueMessage(TwMessageReadFwLog.CreateRequest());
@@ -49,7 +59,10 @@ namespace ModernTinyWall.TinyWall
 
         public TwMessage ReadPendingConnections()
         {
-            return Endpoint.QueueMessage(new TwMessagePendingConnections(MessageType.READ_PENDING_CONNECTIONS, 0, false, false, [])).Response;
+            var response = Endpoint.QueueMessage(new TwMessagePendingConnections(MessageType.READ_PENDING_CONNECTIONS, 0, false, false, [])).Response;
+            if (response is TwMessagePendingConnections pending)
+                ConvertLogPaths(pending.Entries);
+            return response;
         }
 
         public TwMessage ResolvePendingConnection(ulong connectionId, bool allow)
@@ -70,10 +83,22 @@ namespace ModernTinyWall.TinyWall
         public static FirewallLogEntry[] EndReadFwLog(TwMessage twResp)
         {
             if (twResp is TwMessageReadFwLog fwLog)
+            {
+                ConvertLogPaths(fwLog.Entries);
                 return fwLog.Entries;
+            }
             else
                 // TODO: Do we want to show an error to the user?
                 return [];
+        }
+
+        private static void ConvertLogPaths(FirewallLogEntry[] entries)
+        {
+            foreach (var entry in entries)
+            {
+                if (!string.IsNullOrEmpty(entry.AppPath))
+                    entry.AppPath = PathMapper.Instance.ConvertPathIgnoreErrors(entry.AppPath, PathFormat.Win32);
+            }
         }
 
         public MessageType SwitchFirewallMode(FirewallMode mode)

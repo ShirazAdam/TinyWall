@@ -371,6 +371,7 @@ namespace ModernTinyWall.Windows
             const int VolumeNameBufferLength = 64;
 
             var volumes = new List<string>();
+            int error;
             unsafe
             {
                 var buffer = stackalloc char[VolumeNameBufferLength];
@@ -384,18 +385,12 @@ namespace ModernTinyWall.Windows
                 {
                     volumes.Add(new string(buffer));
                 }
+                error = Marshal.GetLastPInvokeError();
             }
 
-            foreach (var volume in volumes)
-            {
-                yield return volume;
-            }
-
-            int errno = Marshal.GetLastWin32Error();
-            if (errno == ERROR_NO_MORE_FILES)
-                yield break;
-            else
-                throw new Win32Exception(errno);
+            if (error != ERROR_NO_MORE_FILES)
+                throw new Win32Exception(error);
+            return volumes;
         }
 
         private static unsafe FindVolumeSafeHandle FindFirstVolume(char* dst, int length)

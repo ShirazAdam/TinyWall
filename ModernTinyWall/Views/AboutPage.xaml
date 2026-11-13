@@ -4,14 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel Padding="32" Spacing="16">
         <StackPanel Spacing="6">
-            <TextBlock Text="Updates and about" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="About" Style="{StaticResource PageTitleStyle}" />
             <TextBlock Text="Modern TinyWall brings TinyWall's firewall controls to a modern Windows interface."
                        TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="Licence" Click="LicenceButton_Click" />
-            <Button Content="Attributions" Click="AttributionsButton_Click" />
-            <Button Content="GitHub" Click="GitHubButton_Click" />
-        </StackPanel>
+        <HyperlinkButton Content="github.com/ShirazAdam/TinyWall"
+                         NavigateUri="https://github.com/ShirazAdam/TinyWall"
+                         HorizontalAlignment="Left" />
     </StackPanel>
 </Page>

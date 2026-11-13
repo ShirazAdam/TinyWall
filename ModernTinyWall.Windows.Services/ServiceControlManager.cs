@@ -40,71 +40,54 @@ namespace ModernTinyWall.Windows.Services
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         }
 
-        /// <summary>
-        /// Sets the nominated service to restart on failure.
-        /// </summary>
-        public void SetRestartOnFailure(string serviceName, bool restartOnFailure)
+        public void SetFailureActions(string serviceName, TimeSpan restartDelay, bool restartOnFailure)
         {
-            const uint delay = 1000;
-            const int MAX_ACTIONS = 2;
-            int SC_ACTION_SIZE = Marshal.SizeOf(typeof(SC_ACTION));
-
-            // Open the service
+            const uint INFINITE = uint.MaxValue;
             using var service = OpenService(
                 serviceName,
-                ServiceAccessRights.SERVICE_CHANGE_CONFIG |
-                ServiceAccessRights.SERVICE_START);
+                ServiceAccessRights.SERVICE_CHANGE_CONFIG | ServiceAccessRights.SERVICE_START);
 
-            using var actionPtr = SafeHGlobalHandle.Alloc(SC_ACTION_SIZE * MAX_ACTIONS);
-            int actionCount;
-            if (restartOnFailure)
+            // Repeat one policy for every Windows failure count, including counts from earlier cycles.
+            var action = new SC_ACTION
             {
-                actionCount = 2;
-
-                // Set up the restart action
-                var action1 = new SC_ACTION
-                {
-                    Type = SC_ACTION_TYPE.SC_ACTION_RESTART,
-                    Delay = delay
-                };
-                actionPtr.MarshalFromStruct(action1, 0);
-
-                // Set up the "do nothing" action
-                var action2 = new SC_ACTION
-                {
-                    Type = SC_ACTION_TYPE.SC_ACTION_NONE,
-                    Delay = delay
-                };
-                actionPtr.MarshalFromStruct(action2, SC_ACTION_SIZE);
-            }
-            else
+                Type = restartOnFailure ? SC_ACTION_TYPE.SC_ACTION_RESTART : SC_ACTION_TYPE.SC_ACTION_NONE,
+                Delay = restartOnFailure ? checked((uint)restartDelay.TotalMilliseconds) : 0,
+            };
+            SC_ACTION[] actions = [action, action, action];
+            var actionSize = Marshal.SizeOf<SC_ACTION>();
+            var actionsPtr = Marshal.AllocHGlobal(actionSize * actions.Length);
+            try
             {
-                actionCount = 1;
+                for (var i = 0; i < actions.Length; i++)
+                    Marshal.StructureToPtr(actions[i], actionsPtr + (i * actionSize), false);
 
-                // Set up the "do nothing" action
-                var action1 = new SC_ACTION
+                // Empty strings clear any previously configured reboot message or recovery program.
+                var failureActions = new SERVICE_FAILURE_ACTIONS
                 {
-                    Type = SC_ACTION_TYPE.SC_ACTION_NONE,
-                    Delay = delay
+                    dwResetPeriod = INFINITE,
+                    lpRebootMsg = string.Empty,
+                    lpCommand = string.Empty,
+                    cActions = (uint)actions.Length,
+                    lpsaActions = actionsPtr,
                 };
-                actionPtr.MarshalFromStruct(action1);
+                using var failureActionsPtr = SafeHGlobalHandle.FromManagedStruct(failureActions);
+                if (NativeMethods.ChangeServiceConfig2(
+                        service,
+                        ServiceConfig2InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS,
+                        failureActionsPtr.DangerousGetHandle()) == 0)
+                    throw new Win32Exception();
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(actionsPtr);
             }
 
-            // Set up the failure actions
-            var failureActions = new SERVICE_FAILURE_ACTIONS();
-            failureActions.dwResetPeriod = 0;
-            failureActions.cActions = (uint)actionCount;
-            failureActions.lpsaActions = actionPtr.DangerousGetHandle();
-            failureActions.lpRebootMsg = null;
-            failureActions.lpCommand = null;
-            using var failureActionsPtr = SafeHGlobalHandle.FromManagedStruct(failureActions);
-
-            // Make the change
-            int changeResult = NativeMethods.ChangeServiceConfig2(
-                service,
-                ServiceConfig2InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS,
-                failureActionsPtr.DangerousGetHandle());
-            if (changeResult == 0)
+            var flag = new SERVICE_FAILURE_ACTIONS_FLAG { fFailureActionsOnNonCrashFailures = 1 };
+            using var flagPtr = SafeHGlobalHandle.FromStruct(flag);
+            if (NativeMethods.ChangeServiceConfig2(
+                    service,
+                    ServiceConfig2InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS_FLAG,
+                    flagPtr.DangerousGetHandle()) == 0)
                 throw new Win32Exception();
         }
 

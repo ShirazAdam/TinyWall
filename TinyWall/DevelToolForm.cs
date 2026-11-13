@@ -97,13 +97,16 @@ namespace ModernTinyWall.TinyWall
                     if (loadedAppInst.Components.Count > 0)
                         db.KnownApplications.Add(loadedAppInst);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignored
+                    Utils.LogException(ex, Utils.LOG_ID_GUI);
+                    MessageBox.Show(this, $"Could not read application definition '{fpath}': {ex.Message}",
+                        "Catalogue creation failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
             }
 
-            db.Save(Path.Combine(outputPath, "profiles.json"));
+            db.Save(Path.Combine(outputPath, "profiles.db"));
             MessageBox.Show(this, @"Creation of collections finished.", @"Success.", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -177,7 +180,7 @@ namespace ModernTinyWall.TinyWall
             string projectDir = txtUpdateInstallerProjectDir.Text;
             string msiPath = Path.Combine(projectDir, @"bin\Release\" + MSI_FILENAME);
             string hostsPath = Path.Combine(projectDir, @"Sources\CommonAppData\TinyWall\hosts.bck");
-            string profilesPath = Path.Combine(projectDir, @"Sources\CommonAppData\TinyWall\profiles.json");
+            string profilesPath = Path.Combine(projectDir, @"Sources\CommonAppData\TinyWall\profiles.db");
 
             string twAssemblyPath = Path.Combine(projectDir, @"Sources\ProgramFiles\TinyWall\TinyWall.exe");
 

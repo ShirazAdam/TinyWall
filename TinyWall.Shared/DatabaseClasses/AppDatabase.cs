@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -19,17 +20,29 @@ namespace ModernTinyWall.TinyWall.DatabaseClasses
 
         public static string DBPath
         {
-            get { return System.IO.Path.Combine(Utils.AppDataPath, "profiles.json"); }
+            get
+            {
+#if DEBUG
+                return Path.Combine(AppContext.BaseDirectory, "profiles.db");
+#else
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "TinyWall", "profiles.db");
+#endif
+            }
         }
+
+        internal static string LegacyPath => Path.ChangeExtension(DBPath, ".json");
+        internal static string SeedPath => Path.Combine(AppContext.BaseDirectory, "catalogue", "profiles.db");
+        [JsonIgnore]
+        internal string? SourceHash { get; set; }
 
         public static AppDatabase Load()
         {
-            return SerialisationHelper.DeserialiseFromFile(DBPath, new AppDatabase());
+            return SqliteApplicationCatalogue.Load(File.Exists(DBPath) ? DBPath : SeedPath);
         }
 
         public void Save(string filePath)
         {
-            SerialisationHelper.SerialiseToFile(this, filePath);
+            SqliteApplicationCatalogue.Save(this, filePath);
         }
 
         [JsonConstructor]

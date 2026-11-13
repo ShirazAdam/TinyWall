@@ -54,6 +54,20 @@ namespace ModernTinyWall.TinyWall
             if (TinyWallDoctor.IsServiceRunning(logContext, installing))
                 return true;
 
+            if (!installing)
+            {
+                try
+                {
+                    if (ServiceRecovery.RecoveryLimitReached())
+                        return false;
+                }
+                catch (Exception e)
+                {
+                    Utils.LogException(e, logContext);
+                    return false;
+                }
+            }
+
             if (Utils.RunningAsAdmin())
             {
                 InstallService(logContext);
@@ -102,13 +116,24 @@ namespace ModernTinyWall.TinyWall
             {
                 using var process = Process.Start(new ProcessStartInfo
                 {
-                    FileName = "sc.exe",
-                    Arguments = $"create \"{TinyWallService.SERVICE_NAME}\" binPath= \"{Utils.ExecutablePath}\" start= auto DisplayName= \"{TinyWallService.ServiceDisplayName}\" depend= \"{string.Join('/', TinyWallService.SERVICE_DEPENDENCIES)}\"",
+                    FileName = System.IO.Path.Combine(Environment.SystemDirectory, "sc.exe"),
+                    ArgumentList =
+                    {
+                        "create", TinyWallService.SERVICE_NAME,
+                        "binPath=", $"\"{Utils.ExecutablePath}\" /service",
+                        "start=", "auto",
+                        "DisplayName=", TinyWallService.ServiceDisplayName,
+                        "depend=", string.Join('/', TinyWallService.SERVICE_DEPENDENCIES)
+                    },
                     CreateNoWindow = true,
                     UseShellExecute = false
                 });
 
-                process?.WaitForExit();
+                if (process is null)
+                    throw new InvalidOperationException("The service installation process could not be started.");
+                process.WaitForExit();
+                if (process.ExitCode != 0 && process.ExitCode != 1073)
+                    throw new System.ComponentModel.Win32Exception(process.ExitCode);
             }
             catch (Exception e)
             {
@@ -116,10 +141,17 @@ namespace ModernTinyWall.TinyWall
             }
         }
 
-        internal static int Uninstall()
+        internal static int Uninstall(bool unattended = false)
         {
-            using (var frm = new System.Windows.Forms.Form())
+            if (unattended && !Utils.RunningAsAdmin())
             {
+                Utils.Log("Unattended uninstallation requires administrator privileges.", Utils.LOG_ID_INSTALLER);
+                return -1;
+            }
+
+            if (!unattended)
+            {
+                using var frm = new System.Windows.Forms.Form();
                 // See http://www.codeproject.com/Articles/18612/TopMost-MessageBox
                 // for an explanation as for why this is needed.
                 frm.Size = new System.Drawing.Size(1, 1);
@@ -152,6 +184,11 @@ namespace ModernTinyWall.TinyWall
                     // Unlock server
                     while (twController.IsServerLocked)
                     {
+                        if (unattended)
+                        {
+                            Utils.Log("Unlock TinyWall before uninstalling it.", Utils.LOG_ID_INSTALLER);
+                            return -1;
+                        }
                         using var pf = new PasswordForm();
                         pf.BringToFront();
                         pf.Activate();
@@ -269,7 +306,6 @@ namespace ModernTinyWall.TinyWall
             {
                 using var scm = new ServiceControlManager();
                 scm.SetStartupMode(TinyWallService.SERVICE_NAME, ServiceStartMode.Automatic);
-                scm.SetRestartOnFailure(TinyWallService.SERVICE_NAME, true);
             }
             catch (System.ComponentModel.Win32Exception e)
             {
@@ -291,7 +327,7 @@ namespace ModernTinyWall.TinyWall
                 taskService.Connect();
                 var td = taskService.NewTask(0);
                 td.RegistrationInfo.Author = "TinyWall, Károly Pados (modified by Shiraz Adam)";
-                td.RegistrationInfo.Description = "This task starts the TinyWall tray icon when a user is logged in.";
+                td.RegistrationInfo.Description = "This task starts the Modern TinyWall tray icon when a user logs in.";
                 td.Settings.Enabled = true;
                 td.Principal.GroupId = INTERACTIVE_GROUP_SID;
                 td.Principal.LogonType = _TASK_LOGON_TYPE.TASK_LOGON_INTERACTIVE_TOKEN;
@@ -305,7 +341,11 @@ namespace ModernTinyWall.TinyWall
                 td.Settings.MultipleInstances = _TASK_INSTANCES_POLICY.TASK_INSTANCES_PARALLEL;
                 td.Triggers.Create(_TASK_TRIGGER_TYPE2.TASK_TRIGGER_LOGON);
                 var act = (IExecAction)td.Actions.Create(_TASK_ACTION_TYPE.TASK_ACTION_EXEC);
-                act.Path = Utils.ExecutablePath;
+                var modernClientPath = ModernClientStartup.GetExecutablePath(Utils.ExecutablePath);
+                if (!System.IO.File.Exists(modernClientPath))
+                    throw new System.IO.FileNotFoundException("The modern controller is missing; the logon task was not changed.", modernClientPath);
+                act.Path = modernClientPath;
+                act.Arguments = ModernClientStartup.StartupArgument;
                 taskService.GetFolder(@"\").RegisterTaskDefinition(CONTROLLER_START_TASKSCH_NAME, td, TASK_CREATE_OR_UPDATE, null, null, _TASK_LOGON_TYPE.TASK_LOGON_INTERACTIVE_TOKEN);
             }
             catch (System.Runtime.InteropServices.COMException e)

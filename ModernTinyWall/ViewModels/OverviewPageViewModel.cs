@@ -9,6 +9,9 @@ using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 namespace ModernTinyWall.ViewModels;
 
 public sealed class OverviewPageViewModel : INotifyPropertyChanged
@@ -17,21 +20,171 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     private static readonly string[] RateUnits = ["B/s", "KB/s", "MB/s", "GB/s"];
 
     private readonly IFirewallModeService _firewallModeService;
-    private NetworkTotals? _previousNetworkTotals;
-    private (long Received, long Sent)? _previousAdapterTotals;
+    private readonly NetworkActivityBaseline _networkBaseline = new();
     private bool _usingAdapterFallback;
-    private long _previousSampleTimestamp;
     private int _samplingGeneration;
     private bool _isSampling;
     private readonly Controller _controller = new("TinyWallController");
     private string _localDownloadRate = "0 B/s";
     private string _localUploadRate = "0 B/s";
     private string _networkActivityStatus = "Waiting for traffic tracking...";
-    private string _statusMessage = "Choose a protection mode to apply.";
+    private string _statusMessage = string.Empty;
     private string _downloadRate = "0 B/s";
     private string _uploadRate = "0 B/s";
     private readonly AsyncRelayCommand<FirewallModeOption> _applyModeCommand;
     private bool _isApplyingMode;
+    private bool _isRefreshingSummary;
+    public string CurrentModeName { get; private set; } = "Checking...";
+    public string ProtectionStatus { get; private set; } = "Checking protection";
+    public string ProtectionDetail { get; private set; } = "Reading the TinyWall service state.";
+    public string ActiveConnections { get; private set; } = "Checking...";
+    public string ConnectionsDetail { get; private set; } = "Established IPv4 and IPv6 TCP connections.";
+    public string BlockedToday { get; private set; } = "Checking...";
+    public string BlockedDetail { get; private set; } = "Reading observed blocked traffic history.";
+    public SolidColorBrush ProtectionBrush { get; private set; } = new(Colors.Gray);
+
+    public async Task RefreshSummaryAsync()
+    {
+        if (_isRefreshingSummary)
+            return;
+        _isRefreshingSummary = true;
+        var generation = _samplingGeneration;
+        try
+        {
+            var result = await Task.Run(() =>
+            {
+                var changeset = Guid.Empty;
+                var response = _controller.GetServerConfig(out _, out var state, ref changeset);
+                return (response, state);
+            });
+            if (generation != _samplingGeneration)
+                return;
+            if (result.response == MessageType.GET_SETTINGS && result.state is not null)
+                SetCurrentMode(result.state.Mode);
+            else
+            {
+                SetCurrentMode(FirewallMode.Unknown);
+                ProtectionDetail = $"Could not read the TinyWall service state: {result.response}.";
+                OnPropertyChanged(nameof(ProtectionDetail));
+            }
+        }
+        catch (Exception ex)
+        {
+            if (generation != _samplingGeneration)
+                return;
+            Debug.WriteLine($"Could not refresh protection summary: {ex}");
+            SetCurrentMode(FirewallMode.Unknown);
+            ProtectionDetail = $"Could not read protection status: {ex.Message}";
+            OnPropertyChanged(nameof(ProtectionDetail));
+        }
+        finally
+        {
+            try
+            {
+                await RefreshActiveConnectionsAsync(generation);
+            }
+            finally
+            {
+                try
+                {
+                    await RefreshBlockedTrafficAsync(generation);
+                }
+                finally
+                {
+                    _isRefreshingSummary = false;
+                }
+            }
+        }
+    }
+
+    private async Task RefreshBlockedTrafficAsync(int generation)
+    {
+        if (generation != _samplingGeneration)
+            return;
+        try
+        {
+            var snapshot = await Task.Run(_controller.ReadBlockedTraffic);
+            if (generation != _samplingGeneration)
+                return;
+            var display = BlockedTrafficDisplay.FromSnapshot(snapshot, DateOnly.FromDateTime(DateTime.Now));
+            BlockedToday = display.Count;
+            BlockedDetail = display.Detail;
+        }
+        catch (Exception ex)
+        {
+            if (generation != _samplingGeneration)
+                return;
+            Debug.WriteLine($"Could not refresh blocked traffic: {ex}");
+            BlockedToday = "Unavailable";
+            BlockedDetail = $"Could not read blocked traffic history: {ex.Message}";
+        }
+        OnPropertyChanged(nameof(BlockedToday));
+        OnPropertyChanged(nameof(BlockedDetail));
+    }
+
+    private async Task RefreshActiveConnectionsAsync(int generation)
+    {
+        if (generation != _samplingGeneration)
+            return;
+        try
+        {
+            var count = await Task.Run(() => IPGlobalProperties.GetIPGlobalProperties()
+                .GetActiveTcpConnections().Count(connection => connection.State == TcpState.Established));
+            if (generation != _samplingGeneration)
+                return;
+            ActiveConnections = count.ToString("N0");
+            ConnectionsDetail = "Established IPv4 and IPv6 TCP connections. UDP has no established connection state.";
+        }
+        catch (Exception ex)
+        {
+            if (generation != _samplingGeneration)
+                return;
+            Debug.WriteLine($"Could not count active connections: {ex}");
+            ActiveConnections = "Unavailable";
+            ConnectionsDetail = $"Could not count active connections: {ex.Message}";
+        }
+        OnPropertyChanged(nameof(ActiveConnections));
+        OnPropertyChanged(nameof(ConnectionsDetail));
+    }
+
+    private void SetCurrentMode(FirewallMode mode)
+    {
+        var modernMode = mode switch
+        {
+            FirewallMode.Normal => ModernFirewallMode.Normal,
+            FirewallMode.AllowOutgoing => ModernFirewallMode.AllowOutgoing,
+            FirewallMode.BlockAll => ModernFirewallMode.BlockAll,
+            FirewallMode.Disabled => ModernFirewallMode.Disabled,
+            FirewallMode.Learning => ModernFirewallMode.Learning,
+            _ => ModernFirewallMode.Unknown
+        };
+        var selected = ModeOptions.FirstOrDefault(option => option.Mode == modernMode);
+        foreach (var option in ModeOptions)
+            option.IsSelected = option == selected;
+        CurrentModeName = selected?.DisplayName ?? "Unavailable";
+        ProtectionStatus = modernMode switch
+        {
+            ModernFirewallMode.Normal => "Protection active",
+            ModernFirewallMode.BlockAll => "All traffic blocked",
+            ModernFirewallMode.AllowOutgoing => "Outgoing allowed",
+            ModernFirewallMode.Disabled => "Protection disabled",
+            ModernFirewallMode.Learning => "Learning mode",
+            _ => "Service unavailable"
+        };
+        ProtectionDetail = selected?.Description ?? "The TinyWall service is unavailable. Protection status cannot be verified.";
+        ProtectionBrush = new SolidColorBrush(modernMode switch
+        {
+            ModernFirewallMode.Normal => ColorHelper.FromArgb(255, 77, 221, 145),
+            ModernFirewallMode.AllowOutgoing => ColorHelper.FromArgb(255, 0, 190, 163),
+            ModernFirewallMode.BlockAll or ModernFirewallMode.Disabled => ColorHelper.FromArgb(255, 255, 83, 104),
+            ModernFirewallMode.Learning => ColorHelper.FromArgb(255, 255, 215, 0),
+            _ => Colors.Gray
+        });
+        OnPropertyChanged(nameof(CurrentModeName));
+        OnPropertyChanged(nameof(ProtectionStatus));
+        OnPropertyChanged(nameof(ProtectionDetail));
+        OnPropertyChanged(nameof(ProtectionBrush));
+    }
 
     public OverviewPageViewModel()
         : this(new FirewallModeService())
@@ -88,6 +241,9 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     public string TotalDownloadRate { get; private set; } = "0 B/s";
     public string TotalUploadRate { get; private set; } = "0 B/s";
     public string NetworkActivityStatus => _networkActivityStatus;
+    public string TrafficSourceLabel => _usingAdapterFallback
+        ? "Last 5 minutes - adapter totals only"
+        : "Last 5 minutes";
 
     public string StatusMessage
     {
@@ -99,8 +255,11 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
 
             _statusMessage = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(ModeStatusVisibility));
         }
     }
+    public Microsoft.UI.Xaml.Visibility ModeStatusVisibility => string.IsNullOrEmpty(StatusMessage)
+        ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
 
     public bool IsApplyingMode
     {
@@ -127,6 +286,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         {
             var result = await _firewallModeService.SetModeAsync(option.Mode);
             StatusMessage = result.Message;
+            await RefreshSummaryAsync();
         }
         finally
         {
@@ -153,7 +313,6 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             if (_usingAdapterFallback)
             {
                 _usingAdapterFallback = false;
-                _previousAdapterTotals = null;
                 NetworkActivitySamples.Clear();
                 TotalDownloadRate = TotalUploadRate = "Waiting...";
                 OnPropertyChanged(nameof(TotalDownloadRate));
@@ -170,27 +329,29 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             }
 
             var totals = new NetworkTotals(received, sent, localReceived, localSent, snapshot.TrackingStarted);
-            var timestamp = Stopwatch.GetTimestamp();
-            if (_previousNetworkTotals is { } previous && previous.TrackingStarted == totals.TrackingStarted
-                && received >= previous.ReceivedBytes && sent >= previous.SentBytes
-                && localReceived >= previous.LocalReceivedBytes && localSent >= previous.LocalSentBytes)
+            if (_networkBaseline.RecordClassified(totals, Stopwatch.GetTimestamp()) is { } sample)
             {
-                var elapsed = Stopwatch.GetElapsedTime(_previousSampleTimestamp, timestamp).TotalSeconds;
-                var sample = NetworkActivitySample.FromTotals(previous, totals, elapsed);
                 AddNetworkActivitySample(sample);
             }
+            else
+            {
+                DownloadRate = UploadRate = _localDownloadRate = _localUploadRate = "Waiting...";
+                TotalDownloadRate = TotalUploadRate = "Waiting...";
+                OnPropertyChanged(nameof(LocalDownloadRate));
+                OnPropertyChanged(nameof(LocalUploadRate));
+                OnPropertyChanged(nameof(TotalDownloadRate));
+                OnPropertyChanged(nameof(TotalUploadRate));
+            }
 
-            _previousNetworkTotals = totals;
-            _previousSampleTimestamp = timestamp;
             _networkActivityStatus = snapshot.Warning ?? "Internet and local TCP/UDP traffic";
             OnPropertyChanged(nameof(NetworkActivityStatus));
+            OnPropertyChanged(nameof(TrafficSourceLabel));
         }
         catch (Exception ex)
         {
             if (generation != _samplingGeneration)
                 return;
             Debug.WriteLine($"Could not sample network activity: {ex}");
-            _previousNetworkTotals = null;
             DownloadRate = UploadRate = "Unavailable";
             _localDownloadRate = _localUploadRate = "Unavailable";
             OnPropertyChanged(nameof(LocalDownloadRate));
@@ -212,24 +373,20 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
                     received = checked(received + statistics.BytesReceived);
                     sent = checked(sent + statistics.BytesSent);
                 }
-                var timestamp = Stopwatch.GetTimestamp();
-                if (_previousAdapterTotals is { } previous && received >= previous.Received && sent >= previous.Sent)
-                    AddNetworkActivitySample(NetworkActivitySample.FromAdapterTotals(previous.Received, previous.Sent,
-                        received, sent, Stopwatch.GetElapsedTime(_previousSampleTimestamp, timestamp).TotalSeconds));
+                if (_networkBaseline.RecordAdapter(received, sent, Stopwatch.GetTimestamp()) is { } sample)
+                    AddNetworkActivitySample(sample);
                 else
                 {
                     TotalDownloadRate = TotalUploadRate = "Waiting...";
                     OnPropertyChanged(nameof(TotalDownloadRate));
                     OnPropertyChanged(nameof(TotalUploadRate));
                 }
-                _previousAdapterTotals = (received, sent);
-                _previousSampleTimestamp = timestamp;
                 _networkActivityStatus = $"Internet and local tracking unavailable: {ex.Message} Totals show adapter traffic instead.";
             }
             catch (Exception adapterError)
             {
                 Debug.WriteLine($"Could not sample adapter traffic: {adapterError}");
-                _previousAdapterTotals = null;
+                _networkBaseline.Reset();
                 NetworkActivitySamples.Clear();
                 TotalDownloadRate = TotalUploadRate = "Unavailable";
                 OnPropertyChanged(nameof(TotalDownloadRate));
@@ -237,6 +394,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
                 _networkActivityStatus = $"Traffic unavailable: {ex.Message} Adapter counters: {adapterError.Message}";
             }
             OnPropertyChanged(nameof(NetworkActivityStatus));
+            OnPropertyChanged(nameof(TrafficSourceLabel));
         }
         finally
         {
@@ -247,8 +405,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     public void ResetNetworkActivityBaseline()
     {
         _samplingGeneration++;
-        _previousNetworkTotals = null;
-        _previousAdapterTotals = null;
+        _networkBaseline.Reset();
         _usingAdapterFallback = false;
         NetworkActivitySamples.Clear();
         DownloadRate = UploadRate = "0 B/s";
@@ -260,6 +417,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(TotalDownloadRate));
         OnPropertyChanged(nameof(TotalUploadRate));
         OnPropertyChanged(nameof(NetworkActivityStatus));
+        OnPropertyChanged(nameof(TrafficSourceLabel));
     }
 
     private void AddNetworkActivitySample(NetworkActivitySample sample)

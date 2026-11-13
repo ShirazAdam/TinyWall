@@ -16,6 +16,7 @@ namespace ModernTinyWall.TinyWall
         IS_LOCKED,
         READ_PENDING_CONNECTIONS = 36,
         READ_DATA_USAGE = 37,
+        READ_BLOCKED_TRAFFIC = 38,
 
         // Unprivileged write commands (>1023)
         UNLOCK = 1024,

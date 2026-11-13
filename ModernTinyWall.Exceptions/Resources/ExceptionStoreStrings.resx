@@ -57,6 +57,9 @@
   <data name="ConnectionAllowedAlways" xml:space="preserve">
     <value>This application is always allowed to make outbound connections.</value>
   </data>
+  <data name="ConnectionDestinationAllowedAlways" xml:space="preserve">
+    <value>This application is always allowed to connect to this destination using this protocol and port.</value>
+  </data>
   <data name="ConnectionDeniedOnce" xml:space="preserve">
     <value>This connection attempt was denied.</value>
   </data>

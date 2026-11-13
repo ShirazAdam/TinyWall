@@ -39,6 +39,7 @@ namespace ModernTinyWall.TinyWall
         private readonly PipeServerEndpoint _serverPipe;
         private readonly Timer? _minuteTimer;
         private readonly DataUsageCollector _dataUsageCollector;
+        private readonly BlockedTrafficHistory _blockedTrafficHistory;
 
         private readonly CircularBuffer<FirewallLogEntry> _firewallLogEntries = new(500);
         private PendingConnectionDriver? _pendingConnectionDriver;
@@ -1141,9 +1142,11 @@ namespace ModernTinyWall.TinyWall
             {
                 GlobalInstances.AppDatabase = DatabaseClasses.AppDatabase.Load();
             }
-            catch
+            catch (Exception ex)
             {
-                GlobalInstances.AppDatabase = new DatabaseClasses.AppDatabase();
+                Utils.LogException(ex, Utils.LOG_ID_SERVICE);
+                if (GlobalInstances.AppDatabase is null)
+                    throw;
             }
         }
 
@@ -1231,7 +1234,9 @@ namespace ModernTinyWall.TinyWall
                 UpdateModule? module = UpdateChecker.GetDatabaseFileModule(_visibleState.Update);
                 if (module is not null)
                 {
-                    if (!string.Equals(module.DownloadHash, Hasher.HashFile(DatabaseClasses.AppDatabase.DBPath), StringComparison.OrdinalIgnoreCase))
+                    var sourceHash = GlobalInstances.AppDatabase?.SourceHash ??
+                        Hasher.HashFile(DatabaseClasses.AppDatabase.DBPath);
+                    if (!string.Equals(module.DownloadHash, sourceHash, StringComparison.OrdinalIgnoreCase))
                     {
                         GetCompressedUpdate(module, DatabaseUpdateInstall);
                     }
@@ -1273,9 +1278,9 @@ namespace ModernTinyWall.TinyWall
                 if (Hasher.HashFile(tmpFile).Equals(module.DownloadHash, StringComparison.OrdinalIgnoreCase))
                     installMethod(tmpFile);
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
+                Utils.LogException(ex, Utils.LOG_ID_SERVICE);
             }
             finally
             {
@@ -1313,14 +1318,17 @@ namespace ModernTinyWall.TinyWall
         private void DatabaseUpdateInstall(object file)
         {
             var tmpFilePath = (string)file;
+            var database = DatabaseClasses.SqliteApplicationCatalogue.Import(tmpFilePath);
 
             _fileLocker.Unlock(DatabaseClasses.AppDatabase.DBPath);
-            using (var afu = new AtomicFileUpdater(DatabaseClasses.AppDatabase.DBPath))
+            try
             {
-                File.Copy(tmpFilePath, afu.TemporaryFilePath, true);
-                afu.Commit();
+                database.Save(DatabaseClasses.AppDatabase.DBPath);
             }
-            _fileLocker.Lock(DatabaseClasses.AppDatabase.DBPath, FileAccess.Read, FileShare.Read);
+            finally
+            {
+                _fileLocker.Lock(DatabaseClasses.AppDatabase.DBPath, FileAccess.Read, FileShare.Read);
+            }
             NotifyController(MessageType.DATABASE_UPDATED);
             _q.Add(new TwRequest(TwMessageSimple.CreateRequest(MessageType.REINIT)));
         }
@@ -1433,6 +1441,8 @@ namespace ModernTinyWall.TinyWall
                         var args = (TwMessageDataUsage)req;
                         return new TwMessageDataUsage(args.Period, _dataUsageCollector.Query(args.Period));
                     }
+                case MessageType.READ_BLOCKED_TRAFFIC:
+                    return new TwMessageBlockedTraffic(_blockedTrafficHistory.Query(DateOnly.FromDateTime(DateTime.Now)));
                 case MessageType.READ_FW_LOG:
                     {
                         var args = (TwMessageReadFwLog)req;
@@ -1796,6 +1806,8 @@ namespace ModernTinyWall.TinyWall
             _q.Add(new TwRequest(TwMessageSimple.CreateRequest(MessageType.REINIT)));
 
             // Fire up file protections as soon as possible
+            DatabaseClasses.SqliteApplicationCatalogue.EnsureMigrated(
+                DatabaseClasses.AppDatabase.DBPath, DatabaseClasses.AppDatabase.LegacyPath, DatabaseClasses.AppDatabase.SeedPath);
             _fileLocker.Lock(DatabaseClasses.AppDatabase.DBPath, FileAccess.Read, FileShare.Read);
             _fileLocker.Lock(PasswordLock.PasswordFilePath, FileAccess.Read, FileShare.Read);
 
@@ -1814,6 +1826,9 @@ namespace ModernTinyWall.TinyWall
             _dataUsageCollector = new DataUsageCollector(
                 Path.Combine(Utils.AppDataPath, "data-usage.db"),
                 ex => Utils.LogException(ex, Utils.LOG_ID_SERVICE));
+            _blockedTrafficHistory = new BlockedTrafficHistory(
+                Path.Combine(Utils.AppDataPath, "blocked-traffic.db"),
+                ex => Utils.LogException(ex, Utils.LOG_ID_SERVICE));
         }
 
         // Entry point for thread that actually issues commands to Windows Firewall.
@@ -1830,6 +1845,7 @@ namespace ModernTinyWall.TinyWall
 
             _wfpEngine.CollectNetEvents = true;
             _wfpEngine.EventMatchAnyKeywords = InboundEventMatchKeyword.FWPM_NET_EVENT_KEYWORD_INBOUND_BCAST | InboundEventMatchKeyword.FWPM_NET_EVENT_KEYWORD_INBOUND_MCAST;
+            _blockedTrafficHistory.Start(DateTimeOffset.Now);
 
             _processStartWatcher.EventArrived += ProcessStartWatcher_EventArrived;
             networkInterfaceWatcher.InterfaceChanged += (_, _) =>
@@ -2000,6 +2016,7 @@ namespace ModernTinyWall.TinyWall
             {
                 _firewallLogEntries.Enqueue(entry);
             }
+            _blockedTrafficHistory.Record(entry);
         }
 
         private void AutoLearnLogEntry(FirewallLogEntry entry)
@@ -2085,6 +2102,7 @@ namespace ModernTinyWall.TinyWall
             _serverPipe.Dispose();
             _pendingConnectionDriver?.Dispose();
             _dataUsageCollector.Dispose();
+            _blockedTrafficHistory.Dispose();
             _processStartWatcher.Dispose();
 
             if (_minuteTimer != null)
@@ -2154,19 +2172,29 @@ namespace ModernTinyWall.TinyWall
 
         private void FirewallWorkerMethod()
         {
+#if !DEBUG
+            var completedNormally = false;
+#endif
             try
             {
                 using (_server = new TinyWallServer())
                 {
                     _server.Run(this);
                 }
+#if !DEBUG
+                completedNormally = true;
+#endif
             }
             finally
             {
-                //do nothing
 #if !DEBUG
                 Thread.MemoryBarrier();
-                if (!IsComputerShuttingDown)    // cannot set service state if a shutdown is already in progress
+                if (completedNormally)
+                {
+                    try { ServiceRecovery.MarkStopped(); }
+                    catch (Exception ex) { Utils.LogException(ex, Utils.LOG_ID_SERVICE); }
+                }
+                if (completedNormally && !IsComputerShuttingDown)
                 {
                     SetServiceStateReached(ServiceState.Stopped);
                 }
@@ -2178,6 +2206,14 @@ namespace ModernTinyWall.TinyWall
         // Entry point for Windows service.
         protected override void OnStart(string[] args)
         {
+#if !DEBUG
+            try { ServiceRecovery.PrepareStart(); }
+            catch (Exception ex)
+            {
+                Utils.LogException(ex, Utils.LOG_ID_SERVICE);
+                throw;
+            }
+#endif
             // Initialization on a new thread prevents stalling the SCM
             _firewallWorkerThread = new Thread(FirewallWorkerMethod)
             {

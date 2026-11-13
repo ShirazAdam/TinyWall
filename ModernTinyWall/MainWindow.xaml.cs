@@ -3,14 +3,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Automation;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.Views;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -32,6 +34,7 @@ public sealed partial class MainWindow
     private readonly FirewallPromptMonitor _firewallPromptMonitor = App.Services.GetRequiredService<FirewallPromptMonitor>();
     private readonly ITinyWallExceptionStore _exceptionStore = App.Services.GetRequiredService<ITinyWallExceptionStore>();
     private readonly GlobalHotkeyService _globalHotkeyService = new();
+    private readonly FirewallPromptBacklog _firewallPromptBacklog = new();
     private readonly CancellationTokenSource _promptMonitoringCancellation = new();
     private readonly Channel<FirewallLogEntry> _promptQueue = Channel.CreateBounded<FirewallLogEntry>(
         new BoundedChannelOptions(128) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = true });
@@ -46,6 +49,9 @@ public sealed partial class MainWindow
     private Type? _pendingPageType;
     private bool _isNavigating;
     private CancellationTokenSource? _navigationFadeCancellation;
+    private readonly DispatcherTimer _protectionModeTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private FirewallMode? _displayedProtectionMode = FirewallMode.Unknown;
+    private int _protectionModeRefreshInProgress;
 
     internal event Action<bool>? WindowVisibilityChanged;
 
@@ -54,11 +60,23 @@ public sealed partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(WindowDragRegion);
+        ShellNavigation.ActualThemeChanged += ShellNavigation_ActualThemeChanged;
+        _uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
+        ApplySystemTheme();
         _windowHandle = WindowNative.GetWindowHandle(this);
+        AppWindow.SetIcon(ProtectionModeIcon.GetPath(FirewallMode.Unknown));
+        SetSidebarProtectionIcon(FirewallMode.Unknown);
+        CentreOnScreen();
+        ShellRoot.Loaded += ShellRoot_Loaded;
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
         _trayIconService.Initialise(_windowHandle);
+        _protectionModeTimer.Tick += ProtectionModeTimer_Tick;
+        _protectionModeTimer.Start();
+        RefreshProtectionModeInBackground();
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Initialise(_windowHandle);
         _trayIconService.SetStatus("Modern TinyWall firewall controls");
@@ -68,9 +86,28 @@ public sealed partial class MainWindow
         _ = ConsumeFirewallPromptsAsync(_promptMonitoringCancellation.Token);
     }
 
+    private void ShellRoot_Loaded(object sender, RoutedEventArgs args)
+    {
+        ShellRoot.Loaded -= ShellRoot_Loaded;
+        // Reapply once the first show has established the monitor's DPI.
+        CentreOnScreen();
+    }
+
+    private void CentreOnScreen()
+    {
+        var display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
+            AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest);
+        AppWindow.MoveAndResize(WindowPlacement.Centre(display.WorkArea,
+            new global::Windows.Graphics.SizeInt32(App.PreviewOptions.Width ?? 1536, App.PreviewOptions.Height ?? 1024)));
+    }
+
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
         _isTerminating = true;
+        _protectionModeTimer.Stop();
+        _protectionModeTimer.Tick -= ProtectionModeTimer_Tick;
+        ShellNavigation.ActualThemeChanged -= ShellNavigation_ActualThemeChanged;
+        _uiSettings.ColorValuesChanged -= UiSettings_ColorValuesChanged;
         _navigationFadeCancellation?.Cancel();
         _promptMonitoringCancellation.Cancel();
         _trayIconService.CommandInvoked -= TrayIconService_CommandInvoked;
@@ -79,6 +116,51 @@ public sealed partial class MainWindow
         _trayIconService.Dispose();
         if (_previousWindowProc != IntPtr.Zero)
             _ = SetWindowLongPtr(_windowHandle, GwlpWndproc, _previousWindowProc);
+    }
+
+    private void ShellNavigation_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        UpdateTitleBarTheme();
+    }
+
+    private void UiSettings_ColorValuesChanged(UISettings sender, object args)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!_isTerminating)
+                ApplySystemTheme();
+        });
+    }
+
+    private void ApplySystemTheme()
+    {
+        var background = _uiSettings.GetColorValue(UIColorType.Background);
+        ShellRoot.RequestedTheme = new AccessibilitySettings().HighContrast
+            ? ElementTheme.Default
+            : App.PreviewOptions.Theme switch
+            {
+                PreviewTheme.Light => ElementTheme.Light,
+                PreviewTheme.Dark => ElementTheme.Dark,
+                _ => background.R + background.G + background.B >= 384 ? ElementTheme.Light : ElementTheme.Dark
+            };
+        UpdateTitleBarTheme();
+    }
+
+    private void UpdateTitleBarTheme()
+    {
+        if (!Microsoft.UI.Windowing.AppWindowTitleBar.IsCustomizationSupported())
+            return;
+
+        var highContrast = new AccessibilitySettings().HighContrast;
+        var foreground = highContrast ? _uiSettings.GetColorValue(UIColorType.Foreground)
+            : ShellNavigation.ActualTheme == ElementTheme.Dark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
+        var titleBar = AppWindow.TitleBar;
+        titleBar.BackgroundColor = Microsoft.UI.Colors.Transparent;
+        titleBar.ForegroundColor = foreground;
+        titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+        titleBar.ButtonForegroundColor = foreground;
+        titleBar.InactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+        titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
     }
 
     private async Task MonitorFirewallEventsAsync(CancellationToken cancellationToken)
@@ -137,6 +219,8 @@ public sealed partial class MainWindow
                 {
                     if (entry.PendingConnectionId != 0 && !_firewallPromptMonitor.IsPending(entry.PendingConnectionId))
                         continue;
+                    if (_firewallPromptBacklog.IsObsolete(entry))
+                        continue;
                     if (await ShowFirewallPromptAsync(entry) && entry.PendingConnectionId != 0)
                         _firewallPromptMonitor.ForgetPending(entry.PendingConnectionId);
                 }
@@ -178,11 +262,21 @@ public sealed partial class MainWindow
 
         var executablePath = entry.AppPath ?? string.Empty;
         var isPending = entry.PendingConnectionId != 0;
-        var applicationName = GetApplicationDisplayName(executablePath);
+        ApplicationDetails details;
+        try
+        {
+            details = await Task.Run(() => ApplicationDetails.Read(executablePath))
+                .WaitAsync(TimeSpan.FromSeconds(1), _promptMonitoringCancellation.Token);
+        }
+        catch (TimeoutException)
+        {
+            Debug.WriteLine($"Timed out reading application details for '{executablePath}'.");
+            details = ApplicationDetails.FromMetadata(executablePath, null, null, null);
+        }
         var icon = new Image { Width = 48, Height = 48, Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform };
         try
         {
-            await TryLoadApplicationIconAsync(icon, executablePath);
+            _ = TryLoadApplicationIconAsync(icon, executablePath);
         }
         catch (Exception ex)
         {
@@ -192,15 +286,18 @@ public sealed partial class MainWindow
         var endpoint = entry.RemotePort > 0
             ? $"{(entry.RemoteIp?.Contains(':') == true ? $"[{entry.RemoteIp}]" : entry.RemoteIp)}:{entry.RemotePort}"
             : entry.RemoteIp ?? "Unknown destination";
-        var applicationDetails = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+        var applicationDetails = new Grid { ColumnSpacing = 12 };
+        applicationDetails.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        applicationDetails.ColumnDefinitions.Add(new ColumnDefinition());
         applicationDetails.Children.Add(icon);
 
         var text = new StackPanel { Spacing = 4 };
         text.Children.Add(new TextBlock
         {
-            Text = isPending ? $"{applicationName} wants to connect" : $"{applicationName} attempted to connect",
+            Text = isPending ? $"{details.Name} wants to connect" : $"{details.Name} attempted to connect",
             FontSize = 18,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap
         });
         text.Children.Add(new TextBlock
         {
@@ -209,34 +306,83 @@ public sealed partial class MainWindow
                 : "Modern TinyWall blocked this connection. The application may need to retry after you allow it.",
             TextWrapping = TextWrapping.Wrap
         });
+        text.Children.Add(new TextBlock { Text = $"Application: {details.Name}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = $"Publisher (unverified file metadata): {details.Publisher}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = $"Description (file metadata): {details.Description}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = "File details may not identify an individual hosted service.", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = executablePath, TextWrapping = TextWrapping.Wrap });
-        text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}" });
+        text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}", TextWrapping = TextWrapping.Wrap });
+        Grid.SetColumn(text, 1);
         applicationDetails.Children.Add(text);
 
         var decision = FirewallPromptDecision.DenyOnce;
         var content = new StackPanel { Spacing = 8 };
-        content.Children.Add(applicationDetails);
+        content.Children.Add(new ScrollViewer
+        {
+            Content = applicationDetails,
+            MaxHeight = 260,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        });
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
             Title = isPending ? "Outbound connection awaiting permission" : "Outbound connection blocked",
             Content = content,
-            PrimaryButtonText = "Allow destination (5 min)",
-            SecondaryButtonText = "Allow always",
             CloseButtonText = "Deny once",
             DefaultButton = ContentDialogButton.Close
         };
-        var denyAlwaysButton = new Button
+        const string denyOnceTip = "Deny this connection without saving a rule. The application may prompt again.";
+        var closeStyle = new Style(typeof(Button));
+        closeStyle.Setters.Add(new Setter(ToolTipService.ToolTipProperty, denyOnceTip));
+        closeStyle.Setters.Add(new Setter(AutomationProperties.HelpTextProperty, denyOnceTip));
+        if (!new AccessibilitySettings().HighContrast)
         {
-            Content = "Deny always",
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-        denyAlwaysButton.Click += (_, _) =>
+            closeStyle.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 164, 38, 44))));
+            closeStyle.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Microsoft.UI.Colors.White)));
+        }
+        dialog.CloseButtonStyle = closeStyle;
+
+        var buttons = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
+        buttons.ColumnDefinitions.Add(new ColumnDefinition());
+        buttons.ColumnDefinitions.Add(new ColumnDefinition());
+        buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        void AddDecisionButton(string label, string tooltip, FirewallPromptDecision choice, int row, int column, SolidColorBrush colour)
         {
-            decision = FirewallPromptDecision.DenyAlways;
-            dialog.Hide();
-        };
-        content.Children.Add(denyAlwaysButton);
+            var button = new Button
+            {
+                Content = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center },
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                MinHeight = 44
+            };
+            if (!new AccessibilitySettings().HighContrast)
+            {
+                button.Background = colour;
+                button.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+            }
+            ToolTipService.SetToolTip(button, tooltip);
+            AutomationProperties.SetHelpText(button, tooltip);
+            button.Click += (_, _) => { decision = choice; dialog.Hide(); };
+            Grid.SetRow(button, row);
+            Grid.SetColumn(button, column);
+            buttons.Children.Add(button);
+        }
+
+        var green = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 11, 106, 57));
+        var blue = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 0, 90, 158));
+        var red = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 164, 38, 44));
+        AddDecisionButton("Allow all outbound", "Always allow this executable to make outbound connections to any IP address or port. This affects every process using it and replaces its application-wide block. Other block rules may still apply.",
+            FirewallPromptDecision.AllowAlways, 0, 0, green);
+        AddDecisionButton("Deny all traffic", "Always block inbound and outbound traffic for this executable.",
+            FirewallPromptDecision.DenyAlways, 0, 1, red);
+        AddDecisionButton("Allow IP and port (5 min)", "Allow this executable to connect to the displayed IP address and port using this protocol for five minutes.",
+            FirewallPromptDecision.AllowOnce, 1, 0, blue);
+        AddDecisionButton("Allow IP and port always", "Always allow this executable to connect to the displayed IP address and port using this protocol. This replaces its application-wide block; other block rules may still apply.",
+            FirewallPromptDecision.AllowDestinationAlways, 1, 1, blue);
+        content.Children.Add(buttons);
 
         var expired = false;
         var expiryTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
@@ -250,10 +396,9 @@ public sealed partial class MainWindow
             }
         };
         expiryTimer.Start();
-        ContentDialogResult result;
         try
         {
-            result = await ShowDialogAsync(dialog);
+            _ = await ShowDialogAsync(dialog);
         }
         finally
         {
@@ -264,15 +409,7 @@ public sealed partial class MainWindow
             _trayIconService.SetStatus("Pending connection expired or was withdrawn. No rule was saved.");
             return true;
         }
-        decision = result switch
-        {
-            ContentDialogResult.Primary => FirewallPromptDecision.AllowOnce,
-            ContentDialogResult.Secondary => FirewallPromptDecision.AllowAlways,
-            _ when decision == FirewallPromptDecision.DenyAlways => decision,
-            _ => FirewallPromptDecision.DenyOnce
-        };
-
-        var allow = decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways;
+        var allow = decision is FirewallPromptDecision.AllowOnce or FirewallPromptDecision.AllowAlways or FirewallPromptDecision.AllowDestinationAlways;
         if (isPending && allow)
         {
             if (!FirewallPromptValidation.TryGetDestination(entry, out _, out _))
@@ -293,6 +430,8 @@ public sealed partial class MainWindow
             }
         }
         var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+        if (mutationResult.Success && decision == FirewallPromptDecision.AllowAlways)
+            _firewallPromptBacklog.MarkApplicationAllowed(executablePath, DateTime.Now);
         if (isPending && !allow)
         {
             var resolution = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
@@ -309,7 +448,7 @@ public sealed partial class MainWindow
 
     private static Task TryLoadApplicationIconAsync(Image image, string executablePath)
     {
-        if (string.IsNullOrWhiteSpace(executablePath) || !File.Exists(executablePath))
+        if (string.IsNullOrWhiteSpace(executablePath))
             return Task.CompletedTask;
 
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -362,25 +501,6 @@ public sealed partial class MainWindow
         return completion.Task;
     }
 
-    private static string GetApplicationDisplayName(string executablePath)
-    {
-        if (string.IsNullOrWhiteSpace(executablePath))
-            return "Unknown application";
-
-        try
-        {
-            var fileDescription = FileVersionInfo.GetVersionInfo(executablePath).FileDescription;
-            return string.IsNullOrWhiteSpace(fileDescription)
-                ? Path.GetFileNameWithoutExtension(executablePath)
-                : fileDescription;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Could not read application details for '{executablePath}': {ex}");
-            return Path.GetFileNameWithoutExtension(executablePath);
-        }
-    }
-
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
     {
         if (message == WmShowWindow)
@@ -423,6 +543,84 @@ public sealed partial class MainWindow
             return;
 
         _ = RefreshTraySnapshotAsync();
+    }
+
+    private void ProtectionModeTimer_Tick(object? sender, object args)
+    {
+        RefreshProtectionModeInBackground();
+    }
+
+    private void RefreshProtectionModeInBackground()
+    {
+        if (!_isTerminating && Interlocked.Exchange(ref _protectionModeRefreshInProgress, 1) == 0)
+            _ = RefreshProtectionModeAsync();
+    }
+
+    private async Task RefreshProtectionModeAsync()
+    {
+        var queued = false;
+        try
+        {
+            FirewallMode mode;
+            try
+            {
+                mode = await _controllerCommandService.GetProtectionModeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Could not read the protection mode: {ex}");
+                mode = FirewallMode.Unknown;
+            }
+            queued = DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    if (!_isTerminating && mode != _displayedProtectionMode)
+                    {
+                        _displayedProtectionMode = null;
+                        _trayIconService.SetProtectionMode(mode);
+                        AppWindow.SetIcon(ProtectionModeIcon.GetPath(mode));
+                        SetSidebarProtectionIcon(mode);
+                        _displayedProtectionMode = mode;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Could not update the protection mode icons: {ex}");
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _protectionModeRefreshInProgress, 0);
+                }
+            });
+            if (!queued)
+                Debug.WriteLine("Could not dispatch the protection mode icon update.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not dispatch the protection mode icon update: {ex}");
+        }
+        finally
+        {
+            if (!queued)
+                Interlocked.Exchange(ref _protectionModeRefreshInProgress, 0);
+        }
+    }
+
+    private void SetSidebarProtectionIcon(FirewallMode mode)
+    {
+        SidebarProtectionIcon.Source = new BitmapImage(new Uri(ProtectionModeIcon.GetImagePath(mode), UriKind.Absolute));
+        var description = mode switch
+        {
+            FirewallMode.Normal => "normal",
+            FirewallMode.AllowOutgoing => "allow outgoing",
+            FirewallMode.BlockAll => "block all",
+            FirewallMode.Learning => "learning",
+            FirewallMode.Disabled => "disabled",
+            _ => "unavailable"
+        };
+        AutomationProperties.SetName(SidebarProtectionIcon, $"Modern TinyWall, protection mode {description}");
     }
 
     private async Task RefreshTraySnapshotAsync()
@@ -526,6 +724,12 @@ public sealed partial class MainWindow
         NavigateTo(GetPageType(tag));
     }
 
+    internal void ShowConnections()
+    {
+        ShellNavigation.SelectedItem = ShellNavigation.MenuItems.OfType<NavigationViewItem>()
+            .First(item => item.Tag is "Connections");
+    }
+
     private static Type GetPageType(string tag)
     {
         return tag switch
@@ -611,7 +815,8 @@ public sealed partial class MainWindow
 
     private async Task FadeContentAsync(double opacity, TimeSpan duration)
     {
-        if (!_isWindowVisible || !_uiSettings.AnimationsEnabled || _isTerminating)
+        if (!_isWindowVisible || !App.PreviewOptions.AnimationsAllowed(_uiSettings.AnimationsEnabled,
+                new AccessibilitySettings().HighContrast) || _isTerminating)
         {
             ContentFrame.Opacity = opacity;
             return;
@@ -670,6 +875,7 @@ public sealed partial class MainWindow
         var result = await _firewallModeService.SetModeAsync(mode);
         _trayIconService.SetStatus(result.Message);
         RefreshTraySnapshotInBackground();
+        RefreshProtectionModeInBackground();
         NavigateTo(typeof(OverviewPage));
     }
 
@@ -694,6 +900,7 @@ public sealed partial class MainWindow
         var result = await commandTask;
         _trayIconService.SetStatus(result.Message);
         RefreshTraySnapshotInBackground();
+        RefreshProtectionModeInBackground();
     }
 
     private async Task<ModernTinyWallOptions> LoadOptionsAsync()
@@ -748,6 +955,8 @@ public sealed partial class MainWindow
             return new ModernTinyWallOptions();
         }
     }
+
+    internal void StartInTray() => HideWindow();
 
     private void HideWindow()
     {

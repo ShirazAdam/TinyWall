@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
 using ModernTinyWall.Models;
 using ModernTinyWall.ViewModels;
 using ModernTinyWall.Services;
@@ -9,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Numerics;
+using Windows.UI.ViewManagement;
 
 namespace ModernTinyWall.Views;
 
@@ -35,6 +39,9 @@ public sealed partial class OverviewPage
     private readonly IOptionsService _optionsService = new OptionsService();
     private bool _isRestoringSeries;
     private bool _optionsReady;
+    private readonly UISettings _uiSettings = new();
+    private readonly AccessibilitySettings _accessibilitySettings = new();
+    private long _lastSummaryRefresh;
 
     public OverviewPageViewModel ViewModel { get; } = new();
 
@@ -43,12 +50,109 @@ public sealed partial class OverviewPage
         InitializeComponent();
         Loaded += OverviewPage_Loaded;
         Unloaded += OverviewPage_Unloaded;
+        ActualThemeChanged += (_, _) => UpdateTheme();
         _networkActivityTimer.Tick += NetworkActivityTimer_Tick;
+    }
+
+    private void Dashboard_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var height = Math.Clamp(e.NewSize.Height - 590, 90, 210);
+        PlotHeight.Height = new GridLength(height);
+        BandwidthScaleUpperText.Margin = new Thickness(0, height / 4 - 7, 0, 0);
+        BandwidthScaleLowerText.Margin = new Thickness(0, 0, 0, height / 4 - 7);
+    }
+
+    private void ProtectionSummary_Click(object sender, RoutedEventArgs e)
+    {
+        ProtectionPanel.StartBringIntoView(new BringIntoViewOptions
+        {
+            AnimationDesired = App.PreviewOptions.AnimationsAllowed(_uiSettings.AnimationsEnabled, _accessibilitySettings.HighContrast)
+        });
+    }
+
+    private void ConnectionsSummary_Click(object sender, RoutedEventArgs e)
+    {
+        _mainWindow?.ShowConnections();
+    }
+
+    private void UpdateTheme()
+    {
+        var theme = _accessibilitySettings.HighContrast ? "HighContrast" : ActualTheme.ToString();
+        var palette = (ResourceDictionary)Resources.ThemeDictionaries[theme];
+        foreach (var option in ViewModel.ModeOptions)
+        {
+            var brush = option.Mode switch
+            {
+                ModernFirewallMode.Normal => "NetworkDownloadBrush",
+                ModernFirewallMode.AllowOutgoing => "NetworkUploadBrush",
+                ModernFirewallMode.BlockAll => "LocalUploadBrush",
+                ModernFirewallMode.Learning => "LocalDownloadBrush",
+                _ => "TotalUploadBrush"
+            };
+            option.ModeBrush.Color = ((SolidColorBrush)palette[brush]).Color;
+        }
+        UpdateNetworkActivityGraph();
+    }
+
+    private void SummaryPanels_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ArrangeColumns((Grid)sender, e.NewSize.Width >= 660 ? 3 : e.NewSize.Width >= 420 ? 2 : 1);
+    }
+
+    private void SeriesSelectors_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ArrangeColumns((Grid)sender, e.NewSize.Width >= 740 ? 3 : e.NewSize.Width >= 490 ? 2 : 1);
+    }
+
+    private static void ArrangeColumns(Grid panel, int columns)
+    {
+        if (panel.ColumnDefinitions.Count == columns)
+            return;
+
+        panel.ColumnDefinitions.Clear();
+        panel.RowDefinitions.Clear();
+        for (var column = 0; column < columns; column++)
+            panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        for (var row = 0; row < (panel.Children.Count + columns - 1) / columns; row++)
+            panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        for (var index = 0; index < panel.Children.Count; index++)
+        {
+            Grid.SetRow((FrameworkElement)panel.Children[index], index / columns);
+            Grid.SetColumn((FrameworkElement)panel.Children[index], index % columns);
+        }
+    }
+
+    private void ModeTile_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        AnimateModeTile((Button)sender, -3);
+    }
+
+    private void ModeTile_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        AnimateModeTile((Button)sender, 0);
+    }
+
+    private void AnimateModeTile(Button button, float offset)
+    {
+        ElementCompositionPreview.SetIsTranslationEnabled(button, true);
+        var visual = ElementCompositionPreview.GetElementVisual(button);
+        if (!App.PreviewOptions.AnimationsAllowed(_uiSettings.AnimationsEnabled, _accessibilitySettings.HighContrast))
+        {
+            visual.StopAnimation("Translation.Y");
+            visual.Properties.InsertVector3("Translation", Vector3.Zero);
+            return;
+        }
+
+        var animation = visual.Compositor.CreateScalarKeyFrameAnimation();
+        animation.InsertKeyFrame(1, offset);
+        animation.Duration = TimeSpan.FromMilliseconds(180);
+        visual.StartAnimation("Translation.Y", animation);
     }
 
     private async void OverviewPage_Loaded(object sender, RoutedEventArgs e)
     {
         _isPageLoaded = true;
+        UpdateTheme();
         _mainWindow = App.MainWindow as MainWindow;
         if (_mainWindow is not null)
         {
@@ -74,6 +178,7 @@ public sealed partial class OverviewPage
         {
             Debug.WriteLine($"Could not restore traffic series selection: {ex}");
             SeriesSettingsStatus.Text = $"Could not restore chart settings: {ex.Message}";
+            SeriesSettingsStatus.Visibility = Visibility.Visible;
         }
         finally
         {
@@ -112,6 +217,8 @@ public sealed partial class OverviewPage
         if (shouldMonitor)
         {
             ViewModel.ResetNetworkActivityBaseline();
+            _lastSummaryRefresh = 0;
+            _ = ViewModel.RefreshSummaryAsync();
             ViewModel.NetworkActivitySamples.CollectionChanged += NetworkActivitySamples_CollectionChanged;
             _networkActivityTimer.Start();
             UpdateNetworkActivityGraph();
@@ -140,7 +247,14 @@ public sealed partial class OverviewPage
     private async void NetworkActivityTimer_Tick(object? sender, object e)
     {
         if (_isMonitoring)
+        {
+            if (_lastSummaryRefresh == 0 || Stopwatch.GetElapsedTime(_lastSummaryRefresh).TotalSeconds >= 10)
+            {
+                _lastSummaryRefresh = Stopwatch.GetTimestamp();
+                _ = ViewModel.RefreshSummaryAsync();
+            }
             await ViewModel.UpdateNetworkActivityAsync();
+        }
     }
 
     private void NetworkActivityCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -164,11 +278,13 @@ public sealed partial class OverviewPage
         {
             _optionsService.UpdateAsync(options => options with { VisibleNetworkSeries = series }).GetAwaiter().GetResult();
             SeriesSettingsStatus.Text = string.Empty;
+            SeriesSettingsStatus.Visibility = Visibility.Collapsed;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Could not save traffic series selection: {ex}");
             SeriesSettingsStatus.Text = $"Could not save chart settings: {ex.Message}";
+            SeriesSettingsStatus.Visibility = Visibility.Visible;
         }
     }
 
@@ -198,6 +314,8 @@ public sealed partial class OverviewPage
         }
 
         BandwidthScaleTopText.Text = FormatRate(maxValue);
+        BandwidthScaleUpperText.Text = FormatRate((long)(maxValue * 0.75));
+        BandwidthScaleLowerText.Text = FormatRate(maxValue / 4);
         BandwidthScaleMiddleText.Text = FormatRate(maxValue / 2);
 
         _totalDownloadPath.Visibility = TotalDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
@@ -206,12 +324,14 @@ public sealed partial class OverviewPage
         _uploadPath.Visibility = classified && InternetUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         _localDownloadPath.Visibility = classified && LocalDownloadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         _localUploadPath.Visibility = classified && LocalUploadCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-        UpdateSeries(_totalDownloadPath, samples, maxValue, static sample => sample.TotalReceivedBytesPerSecond, (Brush)Resources["TotalDownloadBrush"]);
-        UpdateSeries(_totalUploadPath, samples, maxValue, static sample => sample.TotalSentBytesPerSecond, (Brush)Resources["TotalUploadBrush"]);
-        UpdateSeries(_downloadPath, samples, maxValue, static sample => sample.ReceivedBytesPerSecond, (Brush)Resources["NetworkDownloadBrush"]);
-        UpdateSeries(_uploadPath, samples, maxValue, static sample => sample.SentBytesPerSecond, (Brush)Resources["NetworkUploadBrush"]);
-        UpdateSeries(_localDownloadPath, samples, maxValue, static sample => sample.LocalReceivedBytesPerSecond, (Brush)Resources["LocalDownloadBrush"]);
-        UpdateSeries(_localUploadPath, samples, maxValue, static sample => sample.LocalSentBytesPerSecond, (Brush)Resources["LocalUploadBrush"]);
+        var theme = _accessibilitySettings.HighContrast ? "HighContrast" : ActualTheme.ToString();
+        var palette = (ResourceDictionary)Resources.ThemeDictionaries[theme];
+        UpdateSeries(_totalDownloadPath, samples, maxValue, static sample => sample.TotalReceivedBytesPerSecond, (Brush)palette["TotalDownloadBrush"]);
+        UpdateSeries(_totalUploadPath, samples, maxValue, static sample => sample.TotalSentBytesPerSecond, (Brush)palette["TotalUploadBrush"]);
+        UpdateSeries(_downloadPath, samples, maxValue, static sample => sample.ReceivedBytesPerSecond, (Brush)palette["NetworkDownloadBrush"]);
+        UpdateSeries(_uploadPath, samples, maxValue, static sample => sample.SentBytesPerSecond, (Brush)palette["NetworkUploadBrush"]);
+        UpdateSeries(_localDownloadPath, samples, maxValue, static sample => sample.LocalReceivedBytesPerSecond, (Brush)palette["LocalDownloadBrush"]);
+        UpdateSeries(_localUploadPath, samples, maxValue, static sample => sample.LocalSentBytesPerSecond, (Brush)palette["LocalUploadBrush"]);
     }
 
     private void UpdateSeries(Path path, IReadOnlyList<NetworkActivitySample> samples, long maxValue, Func<NetworkActivitySample, long> valueSelector, Brush brush)
@@ -261,12 +381,25 @@ public sealed partial class OverviewPage
         var geometry = new PathGeometry();
         geometry.Figures.Add(figure);
         path.Data = geometry;
-        path.Fill = new SolidColorBrush(((SolidColorBrush)brush).Color) { Opacity = 0.25 };
+        var colour = ((SolidColorBrush)brush).Color;
+        var transparent = colour;
+        transparent.A = 0;
+        path.Fill = new LinearGradientBrush
+        {
+            StartPoint = new(0, 0),
+            EndPoint = new(0, 1),
+            Opacity = 0.3,
+            GradientStops =
+            {
+                new GradientStop { Color = colour, Offset = 0 },
+                new GradientStop { Color = transparent, Offset = 1 }
+            }
+        };
         if (!NetworkActivityCanvas.Children.Contains(path))
             NetworkActivityCanvas.Children.Add(path);
         if (!_outlines.TryGetValue(path, out var outlinePath))
         {
-            outlinePath = new Path { StrokeThickness = 2 };
+            outlinePath = new Path { StrokeThickness = 1.25 };
             Canvas.SetZIndex(outlinePath, 1);
             _outlines.Add(path, outlinePath);
             NetworkActivityCanvas.Children.Add(outlinePath);

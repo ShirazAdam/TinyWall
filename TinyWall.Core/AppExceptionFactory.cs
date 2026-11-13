@@ -9,14 +9,7 @@ public static class AppExceptionFactory
     {
         var subject = new ExecutableSubject(executablePath);
 
-        try
-        {
-            return AppDatabase.Load().GetExceptionsForApp(subject, true, out _);
-        }
-        catch
-        {
-            return [new FirewallExceptionV3(subject, new TcpUdpPolicy(true))];
-        }
+        return AppDatabase.Load().GetExceptionsForApp(subject, true, out _);
     }
 
     public static List<FirewallExceptionV3> CreateForProcessId(uint processId)

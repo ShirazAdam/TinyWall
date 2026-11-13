@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using ModernTinyWall.TinyWall;
+using ModernTinyWall.Windows;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -98,10 +99,14 @@ internal sealed class DataUsagePageViewModel : ObservableObject
                         _refreshRequested = true;
                         continue;
                     }
-                    _applications = snapshot.Applications;
+                    _applications = snapshot.Applications.Select(app => app with
+                    {
+                        ApplicationPath = PathMapper.Instance.ConvertPathIgnoreErrors(app.ApplicationPath, PathFormat.Win32)
+                    }).ToArray();
                     RebuildRows();
                     var tracking = snapshot.TrackingStarted is { } started
-                        ? $"Tracking since {started.ToLocalTime():g}. Updated {DateTime.Now:t}."
+                        ? $"Tracking since {started.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture)}. " +
+                          $"Updated {DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture)}."
                         : "No traffic has been recorded yet.";
                     StatusMessage = snapshot.Error is { } error
                         ? $"{error} Displayed totals may be incomplete."

@@ -18,14 +18,25 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\TinyWallSetup\Sources\CommonAppData\TinyWall\profiles.json" Link="Fixtures\profiles.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ModernTinyWall\Assets\ModernTinyWall*.ico" Link="Assets\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ModernTinyWall\Assets\ModernTinyWall*.png" Link="Assets\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\ModernTinyWall.Exceptions\ModernTinyWall.Exceptions.csproj" />
     <Compile Include="..\TinyWall\DataUsageHistory.cs" Link="DataUsageHistory.cs" />
+    <Compile Include="..\TinyWall\BlockedTrafficHistory.cs" Link="BlockedTrafficHistory.cs" />
+    <Compile Include="..\TinyWall\ServiceRecoveryPolicy.cs" Link="ServiceRecoveryPolicy.cs" />
+    <Compile Include="..\ModernTinyWall\Models\BlockedTrafficDisplay.cs" Link="BlockedTrafficDisplay.cs" />
     <Compile Include="..\TinyWall\DataUsageCollector.cs" Link="DataUsageCollector.cs" />
-    <Compile Include="..\TinyWall.Shared\ControllerClientIdentity.cs" Link="ControllerClientIdentity.cs" />
     <Compile Include="..\ModernTinyWall\ViewModels\DataUsagePageViewModel.cs" Link="DataUsagePageViewModel.cs" />
     <Compile Include="..\ModernTinyWall\Models\NetworkActivitySeries.cs" Link="NetworkActivitySeries.cs" />
     <Compile Include="..\ModernTinyWall\Models\NetworkActivitySample.cs" Link="NetworkActivitySample.cs" />
+    <Compile Include="..\ModernTinyWall\Models\NetworkActivityBaseline.cs" Link="NetworkActivityBaseline.cs" />
+    <Compile Include="..\ModernTinyWall\Models\UiPreviewOptions.cs" Link="UiPreviewOptions.cs" />
+    <Compile Include="..\ModernTinyWall\Models\WindowPlacement.cs" Link="WindowPlacement.cs" />
     <Compile Include="..\ModernTinyWall\Services\IOptionsService.cs" Link="IOptionsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\OptionsService.cs" Link="OptionsService.cs" />
+    <Compile Include="..\ModernTinyWall\Services\ProtectionModeIcon.cs" Link="ProtectionModeIcon.cs" />
+    <Compile Include="..\ModernTinyWall\Services\ApplicationDetails.cs" Link="ApplicationDetails.cs" />
+    <Compile Include="..\ModernTinyWall\Services\FirewallPromptBacklog.cs" Link="FirewallPromptBacklog.cs" />
   </ItemGroup>
 </Project>

@@ -2,7 +2,8 @@
     x:Class="ModernTinyWall.Views.DataUsagePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:viewModels="using:ModernTinyWall.ViewModels">
+    xmlns:viewModels="using:ModernTinyWall.ViewModels"
+    xmlns:controls="using:ModernTinyWall.Controls">
     <Grid Padding="32" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -53,9 +54,9 @@
             </Grid>
             <TextBlock Text="{x:Bind ViewModel.Summary, Mode=OneWay}" TextWrapping="Wrap" />
         </StackPanel>
-        <Border Grid.Row="4" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        <Border Grid.Row="4" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                Background="{ThemeResource ModernSurfaceBrush}">
         <ListView ItemsSource="{x:Bind ViewModel.Applications}"
                   SelectionMode="None" HorizontalContentAlignment="Stretch"
                   ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"
@@ -96,11 +97,15 @@
                             <ColumnDefinition Width="128" />
                             <ColumnDefinition Width="128" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel ToolTipService.ToolTip="{x:Bind ApplicationPath}">
-                            <TextBlock Text="{x:Bind Application}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{x:Bind ApplicationPath}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
+                        <Grid ColumnSpacing="8" ToolTipService.ToolTip="{x:Bind ApplicationPath}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:ApplicationIcon SourcePath="{x:Bind ApplicationPath}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{x:Bind Application}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{x:Bind ApplicationPath}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Grid>
                         <TextBlock Grid.Column="1" Text="{x:Bind Total}" TextAlignment="Right" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="2" Text="{x:Bind InternetReceived}" TextAlignment="Right" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="3" Text="{x:Bind InternetSent}" TextAlignment="Right" VerticalAlignment="Center" />

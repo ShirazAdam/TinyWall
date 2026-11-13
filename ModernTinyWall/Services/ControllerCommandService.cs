@@ -15,6 +15,7 @@ internal interface IControllerCommandService
     Task<CommandResult> UnlockAsync(string password, CancellationToken cancellationToken = default);
     Task<CommandResult> ElevateAsync(CancellationToken cancellationToken = default);
     Task<TrayStateSnapshot> GetTrayStateSnapshotAsync(CancellationToken cancellationToken = default);
+    Task<FirewallMode> GetProtectionModeAsync(CancellationToken cancellationToken = default);
     Task<CommandResult> ToggleAllowLocalSubnetAsync(CancellationToken cancellationToken = default);
     Task<CommandResult> ToggleHostsBlocklistAsync(CancellationToken cancellationToken = default);
     Task<CommandResult> WhitelistWindowUnderCursorAsync(CancellationToken cancellationToken = default);
@@ -24,6 +25,17 @@ internal sealed partial class ControllerCommandService : IControllerCommandServi
 {
     private readonly Controller _controller = new("TinyWallController");
     private readonly TrafficRateMonitor _trafficRateMonitor = new();
+
+    public Task<FirewallMode> GetProtectionModeAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var changeset = Guid.Empty;
+            var response = _controller.GetServerConfig(out _, out var state, ref changeset);
+            return response == MessageType.GET_SETTINGS && state is not null ? state.Mode : FirewallMode.Unknown;
+        }, cancellationToken);
+    }
 
     public Task<TrayStateSnapshot> GetTrayStateSnapshotAsync(CancellationToken cancellationToken = default)
     {

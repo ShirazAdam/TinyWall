@@ -123,6 +123,7 @@ internal sealed class PackagesPageViewModel : INotifyPropertyChanged
 internal sealed record PackageRowViewModel(string Name, string Publisher, string PublisherId, string Sid, string Tampered)
 {
     public string PublisherDisplay => $"{PublisherId}, {Publisher}";
+    public string PackageFamilyName => $"{Name}_{PublisherId}";
 
     public static PackageRowViewModel FromModel(PackageRow row)
     {
