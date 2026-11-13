@@ -10,11 +10,11 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.2**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.2`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.3**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.3`) when the changes are pushed to `master` and its builds pass.
 
-![Modern TinyWall Overview in Windows dark mode, showing summary cards, live adapter traffic, six series selectors and five protection modes](Docs/modern-tinywall-overview.png)
+![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
-*The running application, not a design mock-up. This screenshot was taken without the TinyWall service installed: protection status, blocked-event counts and classified Internet/local traffic are unavailable, while live adapter totals and established TCP connection counts remain visible.*
+*These screenshots show the running application without a connected TinyWall service. Protection status, blocked-event counts and classified traffic are unavailable; adapter totals and established TCP connection counts remain visible.*
 
 ## What's new in Modern TinyWall
 
@@ -26,6 +26,18 @@ Both applications, their shipped libraries and the Visual Studio MSI installer p
 - **Subtle motion:** animated navigation, page fades and protection-tile hover effects, respecting Windows animation settings. Dashboard sampling pauses while hidden or minimised.
 - **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
 - **Persistent blocked-event counts:** the matching service records observed WFP drop events by local calendar day. The Overview tooltip explains collection coverage; these are not counts of unique connections.
+
+### Application views
+
+The **Processes** and **Services** views let you find running applications and Windows services by name or path. The examples below are filtered to Windows processes and services.
+
+![Processes view filtered to svchost processes, showing related services and executable paths](Docs/modern-tinywall-processes.jpg)
+
+![Services view filtered to application services, showing service names and executable paths](Docs/modern-tinywall-services.jpg)
+
+The **Packages** view lists discovered Microsoft Store packages and their publishers and security identifiers. This example is filtered to Windows packages.
+
+![Packages view filtered to Microsoft Windows packages](Docs/modern-tinywall-packages.jpg)
 
 The TinyWall service is still required for firewall control and classified traffic tracking. Without it, the dashboard clearly reports unavailable service data and labels total rates as adapter traffic.
 
@@ -53,7 +65,7 @@ The Overview traffic chart uses the same TCP/UDP tracking and Internet/local cla
 
 For Release builds, install `ModernTinyWall.exe` in the same directory as the matching `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this co-located modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
 
-Modern TinyWall's outbound connection prompt displays the application's name, icon, executable path, protocol, and destination. Users can allow the displayed IP address and port for five minutes or permanently, always allow outbound traffic for the executable, deny the attempt, or always block the executable. Permanent allow choices replace an existing application-wide hard block for that executable; other block rules can still take precedence. An application-wide allowance affects every process using that executable. The initial connection attempt is blocked before the prompt appears, so the application may need to retry after it is allowed. Existing approved rules continue to work without prompting.
+Modern TinyWall's outbound connection prompt displays the application's name, icon, publisher and description where available, alongside its executable path, protocol and destination. The publisher and description are unverified file metadata; shared executables may host several services. Users can allow the displayed IP address and port for five minutes or permanently, always allow outbound traffic for the executable, deny the attempt, or always block the executable. Permanent allow choices replace an existing application-wide hard block for that executable; other block rules can still take precedence. An application-wide allowance affects every process using that executable. The initial connection attempt is blocked before the prompt appears, so the application may need to retry after it is allowed. Existing approved rules continue to work without prompting.
 
 Windows device paths are displayed as drive-letter or mounted-volume paths where Windows can resolve them. If a device has no accessible mount point, the original path is retained rather than guessing.
 
