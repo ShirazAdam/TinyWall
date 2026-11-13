@@ -13,7 +13,6 @@ using ModernTinyWall.Views;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -263,11 +262,21 @@ public sealed partial class MainWindow
 
         var executablePath = entry.AppPath ?? string.Empty;
         var isPending = entry.PendingConnectionId != 0;
-        var applicationName = GetApplicationDisplayName(executablePath);
+        ApplicationDetails details;
+        try
+        {
+            details = await Task.Run(() => ApplicationDetails.Read(executablePath))
+                .WaitAsync(TimeSpan.FromSeconds(1), _promptMonitoringCancellation.Token);
+        }
+        catch (TimeoutException)
+        {
+            Debug.WriteLine($"Timed out reading application details for '{executablePath}'.");
+            details = ApplicationDetails.FromMetadata(executablePath, null, null, null);
+        }
         var icon = new Image { Width = 48, Height = 48, Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform };
         try
         {
-            await TryLoadApplicationIconAsync(icon, executablePath);
+            _ = TryLoadApplicationIconAsync(icon, executablePath);
         }
         catch (Exception ex)
         {
@@ -277,15 +286,18 @@ public sealed partial class MainWindow
         var endpoint = entry.RemotePort > 0
             ? $"{(entry.RemoteIp?.Contains(':') == true ? $"[{entry.RemoteIp}]" : entry.RemoteIp)}:{entry.RemotePort}"
             : entry.RemoteIp ?? "Unknown destination";
-        var applicationDetails = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+        var applicationDetails = new Grid { ColumnSpacing = 12 };
+        applicationDetails.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        applicationDetails.ColumnDefinitions.Add(new ColumnDefinition());
         applicationDetails.Children.Add(icon);
 
         var text = new StackPanel { Spacing = 4 };
         text.Children.Add(new TextBlock
         {
-            Text = isPending ? $"{applicationName} wants to connect" : $"{applicationName} attempted to connect",
+            Text = isPending ? $"{details.Name} wants to connect" : $"{details.Name} attempted to connect",
             FontSize = 18,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap
         });
         text.Children.Add(new TextBlock
         {
@@ -294,13 +306,24 @@ public sealed partial class MainWindow
                 : "Modern TinyWall blocked this connection. The application may need to retry after you allow it.",
             TextWrapping = TextWrapping.Wrap
         });
+        text.Children.Add(new TextBlock { Text = $"Application: {details.Name}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = $"Publisher (unverified file metadata): {details.Publisher}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = $"Description (file metadata): {details.Description}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = "File details may not identify an individual hosted service.", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = executablePath, TextWrapping = TextWrapping.Wrap });
-        text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}" });
+        text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}", TextWrapping = TextWrapping.Wrap });
+        Grid.SetColumn(text, 1);
         applicationDetails.Children.Add(text);
 
         var decision = FirewallPromptDecision.DenyOnce;
         var content = new StackPanel { Spacing = 8 };
-        content.Children.Add(applicationDetails);
+        content.Children.Add(new ScrollViewer
+        {
+            Content = applicationDetails,
+            MaxHeight = 260,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        });
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
@@ -425,7 +448,7 @@ public sealed partial class MainWindow
 
     private static Task TryLoadApplicationIconAsync(Image image, string executablePath)
     {
-        if (string.IsNullOrWhiteSpace(executablePath) || !File.Exists(executablePath))
+        if (string.IsNullOrWhiteSpace(executablePath))
             return Task.CompletedTask;
 
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -476,25 +499,6 @@ public sealed partial class MainWindow
         };
 
         return completion.Task;
-    }
-
-    private static string GetApplicationDisplayName(string executablePath)
-    {
-        if (string.IsNullOrWhiteSpace(executablePath))
-            return "Unknown application";
-
-        try
-        {
-            var fileDescription = FileVersionInfo.GetVersionInfo(executablePath).FileDescription;
-            return string.IsNullOrWhiteSpace(fileDescription)
-                ? Path.GetFileNameWithoutExtension(executablePath)
-                : fileDescription;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Could not read application details for '{executablePath}': {ex}");
-            return Path.GetFileNameWithoutExtension(executablePath);
-        }
     }
 
     private IntPtr WndProc(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam)
