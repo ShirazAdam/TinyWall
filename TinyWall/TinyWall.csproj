@@ -52,7 +52,7 @@
 	<Compile Remove="Installer\*.cs" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 	<PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="4.0.0" />
-	<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+	<PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
 	<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
 	<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
