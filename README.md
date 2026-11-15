@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.7**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.7`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.7.8**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.7.8`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
