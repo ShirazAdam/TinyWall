@@ -221,6 +221,49 @@ public sealed class DataUsageTests
     }
 
     [TestMethod]
+    public async Task UnchangedUsageDoesNotRebuildRows()
+    {
+        ApplicationDataUsage[] applications = [
+            new(@"C:\Apps\One.exe", 1, 0, 0, 0),
+            new(@"C:\Apps\Two.exe", 2, 0, 0, 0)
+        ];
+        var warning = "First warning";
+        var viewModel = new DataUsagePageViewModel(_ => Task.FromResult(
+            new DataUsageSnapshot(applications, null, null, warning)));
+        await viewModel.RefreshAsync();
+        var originalRow = viewModel.Applications[0];
+        var changes = 0;
+        viewModel.Applications.CollectionChanged += (_, _) => changes++;
+
+        warning = "Updated warning";
+        await viewModel.RefreshAsync();
+
+        Assert.AreEqual(0, changes);
+        Assert.AreSame(originalRow, viewModel.Applications[0]);
+        StringAssert.Contains(viewModel.StatusMessage, warning);
+
+        applications = [new(@"C:\Apps\One.exe", 5, 0, 0, 0)];
+        await viewModel.RefreshAsync();
+        Assert.HasCount(1, viewModel.Applications);
+        Assert.AreEqual("5 B", viewModel.Applications[0].Total);
+        StringAssert.Contains(viewModel.Summary, "Total 5 B");
+    }
+
+    [TestMethod]
+    public async Task EmptyUsageRestoresSummaryAfterError()
+    {
+        string? error = "Service unavailable";
+        var viewModel = new DataUsagePageViewModel(_ => Task.FromResult(
+            new DataUsageSnapshot([], null, error, null)));
+
+        await viewModel.RefreshAsync();
+        Assert.AreEqual("Usage unavailable.", viewModel.Summary);
+        error = null;
+        await viewModel.RefreshAsync();
+        StringAssert.Contains(viewModel.Summary, "0 applications");
+    }
+
+    [TestMethod]
     [DataRow("en-US")]
     [DataRow("de-DE")]
     public async Task TrackingStatusUsesUkDateAnd24HourTime(string cultureName)

@@ -99,11 +99,15 @@ internal sealed class DataUsagePageViewModel : ObservableObject
                         _refreshRequested = true;
                         continue;
                     }
-                    _applications = snapshot.Applications.Select(app => app with
+                    var applications = snapshot.Applications.Select(app => app with
                     {
                         ApplicationPath = PathMapper.Instance.ConvertPathIgnoreErrors(app.ApplicationPath, PathFormat.Win32)
                     }).ToArray();
-                    RebuildRows();
+                    if (applications.Length == 0 || !applications.SequenceEqual(_applications))
+                    {
+                        _applications = applications;
+                        RebuildRows();
+                    }
                     var tracking = snapshot.TrackingStarted is { } started
                         ? $"Tracking since {started.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture)}. " +
                           $"Updated {DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture)}."

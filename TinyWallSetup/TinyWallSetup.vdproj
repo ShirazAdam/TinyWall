@@ -19017,7 +19017,7 @@
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:4.6.6"
+        "ProductVersion" = "8:4.6.7"
         "Manufacturer" = "8:Károly Pados"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
