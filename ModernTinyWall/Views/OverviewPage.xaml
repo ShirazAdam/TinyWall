@@ -48,6 +48,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock Text="Overview" Style="{StaticResource PageTitleStyle}" />
@@ -62,15 +63,17 @@
                         <TextBlock Text="{x:Bind ViewModel.ProtectionStatus, Mode=OneWay}" FontSize="12" />
                     </StackPanel>
                 </Border>
+                <Button Grid.Column="2" Content="Troubleshoot" Margin="8,0,0,0"
+                        Click="Troubleshoot_Click" AutomationProperties.Name="Troubleshoot firewall status" />
             </Grid>
 
-            <Grid ColumnSpacing="14" RowSpacing="10" SizeChanged="SummaryPanels_SizeChanged">
+            <Grid x:Name="SummaryPanels" ColumnSpacing="14" RowSpacing="10" SizeChanged="SummaryPanels_SizeChanged">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button Style="{StaticResource DashboardSummaryButtonStyle}" Click="ProtectionSummary_Click"
+                <Button x:Name="ProtectionSummaryCard" Style="{StaticResource DashboardSummaryButtonStyle}" Click="ProtectionSummary_Click"
                         AutomationProperties.Name="Show protection modes">
                     <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
@@ -87,7 +90,7 @@
                         <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="10" Foreground="{ThemeResource ModernMutedBrush}" />
                     </Grid>
                 </Button>
-                <Button Grid.Column="1" Style="{StaticResource DashboardSummaryButtonStyle}" Click="ConnectionsSummary_Click"
+                <Button x:Name="ConnectionsSummaryCard" Grid.Column="1" Style="{StaticResource DashboardSummaryButtonStyle}" Click="ConnectionsSummary_Click"
                         AutomationProperties.Name="Review active connections">
                     <Grid ColumnSpacing="14" ToolTipService.ToolTip="{x:Bind ViewModel.ConnectionsDetail, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
@@ -103,7 +106,7 @@
                         <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="10" Foreground="{ThemeResource ModernMutedBrush}" />
                     </Grid>
                 </Button>
-                <Button Grid.Column="2" Style="{StaticResource DashboardSummaryButtonStyle}" Click="ConnectionsSummary_Click"
+                <Button x:Name="BlockedTrafficSummaryCard" Grid.Column="2" Style="{StaticResource DashboardSummaryButtonStyle}" Click="ConnectionsSummary_Click"
                         AutomationProperties.Name="Review connection activity">
                     <Grid ColumnSpacing="14" ToolTipService.ToolTip="{x:Bind ViewModel.BlockedDetail, Mode=OneWay}">
                         <Grid.ColumnDefinitions>

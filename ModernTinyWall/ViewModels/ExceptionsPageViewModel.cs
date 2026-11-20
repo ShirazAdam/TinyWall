@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -19,6 +21,10 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     private string _statusMessage = "Ready";
     private string _searchText = string.Empty;
     private ExceptionRowViewModel? _selectedException;
+    private IReadOnlyList<ExceptionRowViewModel> _allExceptions = [];
+    private string _subjectTypeFilter = "All types";
+    private string _policyFilter = "All policies";
+    private int _ageDaysFilter;
 
     public ExceptionsPageViewModel()
         : this(App.Services.GetRequiredService<ITinyWallExceptionStore>())
@@ -114,6 +120,14 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         private set => SetField(ref _statusMessage, value);
     }
 
+    public void SetFilters(string subjectType, string policy, int ageDays)
+    {
+        _subjectTypeFilter = subjectType;
+        _policyFilter = policy;
+        _ageDaysFilter = ageDays;
+        ApplyFilters();
+    }
+
     public async Task RefreshAsync(string searchText)
     {
         SearchText = searchText;
@@ -123,17 +137,13 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         try
         {
             var rows = await _exceptionStore.GetExceptionsAsync(new ExceptionQuery(searchText));
-            Exceptions.Clear();
+            _allExceptions = rows.Select(ExceptionRowViewModel.FromModel).ToArray();
             SelectedException = null;
-            foreach (var row in rows)
-            {
-                Exceptions.Add(ExceptionRowViewModel.FromModel(row));
-            }
-
-            StatusMessage = $"{Exceptions.Count} exception{(Exceptions.Count == 1 ? string.Empty : "s")}";
+            ApplyFilters();
         }
         catch (Exception ex)
         {
+            _allExceptions = [];
             Exceptions.Clear();
             StatusMessage = $"Could not refresh application exceptions: {ex.Message}";
         }
@@ -142,6 +152,34 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
             IsRefreshing = false;
         }
     }
+
+    private void ApplyFilters()
+    {
+        var cutoff = _ageDaysFilter == 0 ? (DateTime?)null : DateTime.Now.AddDays(-_ageDaysFilter);
+        var matching = _allExceptions.Where(row =>
+            (_subjectTypeFilter == "All types" || row.SubjectType == _subjectTypeFilter) &&
+            MatchesPolicy(row.Policy, _policyFilter) &&
+            (cutoff is null || (DateTime.TryParseExact(row.Created, "yyyy/MM/dd HH:mm",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var created) && created >= cutoff)));
+
+        SelectedException = null;
+        Exceptions.Clear();
+        foreach (var row in matching)
+            Exceptions.Add(row);
+
+        StatusMessage = $"{Exceptions.Count} of {_allExceptions.Count} exception{(_allExceptions.Count == 1 ? string.Empty : "s")}";
+    }
+
+    private static bool MatchesPolicy(string policy, string filter) => filter switch
+    {
+        "All policies" => true,
+        "Hard block" => policy == "Hard block",
+        "Unrestricted" => policy.StartsWith("Unrestricted", StringComparison.OrdinalIgnoreCase),
+        "TCP/UDP" => policy.StartsWith("TCP", StringComparison.OrdinalIgnoreCase)
+            || policy.StartsWith("UDP", StringComparison.OrdinalIgnoreCase),
+        "Rule list" => policy.StartsWith("Rule list", StringComparison.OrdinalIgnoreCase),
+        _ => false
+    };
 
     private Task RefreshAsync()
     {
@@ -257,6 +295,27 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
 
 internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created, string IconPath, string PackageFamilyName)
 {
+    public string PolicyScope
+    {
+        get
+        {
+            var scope = Policy switch
+            {
+                "Hard block" => "Blocks inbound and outbound traffic.",
+                "Unrestricted, local network only" => "Allows traffic only to and from the local network.",
+                var value when value.StartsWith("Unrestricted", StringComparison.OrdinalIgnoreCase) =>
+                    "Allows unrestricted traffic for this subject, subject to other firewall rules.",
+                var value when value.StartsWith("TCP", StringComparison.OrdinalIgnoreCase)
+                    || value.StartsWith("UDP", StringComparison.OrdinalIgnoreCase) =>
+                    "Allows the configured TCP/UDP ports and directions. Select Modify to review the port lists.",
+                var value when value.StartsWith("Rule list", StringComparison.OrdinalIgnoreCase) =>
+                    "Applies the explicit rules in this rule list.",
+                _ => "The traffic scope depends on this policy's configured rules."
+            };
+            return $"Applies to {SubjectType}: {Name}. {scope}";
+        }
+    }
+
     public static ExceptionRowViewModel FromModel(ExceptionRow row)
     {
         return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created, row.IconPath, row.PackageFamilyName);

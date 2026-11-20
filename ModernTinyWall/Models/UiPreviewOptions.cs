@@ -6,7 +6,7 @@ namespace ModernTinyWall.Models;
 internal enum PreviewTheme { System, Light, Dark }
 
 internal sealed record UiPreviewOptions(PreviewTheme Theme = PreviewTheme.System, bool ReducedMotion = false,
-    int? Width = null, int? Height = null)
+    int? Width = null, int? Height = null, bool BlockedConnectionDialog = false)
 {
     internal bool AnimationsAllowed(bool systemAnimations, bool highContrast) =>
         systemAnimations && !highContrast && !ReducedMotion;
@@ -18,6 +18,8 @@ internal sealed record UiPreviewOptions(PreviewTheme Theme = PreviewTheme.System
         {
             if (argument == "--preview-reduced-motion")
                 options = options with { ReducedMotion = true };
+            else if (argument == "--preview-blocked-connection")
+                options = options with { BlockedConnectionDialog = true };
             else if (argument.StartsWith("--preview-theme=", StringComparison.Ordinal))
                 options = options with
                 {

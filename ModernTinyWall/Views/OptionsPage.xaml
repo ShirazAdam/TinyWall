@@ -24,6 +24,15 @@
             OnContent="Hide the window and keep Modern TinyWall running in the tray"
             Toggled="OptionsSwitch_Toggled" />
 
+        <StackPanel Spacing="8">
+            <TextBlock Text="Overview cards" Style="{StaticResource SectionTitleStyle}" />
+            <TextBlock Text="Choose which summary cards appear on the Overview page."
+                       TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <ToggleSwitch x:Name="ProtectionCardSwitch" Header="Protection mode" Toggled="OptionsSwitch_Toggled" />
+            <ToggleSwitch x:Name="ConnectionsCardSwitch" Header="Active connections" Toggled="OptionsSwitch_Toggled" />
+            <ToggleSwitch x:Name="BlockedTrafficCardSwitch" Header="Blocked today" Toggled="OptionsSwitch_Toggled" />
+        </StackPanel>
+
         <InfoBar
             IsOpen="True"
             Severity="Informational"

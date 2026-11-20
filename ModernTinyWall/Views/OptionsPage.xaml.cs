@@ -24,6 +24,9 @@ public sealed partial class OptionsPage : Page
             var options = await _optionsService.LoadAsync();
             MinimiseToTraySwitch.IsOn = options.MinimiseToTray;
             CloseToTraySwitch.IsOn = options.CloseToTray;
+            ProtectionCardSwitch.IsOn = options.ShowProtectionCard;
+            ConnectionsCardSwitch.IsOn = options.ShowConnectionsCard;
+            BlockedTrafficCardSwitch.IsOn = options.ShowBlockedTrafficCard;
         }
         finally
         {
@@ -49,10 +52,16 @@ public sealed partial class OptionsPage : Page
     {
         var minimiseToTray = MinimiseToTraySwitch.IsOn;
         var closeToTray = CloseToTraySwitch.IsOn;
+        var showProtectionCard = ProtectionCardSwitch.IsOn;
+        var showConnectionsCard = ConnectionsCardSwitch.IsOn;
+        var showBlockedTrafficCard = BlockedTrafficCardSwitch.IsOn;
         return _optionsService.UpdateAsync(options => options with
         {
             MinimiseToTray = minimiseToTray,
-            CloseToTray = closeToTray
+            CloseToTray = closeToTray,
+            ShowProtectionCard = showProtectionCard,
+            ShowConnectionsCard = showConnectionsCard,
+            ShowBlockedTrafficCard = showBlockedTrafficCard
         });
     }
 }

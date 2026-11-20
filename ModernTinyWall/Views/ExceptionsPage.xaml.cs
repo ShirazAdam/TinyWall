@@ -35,7 +35,28 @@ public sealed partial class ExceptionsPage : Page
 
     private async void ExceptionsPage_Loaded(object sender, RoutedEventArgs e)
     {
+        ApplyFilters();
         await ViewModel.RefreshCommand.ExecuteAsync(null);
+    }
+
+    private void Filters_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (IsLoaded)
+            ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var type = (TypeFilter.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "All types";
+        var policy = (PolicyFilter.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "All policies";
+        var ageDays = AgeFilter.SelectedIndex switch
+        {
+            1 => 1,
+            2 => 7,
+            3 => 30,
+            _ => 0
+        };
+        ViewModel.SetFilters(type, policy, ageDays);
     }
 
     private void ExceptionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)

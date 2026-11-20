@@ -91,6 +91,16 @@ public sealed partial class MainWindow
         ShellRoot.Loaded -= ShellRoot_Loaded;
         // Reapply once the first show has established the monitor's DPI.
         CentreOnScreen();
+        if (App.PreviewOptions.BlockedConnectionDialog)
+        {
+            _ = ShowFirewallPromptAsync(new FirewallLogEntry
+            {
+                AppPath = Environment.ProcessPath,
+                Protocol = Protocol.TCP,
+                RemoteIp = "203.0.113.10",
+                RemotePort = 443
+            });
+        }
     }
 
     private void CentreOnScreen()
@@ -404,6 +414,8 @@ public sealed partial class MainWindow
         {
             expiryTimer.Stop();
         }
+        if (App.PreviewOptions.BlockedConnectionDialog)
+            return true;
         if (expired)
         {
             _trayIconService.SetStatus("Pending connection expired or was withdrawn. No rule was saved.");

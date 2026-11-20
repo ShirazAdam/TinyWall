@@ -1,8 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ModernTinyWall.Services;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.ViewModels;
 using System;
+using System.IO;
+using System.Text;
+using WinRT.Interop;
 
 namespace ModernTinyWall.Views;
 
@@ -74,6 +78,24 @@ public sealed partial class DataUsagePage : Page
     private async void Refresh_Click(object sender, RoutedEventArgs e)
     {
         await ViewModel.RefreshAsync();
+    }
+
+    private async void ExportCsv_Click(object sender, RoutedEventArgs e)
+    {
+        var path = FilePickerService.PickSaveCsvFile(
+            WindowNative.GetWindowHandle(App.MainWindow), "Export data usage", "Modern-TinyWall-data-usage.csv");
+        if (path is null)
+            return;
+
+        try
+        {
+            await File.WriteAllTextAsync(path, ViewModel.CreateCsv(), new UTF8Encoding(false));
+            ViewModel.SetExportStatus($"Exported filtered data usage to {path}.");
+        }
+        catch (Exception ex)
+        {
+            ViewModel.SetExportStatus($"Could not export data usage: {ex.Message}");
+        }
     }
 
     private async void PeriodPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -10,10 +10,11 @@ public sealed class UiPreviewTests
     [TestMethod]
     public void PreviewOverridesArePerLaunchAndDoNotAlterDefaults()
     {
-        var preview = UiPreviewOptions.Parse(["--preview-theme=light", "--preview-reduced-motion", "--preview-size=1024x768"]);
+        var preview = UiPreviewOptions.Parse(["--preview-theme=light", "--preview-reduced-motion", "--preview-size=1024x768", "--preview-blocked-connection"]);
         Assert.AreEqual(PreviewTheme.Light, preview.Theme);
         Assert.AreEqual(1024, preview.Width);
         Assert.AreEqual(768, preview.Height);
+        Assert.IsTrue(preview.BlockedConnectionDialog);
         Assert.IsFalse(preview.AnimationsAllowed(true, false));
         Assert.AreEqual(new UiPreviewOptions(), UiPreviewOptions.Parse([]));
         Assert.AreEqual(PreviewTheme.Dark, UiPreviewOptions.Parse(["--preview-theme=dark"]).Theme);

@@ -221,6 +221,24 @@ public sealed class DataUsageTests
     }
 
     [TestMethod]
+    public async Task CsvExportUsesCurrentFilterAndEscapesApplicationPaths()
+    {
+        var viewModel = new DataUsagePageViewModel(_ => Task.FromResult(new DataUsageSnapshot([
+            new(@"C:\Apps\Large,""App"".exe", 100, 2, 3, 4),
+            new(@"C:\Apps\Small.exe", 1, 0, 0, 0)
+        ], null, null, null)));
+
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Large";
+        var csv = viewModel.CreateCsv();
+
+        StringAssert.Contains(csv, "\"Large,\"\"App\"\".exe\"");
+        StringAssert.Contains(csv, "\"C:\\Apps\\Large,\"\"App\"\".exe\"");
+        StringAssert.Contains(csv, "109,100,2,3,4");
+        Assert.IsFalse(csv.Contains("Small.exe", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public async Task UnchangedUsageDoesNotRebuildRows()
     {
         ApplicationDataUsage[] applications = [

@@ -36,6 +36,9 @@ public sealed class OptionsTests
         var options = await new OptionsService(_path).LoadAsync();
         Assert.AreEqual(NetworkActivitySeries.All, options.VisibleNetworkSeries);
         Assert.IsFalse(options.MinimiseToTray);
+        Assert.IsTrue(options.ShowProtectionCard);
+        Assert.IsTrue(options.ShowConnectionsCard);
+        Assert.IsTrue(options.ShowBlockedTrafficCard);
     }
 
     [TestMethod]
@@ -43,6 +46,9 @@ public sealed class OptionsTests
     {
         var options = await new OptionsService(_path).LoadAsync();
         Assert.AreEqual(NetworkActivitySeries.All, options.VisibleNetworkSeries);
+        Assert.IsTrue(options.ShowProtectionCard);
+        Assert.IsTrue(options.ShowConnectionsCard);
+        Assert.IsTrue(options.ShowBlockedTrafficCard);
     }
 
     [TestMethod]
@@ -69,5 +75,22 @@ public sealed class OptionsTests
         Assert.AreEqual(NetworkActivitySeries.None, restored.VisibleNetworkSeries);
         Assert.IsFalse(restored.MinimiseToTray);
         Assert.IsFalse(restored.CloseToTray);
+    }
+
+    [TestMethod]
+    public async Task DashboardCardSelectionsSurviveReload()
+    {
+        await new OptionsService(_path).UpdateAsync(options => options with
+        {
+            ShowProtectionCard = false,
+            ShowConnectionsCard = true,
+            ShowBlockedTrafficCard = false
+        });
+
+        var restored = await new OptionsService(_path).LoadAsync();
+
+        Assert.IsFalse(restored.ShowProtectionCard);
+        Assert.IsTrue(restored.ShowConnectionsCard);
+        Assert.IsFalse(restored.ShowBlockedTrafficCard);
     }
 }

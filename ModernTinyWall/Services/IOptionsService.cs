@@ -16,4 +16,7 @@ internal sealed record ModernTinyWallOptions
     public bool MinimiseToTray { get; init; } = true;
     public bool CloseToTray { get; init; } = true;
     public NetworkActivitySeries VisibleNetworkSeries { get; init; } = NetworkActivitySeries.All;
+    public bool ShowProtectionCard { get; init; } = true;
+    public bool ShowConnectionsCard { get; init; } = true;
+    public bool ShowBlockedTrafficCard { get; init; } = true;
 }

@@ -11,6 +11,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -32,12 +33,38 @@
             <Button Grid.Column="2" Content="Clear" Command="{x:Bind ViewModel.ClearCommand}" />
         </Grid>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
+            <ComboBox x:Name="TypeFilter" Header="Type" SelectedIndex="0"
+                      SelectionChanged="Filters_SelectionChanged" MinWidth="150">
+                <ComboBoxItem Content="All types" />
+                <ComboBoxItem Content="Executable" />
+                <ComboBoxItem Content="Service" />
+                <ComboBoxItem Content="Global" />
+                <ComboBoxItem Content="UWP app" />
+            </ComboBox>
+            <ComboBox x:Name="PolicyFilter" Header="Policy" SelectedIndex="0"
+                      SelectionChanged="Filters_SelectionChanged" MinWidth="180">
+                <ComboBoxItem Content="All policies" />
+                <ComboBoxItem Content="Hard block" />
+                <ComboBoxItem Content="Unrestricted" />
+                <ComboBoxItem Content="TCP/UDP" />
+                <ComboBoxItem Content="Rule list" />
+            </ComboBox>
+            <ComboBox x:Name="AgeFilter" Header="Created" SelectedIndex="0"
+                      SelectionChanged="Filters_SelectionChanged" MinWidth="160">
+                <ComboBoxItem Content="Any time" />
+                <ComboBoxItem Content="Last 24 hours" />
+                <ComboBoxItem Content="Last 7 days" />
+                <ComboBoxItem Content="Last 30 days" />
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <Border Grid.Row="3" BorderBrush="{ThemeResource ModernBorderBrush}"
+        <Border Grid.Row="4" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
         <ListView ItemsSource="{x:Bind ViewModel.Exceptions, Mode=OneWay}"
@@ -75,7 +102,8 @@
                         </Grid>
                         <TextBlock Grid.Column="1" Text="{x:Bind SubjectType}" />
                         <TextBlock Grid.Column="2" Text="{x:Bind Details}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="3" Text="{x:Bind Policy}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="3" Text="{x:Bind Policy}" TextTrimming="CharacterEllipsis"
+                                   ToolTipService.ToolTip="{x:Bind PolicyScope}" AutomationProperties.HelpText="{x:Bind PolicyScope}" />
                         <TextBlock Grid.Column="4" Text="{x:Bind Created}" />
                     </Grid>
                 </DataTemplate>
@@ -83,7 +111,7 @@
         </ListView>
         </Border>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Add" Command="{x:Bind AddCommand}" />
             <Button Content="Modify" Command="{x:Bind ModifyCommand}" />
             <Button Content="Remove" Command="{x:Bind RemoveCommand}" />
