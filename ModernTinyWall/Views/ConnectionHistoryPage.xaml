@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:ModernTinyWall.ViewModels"
-    xmlns:services="using:ModernTinyWall.Services">
+    xmlns:services="using:ModernTinyWall.Services"
+    xmlns:controls="using:ModernTinyWall.Controls">
 
     <Grid Padding="32" RowSpacing="16">
         <Grid.RowDefinitions>
@@ -58,30 +59,10 @@
             </StackPanel>
             <Border Grid.Row="1" BorderBrush="{ThemeResource ModernBorderBrush}"
                     BorderThickness="1" CornerRadius="12" Background="{ThemeResource ModernSurfaceBrush}">
-                <ListView x:Name="HistoryList" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" Background="Transparent">
-                    <ListView.Header>
-                        <Grid Padding="8" ColumnSpacing="12" MinWidth="1000">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="70" />
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="120" />
-                                <ColumnDefinition Width="120" />
-                                <ColumnDefinition Width="120" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Application" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="1" Text="Protocol" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="2" Text="Local endpoint" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="3" Text="Remote endpoint" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="4" Text="State" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="5" Text="First seen" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="6" Text="Last seen" FontWeight="SemiBold" />
-                        </Grid>
-                    </ListView.Header>
-                    <ListView.ItemTemplate>
+                <controls:TableView x:Name="HistoryList" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}">
+                    <controls:TableView.ItemTemplate>
                         <DataTemplate x:DataType="services:ConnectionHistoryEntry">
-                            <Grid Padding="8" ColumnSpacing="12" MinWidth="1000">
+                            <Grid controls:TableView.IsRow="True" Padding="8" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" />
                                     <ColumnDefinition Width="70" />
@@ -100,8 +81,8 @@
                                 <TextBlock Grid.Column="6" Text="{x:Bind LastSeenText}" />
                             </Grid>
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    </controls:TableView.ItemTemplate>
+                </controls:TableView>
             </Border>
         </Grid>
     </Grid>

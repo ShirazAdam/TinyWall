@@ -73,31 +73,11 @@
         <Border Grid.Row="5" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
-        <ListView x:Name="ExceptionsList" ItemsSource="{x:Bind ViewModel.Exceptions, Mode=OneWay}"
-                  SelectionMode="Multiple" Background="Transparent" SelectionChanged="ExceptionsList_SelectionChanged">
-            <ListView.Header>
-                <Grid Padding="8" ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Application" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="Type" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="2" Text="Details" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="3" Text="Policy" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="4" Text="Created / expiry" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="5" Text="Review guidance" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="6" Text="Tags" FontWeight="SemiBold" />
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
+        <controls:TableView x:Name="ExceptionsList" ItemsSource="{x:Bind ViewModel.Exceptions, Mode=OneWay}"
+                            SelectionMode="Multiple" SelectionChanged="ExceptionsList_SelectionChanged">
+            <controls:TableView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:ExceptionRowViewModel">
-                    <Grid Padding="8" ColumnSpacing="12">
+                    <Grid controls:TableView.IsRow="True" Padding="8" ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="Auto" />
@@ -126,8 +106,8 @@
                         <TextBlock Grid.Column="6" Text="{x:Bind Tags}" TextWrapping="Wrap" />
                     </Grid>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </controls:TableView.ItemTemplate>
+        </controls:TableView>
         </Border>
 
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

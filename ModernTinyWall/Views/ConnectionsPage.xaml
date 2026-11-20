@@ -45,41 +45,10 @@
         <Border Grid.Row="3" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
-        <ListView x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}"
-                  HorizontalContentAlignment="Stretch"
-                  ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                  Background="Transparent">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.Header>
-                <Grid MinWidth="1180" ColumnSpacing="12" Padding="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="240" />
-                        <ColumnDefinition Width="70" />
-                        <ColumnDefinition Width="80" />
-                        <ColumnDefinition Width="170" />
-                        <ColumnDefinition Width="95" />
-                        <ColumnDefinition Width="170" />
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="85" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Application" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="Protocol" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="2" Text="Local port" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="3" Text="Local address" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="4" Text="Remote port" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="5" Text="Remote address" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="6" Text="State" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="7" Text="Direction" FontWeight="SemiBold" />
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
+        <controls:TableView x:Name="ConnectionsList" ItemsSource="{x:Bind ViewModel.Connections, Mode=OneWay}">
+            <controls:TableView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:ConnectionRowViewModel">
-                    <Grid MinWidth="1180" ColumnSpacing="12" Padding="8">
+                    <Grid controls:TableView.IsRow="True" ColumnSpacing="12" Padding="8">
                         <Grid.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Connection details" Click="ConnectionDetailsMenuItem_Click" CommandParameter="{x:Bind}" />
@@ -111,8 +80,8 @@
                         <TextBlock Grid.Column="7" Text="{x:Bind Direction}" />
                     </Grid>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </controls:TableView.ItemTemplate>
+        </controls:TableView>
         </Border>
 
         <TextBlock Grid.Row="4" Text="Live active and listening connection data is available. Blocked firewall log integration will follow when shared TinyWall core services are extracted."

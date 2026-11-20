@@ -24,4 +24,5 @@ internal sealed record ModernTinyWallOptions
     public int ConnectionHistoryRetentionDays { get; init; } = 30;
     public bool OnboardingComplete { get; init; }
     public Dictionary<Guid, string> RuleTags { get; init; } = new();
+    public Dictionary<string, TablePreferences> Tables { get; init; } = new();
 }

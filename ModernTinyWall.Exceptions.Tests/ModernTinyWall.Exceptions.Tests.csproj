@@ -43,6 +43,7 @@
     <Compile Include="..\ModernTinyWall\Models\SettingsSection.cs" Link="SettingsSection.cs" />
     <Compile Include="..\ModernTinyWall\Models\ExceptionHealthAnalyzer.cs" Link="ExceptionHealthAnalyzer.cs" />
     <Compile Include="..\ModernTinyWall\Models\ConnectionHistorySummary.cs" Link="ConnectionHistorySummary.cs" />
+    <Compile Include="..\ModernTinyWall\Models\TablePreferences.cs" Link="TablePreferences.cs" />
     <Compile Include="..\ModernTinyWall\Services\IConnectionsService.cs" Link="IConnectionsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\ConnectionHistoryService.cs" Link="ConnectionHistoryService.cs" />
     <Compile Include="..\ModernTinyWall\Services\ISettingsService.cs" Link="ISettingsService.cs" />

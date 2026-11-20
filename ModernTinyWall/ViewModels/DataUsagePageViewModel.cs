@@ -3,6 +3,7 @@ using ModernTinyWall.TinyWall;
 using ModernTinyWall.Windows;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -158,24 +159,18 @@ internal sealed class DataUsagePageViewModel : ObservableObject
             $"Local in {DataUsageRow.FormatBytes(localReceived)}, out {DataUsageRow.FormatBytes(localSent)}";
     }
 
-    internal string CreateCsv()
+    internal string CreateCsv(IEnumerable<DataUsageRow>? rows = null)
     {
         var csv = new StringBuilder("Application,Executable path,Total bytes,Internet received bytes,Internet sent bytes,Local received bytes,Local sent bytes\r\n");
-        foreach (var application in GetSortedApplications())
+        foreach (var row in rows ?? GetSortedApplications().Select(application => new DataUsageRow(application)))
         {
-            var name = application.ApplicationPath switch
-            {
-                ApplicationDataUsage.SystemPath => "System",
-                ApplicationDataUsage.UnattributedPath => "Unattributed traffic",
-                _ => Path.GetFileName(application.ApplicationPath)
-            };
-            csv.Append(Csv(name))
-                .Append(',').Append(Csv(application.ApplicationPath))
-                .Append(',').Append(application.Total)
-                .Append(',').Append(application.InternetReceived)
-                .Append(',').Append(application.InternetSent)
-                .Append(',').Append(application.LocalReceived)
-                .Append(',').Append(application.LocalSent)
+            csv.Append(Csv(row.Application))
+                .Append(',').Append(Csv(row.ApplicationPath))
+                .Append(',').Append(row.TotalBytes)
+                .Append(',').Append(row.InternetReceivedBytes)
+                .Append(',').Append(row.InternetSentBytes)
+                .Append(',').Append(row.LocalReceivedBytes)
+                .Append(',').Append(row.LocalSentBytes)
                 .Append("\r\n");
         }
         return csv.ToString();
@@ -215,6 +210,11 @@ internal sealed class DataUsageRow(ApplicationDataUsage usage)
     public string InternetSent => FormatBytes(usage.InternetSent);
     public string LocalReceived => FormatBytes(usage.LocalReceived);
     public string LocalSent => FormatBytes(usage.LocalSent);
+    public long TotalBytes => usage.Total;
+    public long InternetReceivedBytes => usage.InternetReceived;
+    public long InternetSentBytes => usage.InternetSent;
+    public long LocalReceivedBytes => usage.LocalReceived;
+    public long LocalSentBytes => usage.LocalSent;
 
     public static string FormatBytes(long bytes)
     {

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
@@ -31,6 +32,14 @@ public sealed partial class ExceptionsPage : Page
         RemoveCommand = new AsyncRelayCommand(RemoveAsync);
         RemoveAllCommand = new AsyncRelayCommand(RemoveAllAsync);
         InitializeComponent();
+        ExceptionsList.Configure("exceptions",
+            TableColumn.Text<ExceptionRowViewModel>("name", "Application", 240, row => row.Name),
+            TableColumn.Text<ExceptionRowViewModel>("type", "Type", 110, row => row.SubjectType),
+            TableColumn.Text<ExceptionRowViewModel>("details", "Details", 280, row => row.Details),
+            TableColumn.Text<ExceptionRowViewModel>("policy", "Policy", 180, row => row.Policy),
+            TableColumn.Value<ExceptionRowViewModel, DateTime?>("created", "Created / expiry", 170, row => TableSortValues.Created(row.Created)),
+            TableColumn.Text<ExceptionRowViewModel>("review", "Review guidance", 280, row => row.ReviewFinding),
+            TableColumn.Text<ExceptionRowViewModel>("tags", "Tags", 180, row => row.Tags));
         Loaded += ExceptionsPage_Loaded;
     }
 

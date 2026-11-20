@@ -1,10 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Services;
+using ModernTinyWall.Models;
 using ModernTinyWall.TinyWall;
 using ModernTinyWall.ViewModels;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using WinRT.Interop;
 
@@ -21,6 +23,13 @@ public sealed partial class DataUsagePage : Page
     public DataUsagePage()
     {
         InitializeComponent();
+        UsageTable.Configure("dataUsage",
+            TableColumn.Text<DataUsageRow>("name", "Application", 300, row => row.Application),
+            TableColumn.Value<DataUsageRow, long>("total", "Total", 140, row => row.TotalBytes),
+            TableColumn.Value<DataUsageRow, long>("internetReceived", "Internet incoming", 170, row => row.InternetReceivedBytes),
+            TableColumn.Value<DataUsageRow, long>("internetSent", "Internet outgoing", 170, row => row.InternetSentBytes),
+            TableColumn.Value<DataUsageRow, long>("localReceived", "Local incoming", 160, row => row.LocalReceivedBytes),
+            TableColumn.Value<DataUsageRow, long>("localSent", "Local outgoing", 160, row => row.LocalSentBytes));
         Loaded += Page_Loaded;
         Unloaded += Page_Unloaded;
         _timer.Tick += Timer_Tick;
@@ -89,7 +98,7 @@ public sealed partial class DataUsagePage : Page
 
         try
         {
-            await File.WriteAllTextAsync(path, ViewModel.CreateCsv(), new UTF8Encoding(false));
+            await File.WriteAllTextAsync(path, ViewModel.CreateCsv(UsageTable.OrderedItems.OfType<DataUsageRow>()), new UTF8Encoding(false));
             ViewModel.SetExportStatus($"Exported filtered data usage to {path}.");
         }
         catch (Exception ex)

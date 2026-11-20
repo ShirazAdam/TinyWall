@@ -21,6 +21,14 @@ public sealed partial class ConnectionHistoryPage : Page
     public ConnectionHistoryPage()
     {
         InitializeComponent();
+        HistoryList.Configure("history",
+            TableColumn.Text<ConnectionHistoryEntry>("name", "Application", 300, row => row.Application),
+            TableColumn.Text<ConnectionHistoryEntry>("protocol", "Protocol", 90, row => row.Protocol),
+            TableColumn.Text<ConnectionHistoryEntry>("local", "Local endpoint", 220, row => row.LocalEndpoint),
+            TableColumn.Text<ConnectionHistoryEntry>("remote", "Remote endpoint", 220, row => row.RemoteEndpoint),
+            TableColumn.Text<ConnectionHistoryEntry>("state", "State", 120, row => row.State),
+            TableColumn.Value<ConnectionHistoryEntry, DateTimeOffset>("firstSeen", "First seen", 160, row => row.FirstSeen),
+            TableColumn.Value<ConnectionHistoryEntry, DateTimeOffset>("lastSeen", "Last seen", 160, row => row.LastSeen));
         Loaded += Page_Loaded;
         Unloaded += Page_Unloaded;
         _searchTimer.Tick += SearchTimer_Tick;
