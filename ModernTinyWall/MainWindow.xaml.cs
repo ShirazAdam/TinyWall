@@ -56,6 +56,10 @@ public sealed partial class MainWindow
     private readonly DispatcherTimer _protectionModeTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private FirewallMode? _displayedProtectionMode = FirewallMode.Unknown;
     private int _protectionModeRefreshInProgress;
+    private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _windowSizeSaveTimer;
+    private global::Windows.Graphics.SizeInt32 _preferredWindowSize = WindowPlacement.DefaultSize;
+    private bool _startMaximised;
+    private bool _isApplyingWindowSize;
 
     internal event Action<bool>? WindowVisibilityChanged;
 
@@ -72,7 +76,13 @@ public sealed partial class MainWindow
         _windowHandle = WindowNative.GetWindowHandle(this);
         AppWindow.SetIcon(ProtectionModeIcon.GetPath(FirewallMode.Unknown));
         SetSidebarProtectionIcon(FirewallMode.Unknown);
+        _windowSizeSaveTimer = DispatcherQueue.CreateTimer();
+        _windowSizeSaveTimer.Interval = TimeSpan.FromMilliseconds(500);
+        _windowSizeSaveTimer.IsRepeating = false;
+        _windowSizeSaveTimer.Tick += WindowSizeSaveTimer_Tick;
+        LoadSavedWindowSize();
         CentreOnScreen();
+        AppWindow.Changed += AppWindow_Changed;
         ShellRoot.Loaded += ShellRoot_Loaded;
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
@@ -108,6 +118,8 @@ public sealed partial class MainWindow
         ShellRoot.Loaded -= ShellRoot_Loaded;
         // Reapply once the first show has established the monitor's DPI.
         CentreOnScreen();
+        if (_startMaximised && AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            presenter.Maximize();
         await ShowOnboardingIfNeededAsync();
         if (App.PreviewOptions.BlockedConnectionDialog)
         {
@@ -125,13 +137,104 @@ public sealed partial class MainWindow
     {
         var display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
             AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest);
-        AppWindow.MoveAndResize(WindowPlacement.Centre(display.WorkArea,
-            new global::Windows.Graphics.SizeInt32(App.PreviewOptions.Width ?? 1536, App.PreviewOptions.Height ?? 1024)));
+        _isApplyingWindowSize = true;
+        try
+        {
+            AppWindow.MoveAndResize(WindowPlacement.Centre(display.WorkArea,
+                new global::Windows.Graphics.SizeInt32(
+                    App.PreviewOptions.Width ?? _preferredWindowSize.Width,
+                    App.PreviewOptions.Height ?? _preferredWindowSize.Height)));
+        }
+        finally
+        {
+            _isApplyingWindowSize = false;
+        }
+    }
+
+    private void LoadSavedWindowSize()
+    {
+        if (App.PreviewOptions.Width is not null || App.PreviewOptions.Height is not null)
+            return;
+
+        try
+        {
+            // Options I/O never resumes on the UI thread, so this cannot deadlock and avoids a visible resize after showing.
+            var options = _optionsService.LoadAsync().GetAwaiter().GetResult();
+            _preferredWindowSize = WindowPlacement.ResolvePreferredSize(options.WindowWidth, options.WindowHeight);
+            _startMaximised = options.WindowMaximised;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not load the saved window size: {ex.Message}");
+        }
+    }
+
+    private void AppWindow_Changed(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
+    {
+        if (_isTerminating || _isApplyingWindowSize || !(args.DidSizeChange || args.DidPresenterChange))
+            return;
+
+        _windowSizeSaveTimer.Stop();
+        _windowSizeSaveTimer.Start();
+    }
+
+    private async void WindowSizeSaveTimer_Tick(Microsoft.UI.Dispatching.DispatcherQueueTimer sender, object args)
+    {
+        if (_isTerminating || AppWindow.Presenter is not Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            return;
+
+        var state = presenter.State;
+        if (state == Microsoft.UI.Windowing.OverlappedPresenterState.Minimized)
+            return;
+
+        var size = AppWindow.Size;
+        var maximised = state == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized;
+        if (!maximised)
+            _preferredWindowSize = size;
+        try
+        {
+            await _optionsService.UpdateAsync(options => maximised
+                ? options with { WindowMaximised = true }
+                : options with { WindowWidth = size.Width, WindowHeight = size.Height, WindowMaximised = false });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not save the window size: {ex.Message}");
+        }
+    }
+
+    internal async Task ResetWindowSizeAsync()
+    {
+        _windowSizeSaveTimer.Stop();
+        await _optionsService.UpdateAsync(options => options with
+        {
+            WindowWidth = null,
+            WindowHeight = null,
+            WindowMaximised = false
+        });
+        _preferredWindowSize = WindowPlacement.DefaultSize;
+        _startMaximised = false;
+        _isApplyingWindowSize = true;
+        try
+        {
+            if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter
+                && presenter.State != Microsoft.UI.Windowing.OverlappedPresenterState.Restored)
+                presenter.Restore();
+        }
+        finally
+        {
+            _isApplyingWindowSize = false;
+        }
+        CentreOnScreen();
+        _windowSizeSaveTimer.Stop();
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
         _isTerminating = true;
+        _windowSizeSaveTimer.Stop();
+        _windowSizeSaveTimer.Tick -= WindowSizeSaveTimer_Tick;
+        AppWindow.Changed -= AppWindow_Changed;
         _connectionHistoryService.SetWindowVisible(false);
         _protectionModeTimer.Stop();
         _protectionModeTimer.Tick -= ProtectionModeTimer_Tick;

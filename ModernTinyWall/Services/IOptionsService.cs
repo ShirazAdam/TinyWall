@@ -25,4 +25,7 @@ internal sealed record ModernTinyWallOptions
     public bool OnboardingComplete { get; init; }
     public Dictionary<Guid, string> RuleTags { get; init; } = new();
     public Dictionary<string, TablePreferences> Tables { get; init; } = new();
+    public int? WindowWidth { get; init; }
+    public int? WindowHeight { get; init; }
+    public bool WindowMaximised { get; init; }
 }

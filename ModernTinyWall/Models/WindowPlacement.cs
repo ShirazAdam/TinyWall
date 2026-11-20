@@ -5,6 +5,21 @@ namespace ModernTinyWall.Models;
 
 internal static class WindowPlacement
 {
+    internal const int MinimumSavedWidth = 480;
+    internal const int MinimumSavedHeight = 360;
+    internal const int MaximumSavedDimension = 32_768;
+
+    internal static readonly SizeInt32 DefaultSize = new(1536, 1024);
+
+    internal static bool IsValidSavedSize(int? width, int? height) =>
+        width is >= MinimumSavedWidth and <= MaximumSavedDimension
+        && height is >= MinimumSavedHeight and <= MaximumSavedDimension;
+
+    internal static SizeInt32 ResolvePreferredSize(int? savedWidth, int? savedHeight) =>
+        IsValidSavedSize(savedWidth, savedHeight)
+            ? new SizeInt32(savedWidth!.Value, savedHeight!.Value)
+            : DefaultSize;
+
     internal static RectInt32 Centre(RectInt32 workArea, SizeInt32 preferred)
     {
         if (workArea.Width <= 0 || workArea.Height <= 0 || preferred.Width <= 0 || preferred.Height <= 0)

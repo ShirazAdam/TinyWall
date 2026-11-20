@@ -142,6 +142,28 @@ public sealed partial class OptionsPage : Page
         }
     }
 
+    private async void ResetWindowSize_Click(object sender, RoutedEventArgs e)
+    {
+        if (App.MainWindow is not MainWindow mainWindow)
+            return;
+
+        try
+        {
+            await mainWindow.ResetWindowSizeAsync();
+            OptionsStatus.IsOpen = true;
+            OptionsStatus.Severity = InfoBarSeverity.Success;
+            OptionsStatus.Title = "Window size reset";
+            OptionsStatus.Message = "The window has returned to its default size.";
+        }
+        catch (Exception ex)
+        {
+            OptionsStatus.IsOpen = true;
+            OptionsStatus.Severity = InfoBarSeverity.Error;
+            OptionsStatus.Title = "Could not reset window size";
+            OptionsStatus.Message = ex.Message;
+        }
+    }
+
     private void GettingStarted_Click(object sender, RoutedEventArgs e)
     {
         if (App.MainWindow is MainWindow mainWindow)

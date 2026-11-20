@@ -27,6 +27,21 @@ public sealed class WindowPlacementTests
     }
 
     [TestMethod]
+    [DataRow(1280, 800, 1280, 800)]
+    [DataRow(null, 800, 1536, 1024)]
+    [DataRow(1280, null, 1536, 1024)]
+    [DataRow(100, 800, 1536, 1024)]
+    [DataRow(1280, 0, 1536, 1024)]
+    [DataRow(-5, -5, 1536, 1024)]
+    [DataRow(40_000, 800, 1536, 1024)]
+    public void SavedSizeIsUsedOnlyWhenValid(int? width, int? height, int expectedWidth, int expectedHeight)
+    {
+        var size = WindowPlacement.ResolvePreferredSize(width, height);
+        Assert.AreEqual(expectedWidth, size.Width);
+        Assert.AreEqual(expectedHeight, size.Height);
+    }
+
+    [TestMethod]
     public void PreviewSizeUsesPhysicalPixelsAndDoesNotExceedTheWorkArea()
     {
         var bounds = WindowPlacement.Centre(new RectInt32(1920, 40, 2560, 1400), new SizeInt32(1024, 768));
