@@ -23,32 +23,134 @@
             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" TextWrapping="Wrap" VerticalAlignment="Center" />
         </StackPanel>
 
-        <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.Sections, Mode=OneWay}">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:SettingsSection">
-                    <StackPanel Padding="0,8,0,16" Spacing="8">
-                        <TextBlock Text="{x:Bind Title}" FontSize="20" FontWeight="SemiBold" />
-                        <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" />
-                        <ItemsControl ItemsSource="{x:Bind Items}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="models:SettingsItem">
-                                    <Grid Padding="0,4" ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="220" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
-                                        <TextBlock Grid.Column="1" Text="{x:Bind Description}" TextWrapping="Wrap" />
-                                        <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsEnabled, Mode=TwoWay}" IsEnabled="{x:Bind IsEditable}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="16" Padding="0,8,0,16">
+                <TextBlock Text="General" FontSize="20" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.AutomaticUpdateChecks.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.AutomaticUpdateChecks.Description, Mode=OneWay}" TextWrapping="Wrap" />
                     </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutomaticUpdateChecks.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.AutomaticUpdateChecks.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.AutomaticUpdateChecks.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.AskForExceptionDetails.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.AskForExceptionDetails.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AskForExceptionDetails.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.AskForExceptionDetails.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.AskForExceptionDetails.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.GlobalHotkeys.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.GlobalHotkeys.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.GlobalHotkeys.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.GlobalHotkeys.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.GlobalHotkeys.Name}" />
+                </Grid>
+                <TextBlock Text="Language: English" TextWrapping="Wrap" />
+
+                <TextBlock Text="Machine settings" FontSize="20" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.DisplayOffBlock.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.DisplayOffBlock.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.DisplayOffBlock.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.DisplayOffBlock.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.DisplayOffBlock.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.LockHostsFile.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.LockHostsFile.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.LockHostsFile.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.LockHostsFile.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.LockHostsFile.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.PendingConnectionPrompts.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.PendingConnectionPrompts.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.PendingConnectionPrompts.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.PendingConnectionPrompts.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.PendingConnectionPrompts.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.EnableBlocklists.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.EnableBlocklists.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.EnableBlocklists.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.EnableBlocklists.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.EnableBlocklists.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.HostsBlocklist.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.HostsBlocklist.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.HostsBlocklist.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.HostsBlocklist.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.HostsBlocklist.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.PortBlocklist.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.PortBlocklist.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.PortBlocklist.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.PortBlocklist.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.PortBlocklist.Name}" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.AllowLocalSubnet.Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Bind ViewModel.AllowLocalSubnet.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AllowLocalSubnet.IsEnabled, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.AllowLocalSubnet.IsEditable, Mode=OneWay}"
+                                  AutomationProperties.Name="{x:Bind ViewModel.AllowLocalSubnet.Name}" />
+                </Grid>
+
+                <TextBlock Text="Application exceptions" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="{x:Bind ViewModel.ConfiguredExceptions.Description, Mode=OneWay}" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.SpecialProfiles}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:SettingsItem">
+                            <Grid Padding="0,4" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind Description, Mode=OneWay}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
+                                              IsEnabled="{x:Bind IsEditable, Mode=OneWay}" AutomationProperties.Name="{x:Bind Name}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="Maintenance and about" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="Use the buttons below to manage passwords, import or export settings, and check for updates." TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Change password" Command="{x:Bind ChangePasswordCommand}" />
@@ -56,7 +158,8 @@
             <Button Content="Export" Command="{x:Bind ExportCommand}" />
             <Button Content="Check for updates" Command="{x:Bind ViewModel.CheckForUpdatesCommand}" />
             <Button Content="Apply" Command="{x:Bind ViewModel.ApplyCommand}" />
-            <Button Content="Cancel" Command="{x:Bind ViewModel.LoadCommand}" />
+            <Button Content="Cancel" Command="{x:Bind ViewModel.LoadCommand}"
+                    ToolTipService.ToolTip="Discard unsaved changes and reload settings from the service." />
         </StackPanel>
     </Grid>
 </Page>

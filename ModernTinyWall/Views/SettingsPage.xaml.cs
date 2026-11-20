@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
@@ -11,7 +13,7 @@ namespace ModernTinyWall.Views;
 
 public sealed partial class SettingsPage : Page
 {
-    internal SettingsPageViewModel ViewModel { get; } = new();
+    internal SettingsPageViewModel ViewModel { get; } = App.Services.GetRequiredService<SettingsPageViewModel>();
 
     internal IAsyncRelayCommand ChangePasswordCommand { get; }
 
@@ -25,12 +27,13 @@ public sealed partial class SettingsPage : Page
         ImportCommand = new AsyncRelayCommand(ImportAsync);
         ExportCommand = new AsyncRelayCommand(ExportAsync);
         InitializeComponent();
+        NavigationCacheMode = NavigationCacheMode.Required;
         Loaded += SettingsPage_Loaded;
     }
 
     private async void SettingsPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadCommand.ExecuteAsync(null);
+        await ViewModel.EnsureLoadedAsync();
     }
 
     private async Task ChangePasswordAsync()

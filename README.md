@@ -204,6 +204,8 @@ Launch the built modern client with `--preview-theme=light` or `--preview-theme=
 
 Modern TinyWall can export the currently filtered and sorted Data usage table to CSV. The Exceptions page provides type, policy and creation-age filters, with policy-scope explanations in each row's tooltip. Connection details show the selected live connection and exact-path matching application exceptions; these matches do not guarantee the effective firewall outcome. Overview summary cards can be shown or hidden in Options. The Overview's Troubleshoot button offers safe diagnostic guidance and does not change firewall settings.
 
+Settings uses fixed controls that appear immediately, with only configurable special profiles generated dynamically. Values are prefetched at startup and the page is retained in memory, so returning to it does not wait for another service request or discard unsaved edits. Controls remain read-only until values are available, and subsequent reads update them in place. Apply and successful imports reload the values; Cancel discards edits and reloads from the service, including when retrying an unavailable service or checking for changes made elsewhere.
+
 Preview argument handling, motion policy, blocked-history persistence and display validity, traffic fallback/recovery and preferences have offline regression coverage. Actual rendered layout, Windows contrast themes, DPI scaling, live ETW and service/firewall behaviour still require the VM checks; builds and synthetic tests are not a visual or end-to-end pass.
 
 ### Known-application catalogue

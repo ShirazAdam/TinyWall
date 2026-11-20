@@ -9,22 +9,45 @@ internal sealed record SettingsSection(string Title, string Description, IReadOn
 internal sealed class SettingsItem : INotifyPropertyChanged
 {
     private bool _isEnabled;
+    private bool _isEditable;
+    private string _description;
 
     public SettingsItem(string key, string name, string description, bool isEnabled, bool isEditable)
     {
         Key = key;
         Name = name;
-        Description = description;
+        _description = description;
         _isEnabled = isEnabled;
-        IsEditable = isEditable;
+        _isEditable = isEditable;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Key { get; }
     public string Name { get; }
-    public string Description { get; }
-    public bool IsEditable { get; }
+    public string Description
+    {
+        get => _description;
+        set
+        {
+            if (_description == value)
+                return;
+            _description = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool IsEditable
+    {
+        get => _isEditable;
+        set
+        {
+            if (_isEditable == value)
+                return;
+            _isEditable = value;
+            OnPropertyChanged();
+        }
+    }
 
     public bool IsEnabled
     {

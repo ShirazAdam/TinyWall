@@ -38,5 +38,10 @@
     <Compile Include="..\ModernTinyWall\Services\ProtectionModeIcon.cs" Link="ProtectionModeIcon.cs" />
     <Compile Include="..\ModernTinyWall\Services\ApplicationDetails.cs" Link="ApplicationDetails.cs" />
     <Compile Include="..\ModernTinyWall\Services\FirewallPromptBacklog.cs" Link="FirewallPromptBacklog.cs" />
+    <Compile Include="..\ModernTinyWall\Models\SettingsSection.cs" Link="SettingsSection.cs" />
+    <Compile Include="..\ModernTinyWall\Services\ISettingsService.cs" Link="ISettingsService.cs" />
+    <Compile Include="..\ModernTinyWall\Services\SettingsService.cs" Link="SettingsService.cs" />
+    <Compile Include="..\ModernTinyWall\Services\IMaintenanceService.cs" Link="IMaintenanceService.cs" />
+    <Compile Include="..\ModernTinyWall\ViewModels\SettingsPageViewModel.cs" Link="SettingsPageViewModel.cs" />
   </ItemGroup>
 </Project>
