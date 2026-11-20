@@ -58,6 +58,7 @@
                 <ComboBoxItem Content="Last 7 days" />
                 <ComboBoxItem Content="Last 30 days" />
             </ComboBox>
+            <TextBox Header="Filter tags" PlaceholderText="Tag" Width="140" TextChanged="TagFilter_TextChanged" />
         </StackPanel>
 
         <InfoBar Grid.Row="3" IsOpen="True" Severity="Informational"
@@ -72,8 +73,8 @@
         <Border Grid.Row="5" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
-        <ListView ItemsSource="{x:Bind ViewModel.Exceptions, Mode=OneWay}"
-                  Background="Transparent" SelectionChanged="ExceptionsList_SelectionChanged">
+        <ListView x:Name="ExceptionsList" ItemsSource="{x:Bind ViewModel.Exceptions, Mode=OneWay}"
+                  SelectionMode="Multiple" Background="Transparent" SelectionChanged="ExceptionsList_SelectionChanged">
             <ListView.Header>
                 <Grid Padding="8" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
@@ -83,6 +84,7 @@
                         <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="2*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Application" FontWeight="SemiBold" />
                     <TextBlock Grid.Column="1" Text="Type" FontWeight="SemiBold" />
@@ -90,6 +92,7 @@
                     <TextBlock Grid.Column="3" Text="Policy" FontWeight="SemiBold" />
                     <TextBlock Grid.Column="4" Text="Created / expiry" FontWeight="SemiBold" />
                     <TextBlock Grid.Column="5" Text="Review guidance" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="6" Text="Tags" FontWeight="SemiBold" />
                 </Grid>
             </ListView.Header>
             <ListView.ItemTemplate>
@@ -102,6 +105,7 @@
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="2*" />
                         </Grid.ColumnDefinitions>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -119,6 +123,7 @@
                         </StackPanel>
                         <TextBlock Grid.Column="5" Text="{x:Bind ReviewFinding}" TextWrapping="Wrap"
                                    ToolTipService.ToolTip="{x:Bind ReviewFinding}" />
+                        <TextBlock Grid.Column="6" Text="{x:Bind Tags}" TextWrapping="Wrap" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -128,7 +133,8 @@
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Add" Command="{x:Bind AddCommand}" />
             <Button Content="Modify" Command="{x:Bind ModifyCommand}" />
-            <Button Content="Remove" Command="{x:Bind RemoveCommand}" />
+            <Button Content="Edit tags" Click="EditTags_Click" />
+            <Button Content="Remove selected" Command="{x:Bind RemoveCommand}" />
             <Button Content="Remove all" Command="{x:Bind RemoveAllCommand}" />
         </StackPanel>
     </Grid>

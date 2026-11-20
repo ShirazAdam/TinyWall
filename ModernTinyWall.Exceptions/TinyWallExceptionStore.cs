@@ -80,13 +80,39 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         {
             var index = config.ActiveProfile.AppExceptions.FindIndex(ex => ex.Id == exceptionId);
             if (index >= 0)
-                config.ActiveProfile.AppExceptions[index] = CreateException(request);
+            {
+                var updated = CreateException(request);
+                updated.Id = exceptionId;
+                config.ActiveProfile.AppExceptions[index] = updated;
+            }
         }, ExceptionStoreStrings.ExceptionUpdated, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> RemoveExceptionAsync(Guid exceptionId, CancellationToken cancellationToken = default)
     {
         return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.RemoveAll(ex => ex.Id == exceptionId), ExceptionStoreStrings.ExceptionRemoved, cancellationToken), cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> RemoveExceptionsAsync(IReadOnlyCollection<Guid> exceptionIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(exceptionIds);
+        var ids = exceptionIds.ToHashSet();
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (ids.Count == 0)
+                return new ExceptionMutationResult(false, "Select at least one exception to remove.");
+
+            var changeset = Guid.Empty;
+            var response = _controller.GetServerConfig(out var config, out _, ref changeset);
+            if (response != MessageType.GET_SETTINGS || config is null)
+                return new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotLoadSettings);
+            if (config.ActiveProfile.AppExceptions.Count(ex => ids.Contains(ex.Id)) != ids.Count)
+                return new ExceptionMutationResult(false, "The selected exceptions have changed. Refresh and try again.");
+            config.ActiveProfile.AppExceptions.RemoveAll(ex => ids.Contains(ex.Id));
+            cancellationToken.ThrowIfCancellationRequested();
+            return SaveExceptions(config, changeset, $"{ids.Count} selected exception{(ids.Count == 1 ? string.Empty : "s")} removed.");
+        }, cancellationToken);
     }
 
     public Task<ExceptionMutationResult> RemoveAllExceptionsAsync(CancellationToken cancellationToken = default)

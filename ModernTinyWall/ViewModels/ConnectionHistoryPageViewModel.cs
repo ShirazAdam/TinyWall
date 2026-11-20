@@ -1,4 +1,5 @@
 using ModernTinyWall.Services;
+using ModernTinyWall.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -13,6 +14,8 @@ internal sealed class ConnectionHistoryPageViewModel : INotifyPropertyChanged
     private string _searchText = string.Empty;
     private string _statusMessage = "Ready";
     private bool _isRefreshing;
+    private string? _timelineApplication;
+    private int _refreshVersion;
 
     public ConnectionHistoryPageViewModel(ConnectionHistoryService historyService)
     {
@@ -40,12 +43,29 @@ internal sealed class ConnectionHistoryPageViewModel : INotifyPropertyChanged
         private set => SetField(ref _isRefreshing, value);
     }
 
+    public string TimelineLabel => _timelineApplication is null
+        ? "Showing all applications"
+        : $"Application timeline: {_timelineApplication}";
+
+    public async Task ShowApplicationAsync(string? application)
+    {
+        _timelineApplication = application;
+        SearchText = string.Empty;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TimelineLabel)));
+        await RefreshAsync();
+    }
+
     public async Task RefreshAsync()
     {
+        var version = ++_refreshVersion;
         IsRefreshing = true;
         try
         {
             var entries = await _historyService.GetEntriesAsync(SearchText);
+            if (version != _refreshVersion)
+                return;
+            if (_timelineApplication is not null)
+                entries = ConnectionHistorySummary.ForApplication(entries, _timelineApplication);
             Entries.Clear();
             foreach (var entry in entries)
                 Entries.Add(entry);
@@ -56,11 +76,13 @@ internal sealed class ConnectionHistoryPageViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Could not read local connection history: {ex.Message}";
+            if (version == _refreshVersion)
+                StatusMessage = $"Could not read local connection history: {ex.Message}";
         }
         finally
         {
-            IsRefreshing = false;
+            if (version == _refreshVersion)
+                IsRefreshing = false;
         }
     }
 

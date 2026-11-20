@@ -303,6 +303,16 @@ public sealed partial class MainWindow
             Debug.WriteLine($"Timed out reading application details for '{executablePath}'.");
             details = ApplicationDetails.FromMetadata(executablePath, null, null, null);
         }
+        string signature;
+        try
+        {
+            signature = await Task.Run(() => ApplicationSignature.Describe(executablePath))
+                .WaitAsync(TimeSpan.FromSeconds(1), _promptMonitoringCancellation.Token);
+        }
+        catch (TimeoutException)
+        {
+            signature = "Signature verification timed out.";
+        }
         var icon = new Image { Width = 48, Height = 48, Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform };
         try
         {
@@ -338,10 +348,12 @@ public sealed partial class MainWindow
         });
         text.Children.Add(new TextBlock { Text = $"Application: {details.Name}", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"Publisher (unverified file metadata): {details.Publisher}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = $"Signature: {signature}", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"Description (file metadata): {details.Description}", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = "File details may not identify an individual hosted service.", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = executablePath, TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = EndpointContext.Describe(entry.RemoteIp), TextWrapping = TextWrapping.Wrap });
         Grid.SetColumn(text, 1);
         applicationDetails.Children.Add(text);
 

@@ -55,6 +55,48 @@ public sealed class PremiumExperienceTests
     }
 
     [TestMethod]
+    [DataRow("127.0.0.1", "Loopback")]
+    [DataRow("::ffff:192.168.1.1", "Private")]
+    [DataRow("172.31.0.1", "Private")]
+    [DataRow("169.254.1.1", "Link-local")]
+    [DataRow("100.64.1.1", "Shared")]
+    [DataRow("fc00::1", "Unique-local")]
+    [DataRow("ff02::1", "Multicast")]
+    [DataRow("not an address", "unavailable")]
+    [DataRow("8.8.8.8", "not verified")]
+    public void EndpointContextDescribesAddressesWithoutExternalLookup(string address, string expected)
+    {
+        StringAssert.Contains(EndpointContext.Describe(address), expected);
+    }
+
+    [TestMethod]
+    public void MissingExecutableHasUnavailableSignature()
+    {
+        StringAssert.Contains(ApplicationSignature.Describe(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())), "unavailable");
+    }
+
+    [TestMethod]
+    public void HistoryDigestAndTimelineGroupOnlyObservedRecords()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var entries = new[]
+        {
+            new ConnectionHistoryEntry("1", "App.exe", "TCP", "a", "1", "b", "2", "Blocked", "Out", now.AddHours(-2), now.AddHours(-1)),
+            new ConnectionHistoryEntry("2", "app.exe", "UDP", "a", "1", "c", "3", "Blocked", "Out", now, now),
+            new ConnectionHistoryEntry("3", "App.exe", "TCP", "a", "1", "d", "4", "Established", "Out", now, now),
+            new ConnectionHistoryEntry("4", "Other.exe", "TCP", "a", "1", "e", "5", "Blocked", "Out", now, now)
+        };
+        var digest = ConnectionHistorySummary.BlockedByApplication(entries);
+        var timeline = ConnectionHistorySummary.ForApplication(entries, "APP.EXE");
+
+        Assert.HasCount(2, digest);
+        Assert.AreEqual(2, digest[0].ObservedConnections);
+        Assert.AreEqual(now, digest[0].LastSeen);
+        Assert.HasCount(3, timeline);
+        Assert.AreEqual(now, timeline[0].LastSeen);
+    }
+
+    [TestMethod]
     public async Task ConnectionHistoryCoalescesRepeatedObservationsAndSupportsSearch()
     {
         using var directory = new TemporaryDirectory();

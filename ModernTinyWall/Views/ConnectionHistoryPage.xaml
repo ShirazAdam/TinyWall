@@ -10,12 +10,13 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <StackPanel Spacing="4">
             <TextBlock Text="Activity history" Style="{StaticResource PageTitleStyle}" />
-            <TextBlock Text="A local record of connections observed while Modern TinyWall is open and visible."
+            <TextBlock Text="Sampled connection records observed while Modern TinyWall is visible. First and last seen do not imply continuous activity."
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
         </StackPanel>
 
@@ -37,7 +38,16 @@
             <Button Grid.Column="2" Content="Clear history" Click="Clear_Click" />
         </Grid>
 
-        <Grid Grid.Row="3" RowSpacing="10">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+            <Button Content="Application timeline" Click="Timeline_Click"
+                    ToolTipService.ToolTip="Select a connection to view observations for that application." />
+            <Button Content="All applications" Click="AllApplications_Click" />
+            <Button Content="Blocked activity digest" Click="BlockedDigest_Click" />
+            <TextBlock Text="{x:Bind ViewModel.TimelineLabel, Mode=OneWay}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <Grid Grid.Row="4" RowSpacing="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -48,7 +58,7 @@
             </StackPanel>
             <Border Grid.Row="1" BorderBrush="{ThemeResource ModernBorderBrush}"
                     BorderThickness="1" CornerRadius="12" Background="{ThemeResource ModernSurfaceBrush}">
-                <ListView ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" Background="Transparent">
+                <ListView x:Name="HistoryList" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" Background="Transparent">
                     <ListView.Header>
                         <Grid Padding="8" ColumnSpacing="12" MinWidth="1000">
                             <Grid.ColumnDefinitions>
@@ -58,13 +68,15 @@
                                 <ColumnDefinition Width="2*" />
                                 <ColumnDefinition Width="120" />
                                 <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="120" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Application" FontWeight="SemiBold" />
                             <TextBlock Grid.Column="1" Text="Protocol" FontWeight="SemiBold" />
                             <TextBlock Grid.Column="2" Text="Local endpoint" FontWeight="SemiBold" />
                             <TextBlock Grid.Column="3" Text="Remote endpoint" FontWeight="SemiBold" />
                             <TextBlock Grid.Column="4" Text="State" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="5" Text="Last seen" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="5" Text="First seen" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="6" Text="Last seen" FontWeight="SemiBold" />
                         </Grid>
                     </ListView.Header>
                     <ListView.ItemTemplate>
@@ -77,13 +89,15 @@
                                     <ColumnDefinition Width="2*" />
                                     <ColumnDefinition Width="120" />
                                     <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="120" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{x:Bind Application}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Application}" />
                                 <TextBlock Grid.Column="1" Text="{x:Bind Protocol}" />
                                         <TextBlock Grid.Column="2" Text="{x:Bind LocalEndpoint}" TextTrimming="CharacterEllipsis" />
                                         <TextBlock Grid.Column="3" Text="{x:Bind RemoteEndpoint}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Grid.Column="4" Text="{x:Bind State}" />
-                                <TextBlock Grid.Column="5" Text="{x:Bind LastSeenText}" />
+                                <TextBlock Grid.Column="5" Text="{x:Bind FirstSeenText}" />
+                                <TextBlock Grid.Column="6" Text="{x:Bind LastSeenText}" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>

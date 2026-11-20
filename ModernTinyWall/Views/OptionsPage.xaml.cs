@@ -120,7 +120,7 @@ public sealed partial class OptionsPage : Page
         {
             XamlRoot = XamlRoot,
             Title = "Clear connection history?",
-            Content = "This permanently removes the local connection history file.",
+            Content = "This permanently removes the stored connection history records.",
             PrimaryButtonText = "Clear history",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close

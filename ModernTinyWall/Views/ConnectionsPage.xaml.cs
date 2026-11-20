@@ -85,6 +85,7 @@ public sealed partial class ConnectionsPage : Page
         AddDetail(content, "State", connection.State);
         AddDetail(content, "Local endpoint", $"{connection.LocalAddress}:{connection.LocalPort}");
         AddDetail(content, "Remote endpoint", $"{connection.RemoteAddress}:{connection.RemotePort}");
+        AddDetail(content, "Remote address context", EndpointContext.Describe(connection.RemoteAddress));
         content.Children.Add(new TextBlock
         {
             Text = "Matching application exceptions",

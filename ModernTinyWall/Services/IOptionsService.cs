@@ -1,5 +1,6 @@
 using ModernTinyWall.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.Services;
@@ -22,4 +23,5 @@ internal sealed record ModernTinyWallOptions
     public bool CollectConnectionHistory { get; init; }
     public int ConnectionHistoryRetentionDays { get; init; } = 30;
     public bool OnboardingComplete { get; init; }
+    public Dictionary<Guid, string> RuleTags { get; init; } = new();
 }

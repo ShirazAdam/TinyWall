@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -119,5 +120,21 @@ public sealed class OptionsTests
         Assert.IsTrue(restored.CollectConnectionHistory);
         Assert.AreEqual(90, restored.ConnectionHistoryRetentionDays);
         Assert.IsTrue(restored.OnboardingComplete);
+    }
+
+    [TestMethod]
+    public async Task RuleTagsPersistAlongsideOtherOptions()
+    {
+        var id = Guid.NewGuid();
+        await new OptionsService(_path).UpdateAsync(options => options with
+        {
+            RuleTags = new Dictionary<Guid, string> { [id] = "Work, Browser" }
+        });
+        await new OptionsService(_path).UpdateAsync(options => options with { CloseToTray = false });
+
+        var restored = await new OptionsService(_path).LoadAsync();
+
+        Assert.AreEqual("Work, Browser", restored.RuleTags[id]);
+        Assert.IsFalse(restored.CloseToTray);
     }
 }

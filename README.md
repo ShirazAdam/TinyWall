@@ -29,6 +29,9 @@ Both applications, their shipped libraries and the Visual Studio MSI installer p
 - **Private connection history:** optional local-only history captures observed active, listening and recent blocked connections while the window is visible. It is off by default, supports 7/30/90-day retention, and can be cleared from the Activity history or Options views.
 - **Flexible temporary allowances:** blocked-connection prompts offer 5 minutes, 30 minutes, 1, 4, 9 or 24 hours, or until restart. Temporary exceptions show their expiry status in Exceptions.
 - **First-run guidance and tray status:** a one-time guide explains service status and rule scope; the tray tooltip and menu surface the latest status or action error.
+- **Local rule organisation:** add and filter local tags, or select and remove several exceptions in one confirmed service update.
+- **Connection context:** the blocked prompt checks the executable's embedded signature using Windows trust and cached revocation information; connection details show local address classifications without external lookups.
+- **History insights:** view the sampled observations for one application or a digest of stored blocked-connection records by application.
 - **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
 - **Persistent blocked-event counts:** the matching service records observed WFP drop events by local calendar day. The Overview tooltip explains collection coverage; these are not counts of unique connections.
 
@@ -72,7 +75,11 @@ The Connections view keeps headers and results aligned, with horizontal scrollin
 
 The **Activity history** view is available only in Modern TinyWall. History collection is opt-in under **Options** and stores application names, local/remote addresses, ports, protocol, state and first/last observation times in a local SQLite database under `%LocalAppData%\ModernTinyWall\connection-history.db`. The window must be visible for sampling; collection pauses while minimised or hidden and stops when the application exits. Retention is configurable for 7, 30 or 90 days, with a 5,000-entry cap. **Clear history** removes the local records. This is a sampled observation history, not a complete packet or firewall audit log; blocked entries are limited to what the service's recent connection log exposes.
 
+Select a history record and choose **Application timeline** to filter by application, or choose **Blocked activity digest** to summarise stored blocked records. Repeated observations of the same connection are coalesced, so first/last seen do not imply continuous activity and digest counts are not firewall-event or connection-attempt counts.
+
 The Exceptions view's rule-health notices are advisory checks for repeated subjects, global or unrestricted policies, and rules older than six months. They do not determine effective firewall precedence or modify rules automatically. Temporary connection allowances support the service's existing durations from five minutes through 24 hours and until restart; the Exceptions view displays their remaining time when it can be calculated.
+
+Exception tags are stored in the Modern TinyWall options file on this PC and do not alter firewall policy or follow exported TinyWall settings. They remain attached when edited in Modern TinyWall, but recreating a rule elsewhere can give it a new identity and lose the association. Multiple selected exceptions can be removed together after confirmation; a missing selection or conflicting service update is rejected.
 
 Press **Ctrl+K** or select **Search commands** in the navigation pane to find pages by name or purpose. The first-run guide explains the relationship between the Modern client and the firewall service; it does not install or start the service. High-contrast themes continue to use Windows system colours, and the guide and palette are keyboard-accessible.
 
@@ -83,6 +90,8 @@ For Release builds, install `ModernTinyWall.exe` in the same directory as the ma
 ### Blocked-connection dialogue
 
 Modern TinyWall's outbound connection prompt displays the application's name, icon, publisher and description where available, alongside its executable path, protocol and destination. The publisher and description are unverified file metadata; shared executables may host several services.
+
+The prompt also reports whether Windows trusts the executable's embedded signature, using cached revocation data. This does not verify the displayed publisher metadata, prove that a file remains unchanged, or guarantee an application is safe; unsigned, untrusted and unverifiable files are not treated as trusted. Address classifications are local heuristics, not verified ownership or geographical information, and no external lookup is performed.
 
 | Button | Effect |
 | --- | --- |
