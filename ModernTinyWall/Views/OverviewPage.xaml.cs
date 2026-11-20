@@ -11,7 +11,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
+using ModernTinyWall.TinyWall;
+using Microsoft.UI.Xaml.Automation;
 using Windows.UI.ViewManagement;
 
 namespace ModernTinyWall.Views;
@@ -106,6 +109,16 @@ public sealed partial class OverviewPage
 
     private static void ArrangeColumns(Grid panel, int columns)
     {
+        var visibleChildren = panel.Children.OfType<FrameworkElement>()
+            .Where(child => child.Visibility == Visibility.Visible).ToArray();
+        if (visibleChildren.Length == 0)
+        {
+            panel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        panel.Visibility = Visibility.Visible;
+        columns = Math.Min(columns, visibleChildren.Length);
         if (panel.ColumnDefinitions.Count == columns)
             return;
 
@@ -113,13 +126,59 @@ public sealed partial class OverviewPage
         panel.RowDefinitions.Clear();
         for (var column = 0; column < columns; column++)
             panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        for (var row = 0; row < (panel.Children.Count + columns - 1) / columns; row++)
+        for (var row = 0; row < (visibleChildren.Length + columns - 1) / columns; row++)
             panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        for (var index = 0; index < panel.Children.Count; index++)
+        for (var index = 0; index < visibleChildren.Length; index++)
         {
-            Grid.SetRow((FrameworkElement)panel.Children[index], index / columns);
-            Grid.SetColumn((FrameworkElement)panel.Children[index], index % columns);
+            Grid.SetRow(visibleChildren[index], index / columns);
+            Grid.SetColumn(visibleChildren[index], index % columns);
         }
+    }
+
+    private void ApplySummaryCards(ModernTinyWallOptions options)
+    {
+        ProtectionSummaryCard.Visibility = options.ShowProtectionCard ? Visibility.Visible : Visibility.Collapsed;
+        ConnectionsSummaryCard.Visibility = options.ShowConnectionsCard ? Visibility.Visible : Visibility.Collapsed;
+        BlockedTrafficSummaryCard.Visibility = options.ShowBlockedTrafficCard ? Visibility.Visible : Visibility.Collapsed;
+        ArrangeColumns(SummaryPanels, Math.Max(1, Math.Min(3, (int)(SummaryPanels.ActualWidth / 220))));
+    }
+
+    private void Troubleshoot_Click(object sender, RoutedEventArgs e)
+    {
+        var content = new StackPanel { Spacing = 12 };
+        content.Children.Add(new TextBlock
+        {
+            Text = $"Protection status: {ViewModel.ProtectionStatus}. {ViewModel.ProtectionDetail}",
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = $"Traffic tracking: {ViewModel.NetworkActivityStatus}",
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "1. Check that the TinyWall service is installed and running in Windows Services. Starting or changing the service may require an administrator.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "2. If the service is running, reopen Modern TinyWall and refresh the affected view. Review Windows Event Viewer for service errors.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "3. Do not disable the Windows Firewall or assume protection is active while its status is unavailable. The dashboard cannot verify firewall state until the service responds.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Modern TinyWall troubleshooting",
+            Content = content,
+            CloseButtonText = "Close"
+        };
+        _ = dialog.ShowAsync();
     }
 
     private void ModeTile_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -173,6 +232,7 @@ public sealed partial class OverviewPage
             LocalUploadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.LocalUpload);
             TotalDownloadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.TotalDownload);
             TotalUploadCheckBox.IsChecked = series.HasFlag(NetworkActivitySeries.TotalUpload);
+            ApplySummaryCards(options);
         }
         catch (Exception ex)
         {

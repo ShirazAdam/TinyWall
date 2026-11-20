@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.6.6**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.6.6`) when the changes are pushed to `master` and its builds pass.
+Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.7.8**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.7.8`) when the changes are pushed to `master` and its builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -120,6 +120,8 @@ Now enabled to run natively on x86, x64, and ARM.
 
 Modern TinyWall's **Data usage** view, immediately after Overview, lists applications with recorded TCP/UDP traffic. It shows Total, Internet incoming/outgoing, and Local incoming/outgoing bytes, with search, sorting, and Today, Last 7 days, Last 30 days, and All time filters. The last-7/30-day filters include today and use the machine's local calendar days. Totals combine multiple instances of the same executable path and remain visible after those applications exit.
 
+Automatic refreshes retain the existing rows when usage data has not changed, avoiding unnecessary list updates while still refreshing tracking status and warnings.
+
 The **updated TinyWall service must be installed and running**. Its privileged Windows ETW collector runs independently of the UI; the UI does not need administrator access just to read usage. Daily aggregates are committed to SQLite at `%ProgramData%\TinyWall\data-usage.db` every five seconds and on normal service shutdown. No packet contents or remote-address history are stored. History begins when collection starts, not retroactively. A crash or forced shutdown can lose the most recent uncommitted batch.
 
 Local means private, loopback, link-local, IPv6 unique/site-local, shared-address (`100.64.0.0/10`), and multicast/broadcast addresses. Public remote addresses count as Internet. This is address-based, so private-address VPN traffic counts as Local and VPN/tunnel overhead may be attributed separately. ETW TCP/UDP byte sizes are not billing-grade interface counters: they do not include all link-layer overhead, retransmission events, or other protocols. Loopback traffic can count on both the sending and receiving application.
@@ -198,7 +200,11 @@ History begins when collection starts, not at midnight or retroactively. Service
 
 ### Application-only UI previews
 
-Launch the built modern client with `--preview-theme=light` or `--preview-theme=dark`, optionally adding `--preview-reduced-motion` and `--preview-size=1024x768`. Overrides apply only to that process and are not saved or applied to Windows. The size is in physical pixels, limited to the monitor's work area; it does not simulate DPI scaling. Reduced motion disables application-added fades, hover lift and animated scrolling; native controls still follow Windows settings. A real Windows contrast theme takes precedence.
+Launch the built modern client with `--preview-theme=light` or `--preview-theme=dark`, optionally adding `--preview-reduced-motion`, `--preview-size=1024x768` and `--preview-blocked-connection`. The blocked-connection preview uses the current application and a documentation-only destination; every choice closes the dialogue without saving a firewall rule. Overrides apply only to that process and are not saved or applied to Windows. The size is in physical pixels, limited to the monitor's work area; it does not simulate DPI scaling. Reduced motion disables application-added fades, hover lift and animated scrolling; native controls still follow Windows settings. A real Windows contrast theme takes precedence.
+
+Modern TinyWall can export the currently filtered and sorted Data usage table to CSV. The Exceptions page provides type, policy and creation-age filters, with policy-scope explanations in each row's tooltip. Connection details show the selected live connection and exact-path matching application exceptions; these matches do not guarantee the effective firewall outcome. Overview summary cards can be shown or hidden in Options. The Overview's Troubleshoot button offers safe diagnostic guidance and does not change firewall settings.
+
+Settings uses fixed controls that appear immediately, with only configurable special profiles generated dynamically. Values are prefetched at startup and the page is retained in memory, so returning to it does not wait for another service request or discard unsaved edits. Controls remain read-only until values are available, and subsequent reads update them in place. Apply and successful imports reload the values; Cancel discards edits and reloads from the service, including when retrying an unavailable service or checking for changes made elsewhere.
 
 Preview argument handling, motion policy, blocked-history persistence and display validity, traffic fallback/recovery and preferences have offline regression coverage. Actual rendered layout, Windows contrast themes, DPI scaling, live ETW and service/firewall behaviour still require the VM checks; builds and synthetic tests are not a visual or end-to-end pass.
 

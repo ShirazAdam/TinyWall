@@ -82,6 +82,7 @@
                     <Grid MinWidth="1180" ColumnSpacing="12" Padding="8">
                         <Grid.ContextFlyout>
                             <MenuFlyout>
+                                <MenuFlyoutItem Text="Connection details" Click="ConnectionDetailsMenuItem_Click" CommandParameter="{x:Bind}" />
                                 <MenuFlyoutItem Text="Allow connection application" Click="AllowConnectionMenuItem_Click" CommandParameter="{x:Bind}" />
                                 <MenuFlyoutItem Text="Block connection application" Click="BlockConnectionMenuItem_Click" CommandParameter="{x:Bind}" />
                             </MenuFlyout>

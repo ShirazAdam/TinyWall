@@ -18,11 +18,13 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox PlaceholderText="Search applications or executable paths"
                      Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      AutomationProperties.Name="Search applications" />
             <Button Grid.Column="1" Content="Refresh" Click="Refresh_Click" />
+            <Button Grid.Column="2" Content="Export CSV" Click="ExportCsv_Click" />
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
             <ComboBox x:Name="PeriodPicker" Header="Period" SelectedIndex="0"

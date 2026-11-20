@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
 
@@ -68,6 +70,87 @@ public sealed partial class ConnectionsPage : Page
     {
         if (sender is MenuFlyoutItem { CommandParameter: ConnectionRowViewModel connection })
             await ApplyConnectionExceptionAsync(connection, ExceptionEntryPolicy.Block);
+    }
+
+    private async void ConnectionDetailsMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { CommandParameter: ConnectionRowViewModel connection })
+            return;
+
+        var content = new StackPanel { Spacing = 8 };
+        AddDetail(content, "Application", connection.Application);
+        AddDetail(content, "Executable", connection.ExecutablePath);
+        AddDetail(content, "Protocol", connection.Protocol);
+        AddDetail(content, "Direction", connection.Direction);
+        AddDetail(content, "State", connection.State);
+        AddDetail(content, "Local endpoint", $"{connection.LocalAddress}:{connection.LocalPort}");
+        AddDetail(content, "Remote endpoint", $"{connection.RemoteAddress}:{connection.RemotePort}");
+        content.Children.Add(new TextBlock
+        {
+            Text = "Matching application exceptions",
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            Margin = new Thickness(0, 8, 0, 0)
+        });
+
+        try
+        {
+            var matches = string.IsNullOrWhiteSpace(connection.ExecutablePath)
+                ? []
+                : (await _exceptionStore.GetExceptionsAsync(new ExceptionQuery(connection.ExecutablePath)))
+                    .Where(row => string.Equals(row.Details, connection.ExecutablePath, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+            if (matches.Length == 0)
+            {
+                content.Children.Add(new TextBlock
+                {
+                    Text = "No exception with this exact executable path was found. Other firewall rules may still affect this connection.",
+                    TextWrapping = TextWrapping.Wrap
+                });
+            }
+            else
+            {
+                foreach (var match in matches)
+                {
+                    content.Children.Add(new TextBlock
+                    {
+                        Text = $"{match.Policy} — {match.SubjectType}: {match.Name}. {ExceptionRowViewModel.FromModel(match).PolicyScope}",
+                        TextWrapping = TextWrapping.Wrap
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            content.Children.Add(new TextBlock
+            {
+                Text = $"Could not read matching exceptions: {ex.Message}",
+                TextWrapping = TextWrapping.Wrap
+            });
+        }
+
+        content.Children.Add(new TextBlock
+        {
+            Text = "This is a live connection snapshot. A matching exception does not guarantee the effective outcome; other firewall rules may apply.",
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 8, 0, 0)
+        });
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Connection details",
+            Content = new ScrollViewer { Content = content, MaxHeight = 560 },
+            CloseButtonText = "Close"
+        };
+        _ = dialog.ShowAsync();
+    }
+
+    private static void AddDetail(Panel panel, string label, string value)
+    {
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"{label}: {value}",
+            TextWrapping = TextWrapping.Wrap
+        });
     }
 
     private async Task ApplyConnectionExceptionAsync(ConnectionRowViewModel connection, ExceptionEntryPolicy policy)

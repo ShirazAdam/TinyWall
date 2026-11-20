@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.ViewModels;
@@ -99,11 +100,15 @@ internal sealed class DataUsagePageViewModel : ObservableObject
                         _refreshRequested = true;
                         continue;
                     }
-                    _applications = snapshot.Applications.Select(app => app with
+                    var applications = snapshot.Applications.Select(app => app with
                     {
                         ApplicationPath = PathMapper.Instance.ConvertPathIgnoreErrors(app.ApplicationPath, PathFormat.Win32)
                     }).ToArray();
-                    RebuildRows();
+                    if (applications.Length == 0 || !applications.SequenceEqual(_applications))
+                    {
+                        _applications = applications;
+                        RebuildRows();
+                    }
                     var tracking = snapshot.TrackingStarted is { } started
                         ? $"Tracking since {started.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture)}. " +
                           $"Updated {DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture)}."
@@ -136,17 +141,7 @@ internal sealed class DataUsagePageViewModel : ObservableObject
 
     private void RebuildRows()
     {
-        var matching = _applications.Where(app =>
-            app.ApplicationPath.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase));
-        var sorted = SortIndex switch
-        {
-            1 => matching.OrderBy(app => app.ApplicationPath, StringComparer.CurrentCultureIgnoreCase),
-            2 => matching.OrderByDescending(app => app.InternetReceived),
-            3 => matching.OrderByDescending(app => app.InternetSent),
-            4 => matching.OrderByDescending(app => app.LocalReceived),
-            5 => matching.OrderByDescending(app => app.LocalSent),
-            _ => matching.OrderByDescending(app => app.Total)
-        };
+        var sorted = GetSortedApplications();
         Applications.Clear();
         long total = 0, internetReceived = 0, internetSent = 0, localReceived = 0, localSent = 0;
         foreach (var application in sorted)
@@ -162,6 +157,48 @@ internal sealed class DataUsagePageViewModel : ObservableObject
             $"Internet in {DataUsageRow.FormatBytes(internetReceived)}, out {DataUsageRow.FormatBytes(internetSent)} | " +
             $"Local in {DataUsageRow.FormatBytes(localReceived)}, out {DataUsageRow.FormatBytes(localSent)}";
     }
+
+    internal string CreateCsv()
+    {
+        var csv = new StringBuilder("Application,Executable path,Total bytes,Internet received bytes,Internet sent bytes,Local received bytes,Local sent bytes\r\n");
+        foreach (var application in GetSortedApplications())
+        {
+            var name = application.ApplicationPath switch
+            {
+                ApplicationDataUsage.SystemPath => "System",
+                ApplicationDataUsage.UnattributedPath => "Unattributed traffic",
+                _ => Path.GetFileName(application.ApplicationPath)
+            };
+            csv.Append(Csv(name))
+                .Append(',').Append(Csv(application.ApplicationPath))
+                .Append(',').Append(application.Total)
+                .Append(',').Append(application.InternetReceived)
+                .Append(',').Append(application.InternetSent)
+                .Append(',').Append(application.LocalReceived)
+                .Append(',').Append(application.LocalSent)
+                .Append("\r\n");
+        }
+        return csv.ToString();
+    }
+
+    internal void SetExportStatus(string message) => StatusMessage = message;
+
+    private IOrderedEnumerable<ApplicationDataUsage> GetSortedApplications()
+    {
+        var matching = _applications.Where(app =>
+            app.ApplicationPath.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase));
+        return SortIndex switch
+        {
+            1 => matching.OrderBy(app => app.ApplicationPath, StringComparer.CurrentCultureIgnoreCase),
+            2 => matching.OrderByDescending(app => app.InternetReceived),
+            3 => matching.OrderByDescending(app => app.InternetSent),
+            4 => matching.OrderByDescending(app => app.LocalReceived),
+            5 => matching.OrderByDescending(app => app.LocalSent),
+            _ => matching.OrderByDescending(app => app.Total)
+        };
+    }
+
+    private static string Csv(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
 }
 
 internal sealed class DataUsageRow(ApplicationDataUsage usage)

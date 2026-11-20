@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Services;
 using ModernTinyWall.Models;
+using ModernTinyWall.ViewModels;
 using ModernTinyWall.Windows;
 using System;
 
@@ -28,12 +29,15 @@ public partial class App : Application
         var services = new ServiceCollection();
         services.AddSingleton<ITinyWallExceptionStore, TinyWallExceptionStore>();
         services.AddSingleton<FirewallPromptMonitor>();
+        services.AddSingleton(_ => new SettingsPageViewModel(new SettingsService(), new MaintenanceService(),
+            SettingsService.CreateFallbackSections()));
         return services.BuildServiceProvider();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         PreviewOptions = UiPreviewOptions.Parse(Environment.GetCommandLineArgs()[1..]);
+        _ = Services.GetRequiredService<SettingsPageViewModel>().EnsureLoadedAsync();
         var window = new MainWindow();
         _window = window;
         MainWindow = window;

@@ -6,8 +6,10 @@ namespace ModernTinyWall.Services;
 internal static partial class FilePickerService
 {
     private const int MaxPath = 260;
-    private const string FileFilter = "TinyWall settings (*.tws)\0*.tws\0All files (*.*)\0*.*\0";
-    private const string DefaultExtension = "tws";
+    private const string SettingsFileFilter = "TinyWall settings (*.tws)\0*.tws\0All files (*.*)\0*.*\0";
+    private const string CsvFileFilter = "CSV files (*.csv)\0*.csv\0All files (*.*)\0*.*\0";
+    private const string SettingsExtension = "tws";
+    private const string CsvExtension = "csv";
     private const uint OFN_EXPLORER = 0x00080000;
     private const uint OFN_FILEMUSTEXIST = 0x00001000;
     private const uint OFN_HIDEREADONLY = 0x00000004;
@@ -16,7 +18,7 @@ internal static partial class FilePickerService
     public static string? PickOpenFile(IntPtr owner, string title)
     {
         var fileBuffer = Marshal.AllocHGlobal(MaxPath * sizeof(char));
-        var filterBuffer = Marshal.StringToHGlobalUni(FileFilter);
+        var filterBuffer = Marshal.StringToHGlobalUni(SettingsFileFilter);
         var titleBuffer = Marshal.StringToHGlobalUni(title);
 
         try
@@ -38,10 +40,20 @@ internal static partial class FilePickerService
 
     public static string? PickSaveFile(IntPtr owner, string title, string defaultFileName)
     {
+        return PickSaveFile(owner, title, defaultFileName, SettingsFileFilter, SettingsExtension);
+    }
+
+    public static string? PickSaveCsvFile(IntPtr owner, string title, string defaultFileName)
+    {
+        return PickSaveFile(owner, title, defaultFileName, CsvFileFilter, CsvExtension);
+    }
+
+    private static string? PickSaveFile(IntPtr owner, string title, string defaultFileName, string fileFilter, string defaultExtension)
+    {
         var fileBuffer = Marshal.AllocHGlobal(MaxPath * sizeof(char));
-        var filterBuffer = Marshal.StringToHGlobalUni(FileFilter);
+        var filterBuffer = Marshal.StringToHGlobalUni(fileFilter);
         var titleBuffer = Marshal.StringToHGlobalUni(title);
-        var defaultExtensionBuffer = Marshal.StringToHGlobalUni(DefaultExtension);
+        var defaultExtensionBuffer = Marshal.StringToHGlobalUni(defaultExtension);
 
         try
         {

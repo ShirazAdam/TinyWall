@@ -10,17 +10,18 @@ namespace ModernTinyWall.Services;
 
 internal sealed class SettingsService : ISettingsService
 {
-    private const string AutoUpdateCheckKey = "service.autoUpdateCheck";
-    private const string DisplayOffBlockKey = "service.activeProfile.displayOffBlock";
-    private const string LockHostsFileKey = "service.lockHostsFile";
-    private const string EnableBlocklistsKey = "service.blocklists.enableBlocklists";
-    private const string EnableHostsBlocklistKey = "service.blocklists.enableHostsBlocklist";
-    private const string EnablePortBlocklistKey = "service.blocklists.enablePortBlocklist";
-    private const string AllowLocalSubnetKey = "service.activeProfile.allowLocalSubnet";
-    private const string EnablePendingPromptsKey = "service.enablePendingConnectionPrompts";
-    private const string SpecialProfilePrefix = "service.activeProfile.specialExceptions.";
-    private const string AskForExceptionDetailsKey = "controller.askForExceptionDetails";
-    private const string EnableGlobalHotkeysKey = "controller.globalHotkeys";
+    internal const string AutoUpdateCheckKey = "service.autoUpdateCheck";
+    internal const string DisplayOffBlockKey = "service.activeProfile.displayOffBlock";
+    internal const string LockHostsFileKey = "service.lockHostsFile";
+    internal const string EnableBlocklistsKey = "service.blocklists.enableBlocklists";
+    internal const string EnableHostsBlocklistKey = "service.blocklists.enableHostsBlocklist";
+    internal const string EnablePortBlocklistKey = "service.blocklists.enablePortBlocklist";
+    internal const string AllowLocalSubnetKey = "service.activeProfile.allowLocalSubnet";
+    internal const string EnablePendingPromptsKey = "service.enablePendingConnectionPrompts";
+    internal const string SpecialProfilePrefix = "service.activeProfile.specialExceptions.";
+    internal const string AskForExceptionDetailsKey = "controller.askForExceptionDetails";
+    internal const string EnableGlobalHotkeysKey = "controller.globalHotkeys";
+    internal const string ConfiguredExceptionsKey = "service.activeProfile.appExceptions";
 
     private readonly Controller _controller = new("TinyWallController");
 
@@ -100,7 +101,7 @@ internal sealed class SettingsService : ISettingsService
                 "Application exceptions",
                 "Application, service, package and global exceptions migrated from the WinForms Applications tab.",
                 [
-                    new SettingsItem("service.activeProfile.appExceptions", "Configured exceptions", $"{serviceConfig.ActiveProfile.AppExceptions.Count} exception{(serviceConfig.ActiveProfile.AppExceptions.Count == 1 ? string.Empty : "s")} configured.", serviceConfig.ActiveProfile.AppExceptions.Count > 0, false),
+                    new SettingsItem(ConfiguredExceptionsKey, "Configured exceptions", $"{serviceConfig.ActiveProfile.AppExceptions.Count} exception{(serviceConfig.ActiveProfile.AppExceptions.Count == 1 ? string.Empty : "s")} configured.", serviceConfig.ActiveProfile.AppExceptions.Count > 0, false),
                     ..CreateSpecialProfileItems(serviceConfig)
                 ]),
             new SettingsSection(
@@ -114,13 +115,13 @@ internal sealed class SettingsService : ISettingsService
         ];
     }
 
-    private static IReadOnlyList<SettingsSection> CreateFallbackSections()
+    internal static SettingsSection[] CreateFallbackSections()
     {
         return
         [
             new SettingsSection(
                 "General",
-                "TinyWall service settings could not be loaded. Showing migration placeholders.",
+                "Controls are read-only until the TinyWall service settings are available.",
                 [
                     new SettingsItem(AutoUpdateCheckKey, "Automatic update checks", "Check for TinyWall updates automatically.", false, false),
                     new SettingsItem(AskForExceptionDetailsKey, "Ask for exception details", "Prompt for details when creating new application exceptions.", false, false),
@@ -138,7 +139,11 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", false, false),
                     new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", false, false),
                     new SettingsItem(AllowLocalSubnetKey, "Allow local subnet", "Allow local subnet traffic for the active profile.", false, false)
-                ])
+                ]),
+            new SettingsSection(
+                "Application exceptions",
+                "Application, service, package and global exceptions.",
+                new[] { new SettingsItem(ConfiguredExceptionsKey, "Configured exceptions", "Service settings are unavailable.", false, false) })
         ];
     }
 

@@ -3,8 +3,10 @@ using ModernTinyWall.TinyWall;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -17,26 +19,39 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
     private readonly AsyncRelayCommand _loadCommand;
     private readonly AsyncRelayCommand _applyCommand;
     private readonly AsyncRelayCommand _checkForUpdatesCommand;
+    private readonly Dictionary<string, SettingsItem> _fixedItems;
     private bool _isLoading;
+    private bool _hasLoaded;
+    private Task? _loadTask;
     private string _statusMessage = "Settings ready.";
 
-    public SettingsPageViewModel()
-        : this(new SettingsService(), new MaintenanceService())
-    {
-    }
-
-    internal SettingsPageViewModel(ISettingsService settingsService, IMaintenanceService maintenanceService)
+    internal SettingsPageViewModel(ISettingsService settingsService, IMaintenanceService maintenanceService,
+        IReadOnlyList<SettingsSection> initialSections)
     {
         _settingsService = settingsService;
         _maintenanceService = maintenanceService;
+        _fixedItems = initialSections.SelectMany(section => section.Items).ToDictionary(item => item.Key);
         _loadCommand = new AsyncRelayCommand(LoadAsync, CanRunCommand);
-        _applyCommand = new AsyncRelayCommand(ApplyAsync, CanRunCommand);
+        _applyCommand = new AsyncRelayCommand(ApplyAsync, () => CanRunCommand() && _fixedItems.Values.Any(item => item.IsEditable));
         _checkForUpdatesCommand = new AsyncRelayCommand(CheckForUpdatesAsync, CanRunCommand);
+        Sections = initialSections.Append(new SettingsSection("Special profiles", string.Empty, SpecialProfiles)).ToArray();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<SettingsSection> Sections { get; } = [];
+    public IReadOnlyList<SettingsSection> Sections { get; }
+    public ObservableCollection<SettingsItem> SpecialProfiles { get; } = [];
+    public SettingsItem AutomaticUpdateChecks => _fixedItems[SettingsService.AutoUpdateCheckKey];
+    public SettingsItem AskForExceptionDetails => _fixedItems[SettingsService.AskForExceptionDetailsKey];
+    public SettingsItem GlobalHotkeys => _fixedItems[SettingsService.EnableGlobalHotkeysKey];
+    public SettingsItem DisplayOffBlock => _fixedItems[SettingsService.DisplayOffBlockKey];
+    public SettingsItem LockHostsFile => _fixedItems[SettingsService.LockHostsFileKey];
+    public SettingsItem PendingConnectionPrompts => _fixedItems[SettingsService.EnablePendingPromptsKey];
+    public SettingsItem EnableBlocklists => _fixedItems[SettingsService.EnableBlocklistsKey];
+    public SettingsItem HostsBlocklist => _fixedItems[SettingsService.EnableHostsBlocklistKey];
+    public SettingsItem PortBlocklist => _fixedItems[SettingsService.EnablePortBlocklistKey];
+    public SettingsItem AllowLocalSubnet => _fixedItems[SettingsService.AllowLocalSubnetKey];
+    public SettingsItem ConfiguredExceptions => _fixedItems[SettingsService.ConfiguredExceptionsKey];
 
     public IAsyncRelayCommand LoadCommand => _loadCommand;
 
@@ -71,29 +86,61 @@ internal sealed class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task LoadAsync()
+    public Task EnsureLoadedAsync()
+    {
+        return _hasLoaded ? Task.CompletedTask : LoadAsync();
+    }
+
+    public Task LoadAsync()
+    {
+        if (_loadTask is { IsCompleted: false })
+            return _loadTask;
+
+        _loadTask = LoadCoreAsync();
+        return _loadTask;
+    }
+
+    private async Task LoadCoreAsync()
     {
         IsLoading = true;
-        StatusMessage = "Loading settings sections...";
+        StatusMessage = "Reading settings from the TinyWall service...";
 
         try
         {
             var sections = await _settingsService.GetSettingsSectionsAsync();
-            Sections.Clear();
-            foreach (var section in sections)
+            var items = sections.SelectMany(section => section.Items).ToDictionary(item => item.Key);
+            foreach (var item in _fixedItems.Values)
             {
-                Sections.Add(section);
+                if (items.TryGetValue(item.Key, out var loaded))
+                {
+                    item.IsEnabled = loaded.IsEnabled;
+                    item.IsEditable = loaded.IsEditable;
+                    item.Description = loaded.Description;
+                }
+                else
+                {
+                    item.IsEditable = false;
+                }
             }
+            SpecialProfiles.Clear();
+            foreach (var item in items.Values.Where(item => item.Key.StartsWith(SettingsService.SpecialProfilePrefix, StringComparison.Ordinal)))
+                SpecialProfiles.Add(item);
 
-            StatusMessage = "Settings sections loaded.";
+            StatusMessage = _fixedItems.Values.Any(item => item.IsEditable)
+                ? "Settings ready."
+                : "TinyWall service settings are unavailable. Select Cancel to retry.";
         }
         catch (Exception ex)
         {
-            Sections.Clear();
+            foreach (var item in _fixedItems.Values)
+                item.IsEditable = false;
+            ConfiguredExceptions.Description = "Service settings are unavailable.";
+            SpecialProfiles.Clear();
             StatusMessage = $"Could not load settings sections: {ex.Message}";
         }
         finally
         {
+            _hasLoaded = true;
             IsLoading = false;
         }
     }
