@@ -8,7 +8,7 @@ namespace ModernTinyWall.Exceptions;
 public sealed record ExceptionQuery(string SearchText);
 
 public sealed record ExceptionRow(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created,
-    string IconPath = "", string PackageFamilyName = "");
+    string IconPath = "", string PackageFamilyName = "", string Duration = "Permanent");
 
 public sealed record ExceptionMutationResult(bool Success, string Message);
 

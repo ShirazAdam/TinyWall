@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,6 +26,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     private string _subjectTypeFilter = "All types";
     private string _policyFilter = "All policies";
     private int _ageDaysFilter;
+    private string _healthSummary = "Load exceptions to review rule health.";
 
     public ExceptionsPageViewModel()
         : this(App.Services.GetRequiredService<ITinyWallExceptionStore>())
@@ -120,6 +122,12 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         private set => SetField(ref _statusMessage, value);
     }
 
+    public string HealthSummary
+    {
+        get => _healthSummary;
+        private set => SetField(ref _healthSummary, value);
+    }
+
     public void SetFilters(string subjectType, string policy, int ageDays)
     {
         _subjectTypeFilter = subjectType;
@@ -145,6 +153,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         {
             _allExceptions = [];
             Exceptions.Clear();
+            HealthSummary = "Rule health is unavailable until exceptions can be read.";
             StatusMessage = $"Could not refresh application exceptions: {ex.Message}";
         }
         finally
@@ -156,7 +165,21 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     private void ApplyFilters()
     {
         var cutoff = _ageDaysFilter == 0 ? (DateTime?)null : DateTime.Now.AddDays(-_ageDaysFilter);
-        var matching = _allExceptions.Where(row =>
+        var duplicateSubjects = _allExceptions
+            .GroupBy(row => $"{row.SubjectType}\0{row.Details}", StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var reviewed = _allExceptions.Select(row => row with
+        {
+            ReviewFinding = ExceptionHealthAnalyzer.GetFinding(
+                new ExceptionRow(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created),
+                duplicateSubjects.Contains($"{row.SubjectType}\0{row.Details}"))
+        }).ToArray();
+        var findingsCount = reviewed.Count(row => row.ReviewFinding.Length > 0);
+        HealthSummary = ExceptionHealthAnalyzer.CreateSummary(findingsCount);
+
+        var matching = reviewed.Where(row =>
             (_subjectTypeFilter == "All types" || row.SubjectType == _subjectTypeFilter) &&
             MatchesPolicy(row.Policy, _policyFilter) &&
             (cutoff is null || (DateTime.TryParseExact(row.Created, "yyyy/MM/dd HH:mm",
@@ -293,7 +316,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     }
 }
 
-internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created, string IconPath, string PackageFamilyName)
+internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created, string IconPath, string PackageFamilyName, string Duration, string ReviewFinding = "")
 {
     public string PolicyScope
     {
@@ -318,6 +341,6 @@ internal sealed record ExceptionRowViewModel(Guid Id, string Name, string Subjec
 
     public static ExceptionRowViewModel FromModel(ExceptionRow row)
     {
-        return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created, row.IconPath, row.PackageFamilyName);
+        return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created, row.IconPath, row.PackageFamilyName, row.Duration);
     }
 }

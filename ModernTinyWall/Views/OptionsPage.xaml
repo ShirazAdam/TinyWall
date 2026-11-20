@@ -33,11 +33,30 @@
             <ToggleSwitch x:Name="BlockedTrafficCardSwitch" Header="Blocked today" Toggled="OptionsSwitch_Toggled" />
         </StackPanel>
 
+        <StackPanel Spacing="8">
+            <TextBlock Text="Connection history" Style="{StaticResource SectionTitleStyle}" />
+            <TextBlock Text="Optional local history can include application names or executable paths, IP addresses and ports. Collection pauses while the window is hidden."
+                       TextWrapping="Wrap" Foreground="{ThemeResource ModernMutedBrush}" />
+            <ToggleSwitch x:Name="CollectHistorySwitch" Header="Collect connection history"
+                          OffContent="Off" OnContent="Stored on this PC" Toggled="OptionsSwitch_Toggled" />
+            <ComboBox x:Name="HistoryRetentionBox" Header="Keep history for"
+                      SelectionChanged="HistoryRetention_SelectionChanged" MinWidth="200">
+                <ComboBoxItem Content="7 days" Tag="7" />
+                <ComboBoxItem Content="30 days" Tag="30" />
+                <ComboBoxItem Content="90 days" Tag="90" />
+            </ComboBox>
+            <Button Content="Clear connection history" Click="ClearHistory_Click" HorizontalAlignment="Left" />
+        </StackPanel>
+
+        <Button Content="Getting started guide" Click="GettingStarted_Click" HorizontalAlignment="Left" />
+
         <InfoBar
             IsOpen="True"
             Severity="Informational"
             Title="Tray behaviour"
             Message="The tray icon remains available while Modern TinyWall is hidden. Use the tray menu or the terminate button below to fully exit." />
+
+        <InfoBar x:Name="OptionsStatus" IsOpen="False" Severity="Informational" />
 
         <Button Content="Terminate application" Click="TerminateButton_Click" HorizontalAlignment="Left" />
     </StackPanel>

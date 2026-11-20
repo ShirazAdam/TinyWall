@@ -67,6 +67,10 @@
                         Click="Troubleshoot_Click" AutomationProperties.Name="Troubleshoot firewall status" />
             </Grid>
 
+            <InfoBar IsOpen="True" Severity="Informational"
+                     Title="Protection and tracking health"
+                     Message="{x:Bind ViewModel.ProtectionHealthMessage, Mode=OneWay}" />
+
             <Grid x:Name="SummaryPanels" ColumnSpacing="14" RowSpacing="10" SizeChanged="SummaryPanels_SizeChanged">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

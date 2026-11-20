@@ -19,4 +19,5 @@ public interface ITinyWallExceptionStore
     Task<ExceptionMutationResult> RemoveExceptionAsync(Guid exceptionId, CancellationToken cancellationToken = default);
     Task<ExceptionMutationResult> RemoveAllExceptionsAsync(CancellationToken cancellationToken = default);
     Task<ExceptionMutationResult> ApplyFirewallPromptDecisionAsync(FirewallLogEntry entry, FirewallPromptDecision decision, CancellationToken cancellationToken = default);
+    Task<ExceptionMutationResult> ApplyFirewallPromptDecisionAsync(FirewallLogEntry entry, FirewallPromptDecision decision, AppExceptionTimer temporaryDuration, CancellationToken cancellationToken = default);
 }

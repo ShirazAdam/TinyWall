@@ -19,4 +19,7 @@ internal sealed record ModernTinyWallOptions
     public bool ShowProtectionCard { get; init; } = true;
     public bool ShowConnectionsCard { get; init; } = true;
     public bool ShowBlockedTrafficCard { get; init; } = true;
+    public bool CollectConnectionHistory { get; init; }
+    public int ConnectionHistoryRetentionDays { get; init; } = 30;
+    public bool OnboardingComplete { get; init; }
 }

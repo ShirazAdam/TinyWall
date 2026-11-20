@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -59,12 +60,16 @@
             </ComboBox>
         </StackPanel>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <InfoBar Grid.Row="3" IsOpen="True" Severity="Informational"
+                 Title="Rule health review"
+                 Message="{x:Bind ViewModel.HealthSummary, Mode=OneWay}" />
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
             <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <Border Grid.Row="4" BorderBrush="{ThemeResource ModernBorderBrush}"
+        <Border Grid.Row="5" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
         <ListView ItemsSource="{x:Bind ViewModel.Exceptions, Mode=OneWay}"
@@ -77,12 +82,14 @@
                         <ColumnDefinition Width="3*" />
                         <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="3*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Application" FontWeight="SemiBold" />
                     <TextBlock Grid.Column="1" Text="Type" FontWeight="SemiBold" />
                     <TextBlock Grid.Column="2" Text="Details" FontWeight="SemiBold" />
                     <TextBlock Grid.Column="3" Text="Policy" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="4" Text="Created" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="4" Text="Created / expiry" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="5" Text="Review guidance" FontWeight="SemiBold" />
                 </Grid>
             </ListView.Header>
             <ListView.ItemTemplate>
@@ -94,6 +101,7 @@
                             <ColumnDefinition Width="3*" />
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="3*" />
                         </Grid.ColumnDefinitions>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -104,14 +112,20 @@
                         <TextBlock Grid.Column="2" Text="{x:Bind Details}" TextTrimming="CharacterEllipsis" />
                         <TextBlock Grid.Column="3" Text="{x:Bind Policy}" TextTrimming="CharacterEllipsis"
                                    ToolTipService.ToolTip="{x:Bind PolicyScope}" AutomationProperties.HelpText="{x:Bind PolicyScope}" />
-                        <TextBlock Grid.Column="4" Text="{x:Bind Created}" />
+                        <StackPanel Grid.Column="4" Spacing="2">
+                            <TextBlock Text="{x:Bind Created}" />
+                            <TextBlock Text="{x:Bind Duration}" FontSize="11"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="5" Text="{x:Bind ReviewFinding}" TextWrapping="Wrap"
+                                   ToolTipService.ToolTip="{x:Bind ReviewFinding}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
         </Border>
 
-        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Add" Command="{x:Bind AddCommand}" />
             <Button Content="Modify" Command="{x:Bind ModifyCommand}" />
             <Button Content="Remove" Command="{x:Bind RemoveCommand}" />

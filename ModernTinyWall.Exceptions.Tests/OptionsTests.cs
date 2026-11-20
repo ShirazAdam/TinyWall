@@ -93,4 +93,31 @@ public sealed class OptionsTests
         Assert.IsTrue(restored.ShowConnectionsCard);
         Assert.IsFalse(restored.ShowBlockedTrafficCard);
     }
+
+    [TestMethod]
+    public async Task ConnectionHistoryIsOptInAndHasBoundedRetentionDefaults()
+    {
+        var options = await new OptionsService(_path).LoadAsync();
+
+        Assert.IsFalse(options.CollectConnectionHistory);
+        Assert.AreEqual(30, options.ConnectionHistoryRetentionDays);
+        Assert.IsFalse(options.OnboardingComplete);
+    }
+
+    [TestMethod]
+    public async Task ConnectionHistoryAndOnboardingSettingsSurviveReload()
+    {
+        await new OptionsService(_path).UpdateAsync(options => options with
+        {
+            CollectConnectionHistory = true,
+            ConnectionHistoryRetentionDays = 90,
+            OnboardingComplete = true
+        });
+
+        var restored = await new OptionsService(_path).LoadAsync();
+
+        Assert.IsTrue(restored.CollectConnectionHistory);
+        Assert.AreEqual(90, restored.ConnectionHistoryRetentionDays);
+        Assert.IsTrue(restored.OnboardingComplete);
+    }
 }

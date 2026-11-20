@@ -21,7 +21,32 @@ public static class ExceptionDescriptor
             exception.CreationDate.ToString("yyyy/MM/dd HH:mm"),
             exception.Subject is ExecutableSubject executable
                 ? PathMapper.Instance.ConvertPathIgnoreErrors(executable.ExecutablePath, PathFormat.Win32) : string.Empty,
-            exception.Subject is AppContainerSubject app ? $"{app.DisplayName}_{app.PublisherId}" : string.Empty);
+            exception.Subject is AppContainerSubject app ? $"{app.DisplayName}_{app.PublisherId}" : string.Empty,
+            DescribeDuration(exception));
+    }
+
+    private static string DescribeDuration(FirewallExceptionV3 exception)
+    {
+        return exception.Timer switch
+        {
+            AppExceptionTimer.Permanent => "Permanent",
+            AppExceptionTimer.UNTIL_REBOOT => "Until restart",
+            AppExceptionTimer.Invalid => "Expiry unavailable",
+            _ => DescribeRemainingDuration(exception)
+        };
+    }
+
+    private static string DescribeRemainingDuration(FirewallExceptionV3 exception)
+    {
+        var minutes = (int)exception.Timer;
+        if (minutes <= 0)
+            return "Expiry unavailable";
+        var remaining = exception.CreationDate.AddMinutes(minutes) - DateTime.Now;
+        if (remaining <= TimeSpan.Zero)
+            return "Expired; awaiting service cleanup";
+        return remaining.TotalHours >= 1
+            ? $"Expires in {(int)Math.Ceiling(remaining.TotalHours)} h"
+            : $"Expires in {(int)Math.Ceiling(remaining.TotalMinutes)} min";
     }
 
     public static (string Name, string SubjectType, string Details) DescribeSubject(ExceptionSubject subject)

@@ -129,6 +129,36 @@ public sealed class TinyWallExceptionStoreTests
     }
 
     [TestMethod]
+    [DataRow(AppExceptionTimer.FOR_30_MINUTES)]
+    [DataRow(AppExceptionTimer.FOR_1_HOUR)]
+    [DataRow(AppExceptionTimer.FOR_24_HOURS)]
+    [DataRow(AppExceptionTimer.UNTIL_REBOOT)]
+    public async Task ApplyFirewallPromptUsesSelectedTemporaryDuration(AppExceptionTimer duration)
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(
+            CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowOnce, duration);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(duration, client.Config.ActiveProfile.AppExceptions[0].Timer);
+    }
+
+    [TestMethod]
+    public async Task ApplyFirewallPromptRejectsUnsupportedTemporaryDuration()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(
+            CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowOnce, AppExceptionTimer.Permanent);
+
+        Assert.IsFalse(result.Success);
+        Assert.IsFalse(client.SetConfigCalled);
+    }
+
+    [TestMethod]
     public async Task ApplyFirewallPromptAllowAlwaysThenAddsPermanentAppWideOutboundRule()
     {
         var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
