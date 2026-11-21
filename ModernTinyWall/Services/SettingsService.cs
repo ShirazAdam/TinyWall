@@ -74,21 +74,21 @@ internal sealed class SettingsService : ISettingsService
 
     private static IReadOnlyList<SettingsSection> CreateSections(ServerConfiguration serviceConfig, ControllerSettings controllerSettings)
     {
-        return
+        return Array.AsReadOnly<SettingsSection>(
         [
             new SettingsSection(
                 "General",
                 "Application-level preferences migrated from the WinForms General tab.",
-                [
+                Array.AsReadOnly<SettingsItem>([
                     new SettingsItem(AutoUpdateCheckKey, "Automatic update checks", "Check for TinyWall updates automatically.", serviceConfig.AutoUpdateCheck, true),
                     new SettingsItem(AskForExceptionDetailsKey, "Ask for exception details", "Prompt for details when creating new application exceptions.", controllerSettings.AskForExceptionDetails, true),
                     new SettingsItem(EnableGlobalHotkeysKey, "Global hotkeys", "Enable TinyWall global keyboard shortcuts.", controllerSettings.EnableGlobalHotkeys, true),
                     new SettingsItem("controller.language", "Language", "English is the Modern TinyWall baseline language.", true, false)
-                ]),
+                ])),
             new SettingsSection(
                 "Machine settings",
                 "System-wide firewall and blocklist options migrated from the WinForms Machine settings tab.",
-                [
+                Array.AsReadOnly<SettingsItem>([
                     new SettingsItem(DisplayOffBlockKey, "Block network when display is off", "Block selected traffic while the display is off.", serviceConfig.ActiveProfile.DisplayOffBlock, true),
                     new SettingsItem(LockHostsFileKey, "Lock hosts file", "Protect the hosts file from unwanted changes.", serviceConfig.LockHostsFile, true),
                     new SettingsItem(EnablePendingPromptsKey, "Experimental pending connection prompts", "Hold outbound connections for a decision. Requires the separately installed driver and an isolated test VM.", serviceConfig.EnablePendingConnectionPrompts, true),
@@ -96,23 +96,23 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", serviceConfig.Blocklists.EnableHostsBlocklist, true),
                     new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", serviceConfig.Blocklists.EnablePortBlocklist, true),
                     new SettingsItem(AllowLocalSubnetKey, "Allow local subnet", "Allow local subnet traffic for the active profile.", serviceConfig.ActiveProfile.AllowLocalSubnet, true)
-                ]),
+                ])),
             new SettingsSection(
                 "Application exceptions",
                 "Application, service, package and global exceptions migrated from the WinForms Applications tab.",
-                [
+                Array.AsReadOnly<SettingsItem>([
                     new SettingsItem(ConfiguredExceptionsKey, "Configured exceptions", $"{serviceConfig.ActiveProfile.AppExceptions.Count} exception{(serviceConfig.ActiveProfile.AppExceptions.Count == 1 ? string.Empty : "s")} configured.", serviceConfig.ActiveProfile.AppExceptions.Count > 0, false),
                     ..CreateSpecialProfileItems(serviceConfig)
-                ]),
+                ])),
             new SettingsSection(
                 "Maintenance and about",
                 "Import, export, update and about actions from the WinForms About tab.",
-                [
+                Array.AsReadOnly<SettingsItem>([
                     new SettingsItem("maintenance.import", "Import settings", "Import TinyWall settings from a file.", false, false),
                     new SettingsItem("maintenance.export", "Export settings", "Export TinyWall settings to a file.", false, false),
                     new SettingsItem("maintenance.update", "Check for updates", "Check whether a newer TinyWall version is available.", serviceConfig.AutoUpdateCheck, false)
-                ])
-        ];
+                ]))
+        ]);
     }
 
     internal static SettingsSection[] CreateFallbackSections()
@@ -122,16 +122,16 @@ internal sealed class SettingsService : ISettingsService
             new SettingsSection(
                 "General",
                 "Controls are read-only until the TinyWall service settings are available.",
-                [
+                Array.AsReadOnly<SettingsItem>([
                     new SettingsItem(AutoUpdateCheckKey, "Automatic update checks", "Check for TinyWall updates automatically.", false, false),
                     new SettingsItem(AskForExceptionDetailsKey, "Ask for exception details", "Prompt for details when creating new application exceptions.", false, false),
                     new SettingsItem(EnableGlobalHotkeysKey, "Global hotkeys", "Enable TinyWall global keyboard shortcuts.", false, false),
                     new SettingsItem("controller.language", "Language", "Use English as the default language baseline.", true, false)
-                ]),
+                ])),
             new SettingsSection(
                 "Machine settings",
                 "System-wide firewall and blocklist options migrated from the WinForms Machine settings tab.",
-                [
+                Array.AsReadOnly<SettingsItem>([
                     new SettingsItem(DisplayOffBlockKey, "Block network when display is off", "Block selected traffic while the display is off.", false, false),
                     new SettingsItem(LockHostsFileKey, "Lock hosts file", "Protect the hosts file from unwanted changes.", false, false),
                     new SettingsItem(EnablePendingPromptsKey, "Experimental pending connection prompts", "Requires the separately installed driver and an isolated test VM.", false, false),
@@ -139,7 +139,7 @@ internal sealed class SettingsService : ISettingsService
                     new SettingsItem(EnableHostsBlocklistKey, "Hosts blocklist", "Use the hosts blocklist when blocklists are enabled.", false, false),
                     new SettingsItem(EnablePortBlocklistKey, "Malware port blocklist", "Block known unwanted ports when blocklists are enabled.", false, false),
                     new SettingsItem(AllowLocalSubnetKey, "Allow local subnet", "Allow local subnet traffic for the active profile.", false, false)
-                ]),
+                ])),
             new SettingsSection(
                 "Application exceptions",
                 "Application, service, package and global exceptions.",

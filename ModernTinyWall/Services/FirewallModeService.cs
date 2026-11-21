@@ -1,5 +1,6 @@
 using ModernTinyWall.Models;
 using ModernTinyWall.TinyWall;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,14 +9,14 @@ namespace ModernTinyWall.Services;
 
 internal sealed class FirewallModeService : IFirewallModeService
 {
-    private readonly IReadOnlyList<FirewallModeOption> _modeOptions =
+    private readonly IReadOnlyList<FirewallModeOption> _modeOptions = Array.AsReadOnly<FirewallModeOption>(
     [
         new FirewallModeOption(ModernFirewallMode.Normal, "Normal", "Trusted traffic only.\nInbound protection."),
         new FirewallModeOption(ModernFirewallMode.BlockAll, "Block all", "Blocks inbound and outbound traffic."),
         new FirewallModeOption(ModernFirewallMode.AllowOutgoing, "Allow outgoing", "Allows outgoing traffic.\nInbound protection."),
         new FirewallModeOption(ModernFirewallMode.Disabled, "Disable", "Firewall filtering is turned off."),
         new FirewallModeOption(ModernFirewallMode.Learning, "Learning", "Learns allowed traffic.\nUse with care.")
-    ];
+    ]);
 
     private readonly Controller _controller = new("TinyWallController");
     private ModernFirewallMode _currentMode = ModernFirewallMode.Unknown;

@@ -13,7 +13,7 @@ namespace ModernTinyWall.Services;
 
 internal sealed partial class TrayIconService : ITrayIconService
 {
-    private static readonly IReadOnlyList<TrayCommand> Commands =
+    private static readonly IReadOnlyList<TrayCommand> Commands = Array.AsReadOnly<TrayCommand>(
     [
         new TrayCommand("overview", "Overview"),
         new TrayCommand("dataUsage", "Data usage"),
@@ -36,7 +36,7 @@ internal sealed partial class TrayIconService : ITrayIconService
         new TrayCommand("hostsBlocklist", "Enable hosts blocklist"),
         new TrayCommand("whitelistWindow", "Whitelist by window"),
         new TrayCommand("exit", "Exit")
-    ];
+    ]);
 
     private static readonly Dictionary<string, TrayCommand> CommandsById = Commands.ToDictionary(command => command.Id, StringComparer.Ordinal);
 
