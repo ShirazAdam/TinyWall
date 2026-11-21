@@ -5,15 +5,17 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'versioning.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $payload = Join-Path $root "artifacts\publish\TinyWallDual\$Architecture"
 $projectPath = Join-Path $root 'TinyWallSetup\TinyWallSetup.vdproj'
 $project = Get-Content -LiteralPath $projectPath -Raw
 $manifest = Get-Content -LiteralPath (Join-Path $payload 'package-manifest.json') -Raw | ConvertFrom-Json
-if ($manifest.runtime -ne $Architecture -or
-    $project -notmatch ('"ProductVersion" = "8:' + [regex]::Escape($manifest.version) + '"')) {
+$version = Get-ProjectVersion (Join-Path $root 'ModernTinyWall\ModernTinyWall.csproj')
+if ($manifest.runtime -ne $Architecture -or $manifest.version -ne $version) {
     throw "Publish a matching $Architecture application archive before preparing the MSI payload."
 }
+$project = Set-InstallerProductVersion $project $version
 
 function Get-Key([string] $Path) {
     return '_' + [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData(

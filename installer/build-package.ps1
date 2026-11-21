@@ -10,19 +10,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-
-function Get-ProjectVersion([string] $ProjectPath) {
-    if (-not (Test-Path -LiteralPath $ProjectPath -PathType Leaf)) {
-        throw "Project file not found: $ProjectPath"
-    }
-
-    [xml] $project = Get-Content -LiteralPath $ProjectPath -Raw
-    $versions = @($project.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ })
-    if ($versions.Count -ne 1 -or $versions[0] -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
-        throw "$ProjectPath must declare exactly one valid release version."
-    }
-    return [string] $versions[0]
-}
+. (Join-Path $PSScriptRoot 'versioning.ps1')
 
 function Get-FileDigest([string] $Path) {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
@@ -277,27 +265,35 @@ function Assert-InstallerProject([string] $Version) {
         throw 'TinyWallSetup\TinyWallSetup.vdproj must be the sole installer project in the solution.'
     }
     $project = Get-Content -LiteralPath (Join-Path $repositoryRoot 'TinyWallSetup\TinyWallSetup.vdproj') -Raw
-    if ($project -notmatch ('"ProductVersion"\s*=\s*"8:' + [regex]::Escape($Version) + '"')) {
-        throw "The Visual Studio installer project must use release version '$Version'."
-    }
+    [void] (Set-InstallerProductVersion $project $Version)
     if (@(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.iss' -File -Recurse).Count -ne 0) {
         throw 'Only the Visual Studio Installer Projects MSI route is supported.'
     }
 }
 
 function Invoke-SelfTest {
-    $version = Get-ProjectVersion (Join-Path $repositoryRoot 'TinyWall\TinyWall.csproj')
-    if ($version -ne
-        (Get-ProjectVersion (Join-Path $repositoryRoot 'ModernTinyWall\ModernTinyWall.csproj'))) {
-        throw 'TinyWall and Modern TinyWall project versions do not match.'
-    }
+    $version = Get-ProjectVersion (Join-Path $repositoryRoot 'ModernTinyWall\ModernTinyWall.csproj')
+    Assert-ReleaseProjectVersions $repositoryRoot
     Assert-InstallerProject $version
-    try {
-        Assert-InstallerProject "$version-mismatch"
-        throw 'Self-test failed: an out-of-date MSI project was accepted.'
+    Assert-InstallerProject '3.4.5'
+    Assert-MsiProductVersion '255.255.65535'
+    foreach ($invalidVersion in @('1.2.3-preview', '256.0.0', '0.256.0', '0.0.65536', '01.2.3', '1.2.3.4')) {
+        try {
+            Assert-MsiProductVersion $invalidVersion
+            throw "Self-test failed: invalid MSI version '$invalidVersion' was accepted."
+        }
+        catch {
+            if ($_.Exception.Message -notlike 'MSI ProductVersion *') { throw }
+        }
     }
-    catch {
-        if ($_.Exception.Message -notlike 'The Visual Studio installer project must use release version*') { throw }
+    foreach ($invalidProject in @('No ProductVersion', "`"ProductVersion`" = `"8:1.2.3`"`n`"ProductVersion`" = `"8:1.2.3`"")) {
+        try {
+            [void] (Set-InstallerProductVersion $invalidProject '3.4.5')
+            throw 'Self-test failed: a missing or duplicate MSI ProductVersion was accepted.'
+        }
+        catch {
+            if ($_.Exception.Message -ne 'The Visual Studio installer project must declare exactly one ProductVersion.') { throw }
+        }
     }
 
     $testRoot = Join-Path $PSScriptRoot ('.packaging-selftest-' + [Guid]::NewGuid().ToString('N'))
@@ -320,11 +316,47 @@ function Invoke-SelfTest {
         finally {
             Remove-Item -LiteralPath $unsupportedInstaller
         }
-        foreach ($name in @('TinyWall.exe', 'TinyWall.deps.json', 'shared.dll')) {
-            Set-Content -LiteralPath (Join-Path $legacy $name) -Value 'same'
+        foreach ($fixture in @(
+            @{ path = $legacy; application = 'TinyWall'; version = '1.2.3' },
+            @{ path = $modern; application = 'ModernTinyWall'; version = '3.4.5' }
+        )) {
+            foreach ($name in @("$($fixture.application).dll", 'hostfxr.dll', 'hostpolicy.dll', 'coreclr.dll', 'shared.dll')) {
+                Set-Content -LiteralPath (Join-Path $fixture.path $name) -Value 'same'
+            }
+            $binary = [byte[]]::new(256)
+            [BitConverter]::GetBytes([int] 0x80).CopyTo($binary, 0x3c)
+            [BitConverter]::GetBytes([uint16] 0x8664).CopyTo($binary, 0x84)
+            [IO.File]::WriteAllBytes((Join-Path $fixture.path "$($fixture.application).exe"), $binary)
+            $libraries = @{}
+            $libraries["$($fixture.application)/$($fixture.version)"] = @{}
+            @{ runtimeTarget = @{ name = '.NETCoreApp,Version=v10.0/win-x64' }; libraries = $libraries } |
+                ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $fixture.path "$($fixture.application).deps.json")
+            '{"runtimeOptions":{"includedFrameworks":[{"name":"Microsoft.NETCore.App","version":"10.0.0"}]}}' |
+                Set-Content -LiteralPath (Join-Path $fixture.path "$($fixture.application).runtimeconfig.json")
         }
-        foreach ($name in @('ModernTinyWall.exe', 'ModernTinyWall.deps.json', 'shared.dll')) {
-            Set-Content -LiteralPath (Join-Path $modern $name) -Value 'same'
+        foreach ($name in @('Microsoft.ui.xaml.dll', 'Microsoft.WindowsAppRuntime.dll', 'ModernTinyWall.pri',
+            'App.xbf', 'MainWindow.xbf', 'Views\OverviewPage.xbf', 'Assets\firewall.ico',
+            'Assets\ModernTinyWall.ico', 'Assets\ModernTinyWall-allow-outgoing.ico',
+            'Assets\ModernTinyWall-block-all.ico', 'Assets\ModernTinyWall-learning.ico',
+            'Assets\ModernTinyWall-disabled.ico', 'Assets\ModernTinyWall.png',
+            'Assets\ModernTinyWall-allow-outgoing.png', 'Assets\ModernTinyWall-block-all.png',
+            'Assets\ModernTinyWall-learning.png', 'Assets\ModernTinyWall-disabled.png')) {
+            $path = Join-Path $modern $name
+            New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+            Set-Content -LiteralPath $path -Value 'fixture'
+        }
+        foreach ($fixture in @(
+            @{ path = $legacy; application = 'TinyWall'; version = '1.2.3' },
+            @{ path = $modern; application = 'ModernTinyWall'; version = '3.4.5' }
+        )) {
+            Assert-PublishRuntime $fixture.path $fixture.application 'win-x64' $fixture.version
+            try {
+                Assert-PublishRuntime $fixture.path $fixture.application 'win-x64' '9.9.9'
+                throw 'Self-test failed: an incorrect application version was accepted.'
+            }
+            catch {
+                if ($_.Exception.Message -ne "$($fixture.application) dependency manifest has the wrong runtime or project version.") { throw }
+            }
         }
 
         Assert-CompatibleOutputs $legacy $modern
@@ -348,14 +380,72 @@ function Invoke-SelfTest {
         [Text.Encoding]::ASCII.GetBytes('TWCA').CopyTo($header, 68)
         $header[63] = 1
         [IO.File]::WriteAllBytes($seed, $header)
-        Write-PackageManifest $combined '1.2.3' 'win-x64' 1
+        Write-PackageManifest $combined '3.4.5' 'win-x64' 1
+
+        $fixtureRoot = Join-Path $testRoot 'fixture'
+        $fixtureInstaller = Join-Path $fixtureRoot 'installer'
+        $fixtureSetup = Join-Path $fixtureRoot 'TinyWallSetup'
+        $fixtureModern = Join-Path $fixtureRoot 'ModernTinyWall'
+        $fixtureLegacy = Join-Path $fixtureRoot 'TinyWall'
+        $fixturePayloadParent = Join-Path $fixtureRoot 'artifacts\publish\TinyWallDual'
+        foreach ($path in @($fixtureInstaller, $fixtureSetup, $fixtureModern, $fixtureLegacy, $fixturePayloadParent)) {
+            New-Item -ItemType Directory -Path $path -Force | Out-Null
+        }
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'versioning.ps1') -Destination $fixtureInstaller
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'update-msi-payload.ps1') -Destination $fixtureInstaller
+        $setupProject = Join-Path $fixtureSetup 'TinyWallSetup.vdproj'
+        Copy-Item -LiteralPath (Join-Path $repositoryRoot 'TinyWallSetup\TinyWallSetup.vdproj') -Destination $setupProject
+        Copy-Item -LiteralPath $combined -Destination (Join-Path $fixturePayloadParent 'win-x64') -Recurse
+        '<Project><PropertyGroup><Version>3.4.5</Version></PropertyGroup></Project>' |
+            Set-Content -LiteralPath (Join-Path $fixtureModern 'ModernTinyWall.csproj')
+        $legacyFixtureProject = Join-Path $fixtureLegacy 'TinyWall.csproj'
+        '<Project><PropertyGroup><Version>1.2.3</Version></PropertyGroup></Project>' |
+            Set-Content -LiteralPath $legacyFixtureProject
+        '<Project><PropertyGroup><IsPackable>false</IsPackable></PropertyGroup></Project>' |
+            Set-Content -LiteralPath (Join-Path $fixtureRoot 'Tests.csproj')
+        Assert-ReleaseProjectVersions $fixtureRoot
+        foreach ($invalidProject in @(
+            '<Project><PropertyGroup><Version>invalid</Version></PropertyGroup></Project>',
+            '<Project><PropertyGroup><Version>1.2.3</Version><Version>1.2.3</Version></PropertyGroup></Project>',
+            '<Project><PropertyGroup><Version>1.2.3</Version><Version /></PropertyGroup></Project>',
+            '<Project><PropertyGroup /></Project>'
+        )) {
+            $invalidProject | Set-Content -LiteralPath $legacyFixtureProject
+            try {
+                Assert-ReleaseProjectVersions $fixtureRoot
+                throw 'Self-test failed: an invalid project version was accepted.'
+            }
+            catch {
+                if ($_.Exception.Message -notlike '*must declare exactly one valid release version.') { throw }
+            }
+        }
+
+        $originalSetup = Get-Content -LiteralPath $setupProject -Raw
+        & (Join-Path $fixtureInstaller 'update-msi-payload.ps1') -Architecture win-x64
+        $generatedSetup = Get-Content -LiteralPath (Join-Path $fixtureRoot 'artifacts\installer\win-x64\TinyWallSetup.vdproj') -Raw
+        if ($generatedSetup -notmatch '"ProductVersion" = "8:3\.4\.5"' -or
+            (Get-Content -LiteralPath $setupProject -Raw) -ne $originalSetup) {
+            throw 'Self-test failed: MSI preparation did not stamp the release version into an isolated project.'
+        }
+        $fixtureManifestPath = Join-Path $fixturePayloadParent 'win-x64\package-manifest.json'
+        $fixtureManifest = Get-Content -LiteralPath $fixtureManifestPath -Raw | ConvertFrom-Json
+        $fixtureManifest.version = '3.4.4'
+        $fixtureManifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $fixtureManifestPath
+        try {
+            & (Join-Path $fixtureInstaller 'update-msi-payload.ps1') -Architecture win-x64
+            throw 'Self-test failed: a stale MSI payload version was accepted.'
+        }
+        catch {
+            if ($_.Exception.Message -notlike 'Publish a matching * application archive*') { throw }
+        }
+
         $testArchive = Join-Path $testRoot 'fixture.zip'
         Compress-Archive -Path (Join-Path $combined '*') -DestinationPath $testArchive
-        Test-PackageArchive $testArchive '1.2.3' 'win-x64'
+        Test-PackageArchive $testArchive '3.4.5' 'win-x64'
         Set-Content -LiteralPath (Join-Path $combined 'shared.dll') -Value 'tampered'
         Compress-Archive -Path (Join-Path $combined '*') -DestinationPath $testArchive -Force
         try {
-            Test-PackageArchive $testArchive '1.2.3' 'win-x64'
+            Test-PackageArchive $testArchive '3.4.5' 'win-x64'
             throw 'Self-test failed: archive corruption was accepted.'
         }
         catch {
@@ -385,7 +475,7 @@ function Invoke-SelfTest {
             Remove-Item -LiteralPath $testRoot -Recurse -Force
         }
     }
-    Write-Output 'Packaging self-test passed: MSI project/version, input completeness, shared-file collisions, and archive hashes.'
+    Write-Output 'Packaging self-test passed: independent project versions, MSI generation, input completeness, shared-file collisions, and archive hashes.'
 }
 
 if ($SelfTest) {
@@ -395,11 +485,8 @@ if ($SelfTest) {
 
 $legacyProject = Join-Path $repositoryRoot 'TinyWall\TinyWall.csproj'
 $modernProject = Join-Path $repositoryRoot 'ModernTinyWall\ModernTinyWall.csproj'
-$version = Get-ProjectVersion $legacyProject
-$modernVersion = Get-ProjectVersion $modernProject
-if ($version -ne $modernVersion) {
-    throw "TinyWall project version '$version' does not match Modern TinyWall project version '$modernVersion'."
-}
+$legacyVersion = Get-ProjectVersion $legacyProject
+$version = Get-ProjectVersion $modernProject
 Assert-InstallerProject $version
 
 $architectures = if ($Architecture -eq 'All') { @('win-x86', 'win-x64', 'win-arm64') } else { @($Architecture) }
@@ -453,12 +540,14 @@ foreach ($rid in $architectures) {
             throw "Publishing TinyWall for $rid with MSBuild failed."
         }
 
+        $dependencyInjectionVersion = Get-LegacyPackageVersion $legacyPath 'Microsoft.Extensions.DependencyInjection'
         $codeDomVersion = Get-LegacyPackageVersion $legacyPath 'System.CodeDom'
         $immutableVersion = Get-LegacyPackageVersion $legacyPath 'System.Collections.Immutable'
         $metadataVersion = Get-LegacyPackageVersion $legacyPath 'System.Reflection.Metadata'
         & dotnet publish $modernProject --configuration Release --runtime $rid --self-contained true `
             -p:WindowsAppSDKSelfContained=true --output $modernPath --artifacts-path $buildRoot `
             "-p:DirectoryBuildTargetsPath=$(Join-Path $PSScriptRoot 'Packaging.Dependencies.targets')" `
+            "-p:PackagingDependencyInjectionVersion=$dependencyInjectionVersion" `
             "-p:PackagingCodeDomVersion=$codeDomVersion" "-p:PackagingImmutableVersion=$immutableVersion" `
             "-p:PackagingMetadataVersion=$metadataVersion" --verbosity minimal
         if ($LASTEXITCODE -ne 0) {
@@ -468,14 +557,14 @@ foreach ($rid in $architectures) {
 
     if ($ValidateOnly) {
         Assert-CompatibleOutputs $legacyPath $modernPath
-        Assert-PublishRuntime $legacyPath 'TinyWall' $rid $version
+        Assert-PublishRuntime $legacyPath 'TinyWall' $rid $legacyVersion
         Assert-PublishRuntime $modernPath 'ModernTinyWall' $rid $version
         Assert-CatalogueSeed (Join-Path $combinedPath 'catalogue\profiles.db')
         Write-Output "Validated $rid inputs, compatible shared files, and staged SQLite catalogue seed."
         continue
     }
 
-    Assert-PublishRuntime $legacyPath 'TinyWall' $rid $version
+    Assert-PublishRuntime $legacyPath 'TinyWall' $rid $legacyVersion
     Assert-PublishRuntime $modernPath 'ModernTinyWall' $rid $version
     Join-PublishOutputs $legacyPath $modernPath $combinedPath
     if (-not $catalogueReady) {
@@ -533,5 +622,5 @@ foreach ($rid in $architectures) {
 }
 
 if (-not $ValidateOnly -and -not $VerifyArchive) {
-    Write-Output 'Archives are staging outputs, not installers. Build TinyWallSetup\TinyWallSetup.vdproj in Visual Studio to create the MSI.'
+    Write-Output 'Archives are staging outputs, not installers. Run installer\build-msi.ps1 to create the MSI.'
 }
