@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Modern TinyWall is version **4.7.18**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
+Modern TinyWall is version **4.7.19**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -35,6 +35,7 @@ Modern TinyWall is version **4.7.18**; legacy TinyWall and the repository's shar
 - **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
 - **Adjustable tables:** headers remain visible while scrolling, column edges can be dragged to resize, and heading clicks switch between ascending and descending ordering. Each table remembers its widths and sort choice on this PC; new tables default to the first name column, ascending.
 - **Task Manager-style grouping:** rows for the same application are grouped under one row showing a total count, such as `chrome.exe (12)`, with an arrow to expand or collapse the group.
+- **File information:** right-click an application row or group and choose **Additional information** to inspect its file path, publisher metadata, embedded signature status, versions, size and timestamps.
 - **Remembered window size:** resizing and maximising are remembered between launches; **Options → Reset window size** restores the default.
 - **More useful reviews:** inspect connection details, filter exceptions by type, policy or age, and export the filtered Data usage table to CSV in its visible order.
 - **Configurable Overview and guidance:** choose which summary cards and traffic series to show, or open **Troubleshoot** for diagnostic guidance that does not change firewall settings.
@@ -81,6 +82,8 @@ The Connections view keeps headers and results aligned, with horizontal scrollin
 The Connections, Data usage, Activity history, Processes, Services, Packages and Exceptions tables share fixed headers and resizable columns. Click any heading to sort by that column; click it again to reverse the direction. Drag the right edge of a heading to resize it, or focus its resize handle and use the left/right arrow keys. Numeric ports and byte totals sort numerically, and date columns sort chronologically. Widths and sorting are saved per table in the local Modern TinyWall options file and restored after navigation or restart. Data usage CSV exports use the visible table order.
 
 The Processes, Connections, Activity history, Data usage and Exceptions tables group rows that share the same name in the first column, similar to Windows Task Manager. A group row shows the name followed by the number of rows in brackets, plus any values its rows share; select the arrow, double-click the group, or press Right/Left (or Enter/Space) to expand or collapse it. Single rows reserve space for the arrow so their names and icons align with group rows. Expanded rows are indented beneath their group, groups follow the current sort order, names that appear only once stay as ordinary rows, and expanded groups are remembered while the app is open.
+
+Every application table offers **Additional information** in its right-click menu, preserving existing actions. Its read-only modal dialogue loads file details off the UI thread and allows text selection. Groups containing different executable paths offer a file selector rather than attributing one file's publisher or signature to the whole group. Missing or inaccessible files are reported explicitly. Package rows show package metadata, and sampled history explains that it does not retain executable paths; neither guesses an executable from a name. Publisher metadata is not verified identity, embedded signature verification uses cached revocation data, and catalogue-only signatures are not checked. Details describe the current file on disk, not necessarily a running process's loaded image.
 
 The **Activity history** view is available only in Modern TinyWall. History collection is opt-in under **Options** and stores application names, local/remote addresses, ports, protocol, state and first/last observation times in a local SQLite database under `%LocalAppData%\ModernTinyWall\connection-history.db`. The window must be visible for sampling; collection pauses while minimised or hidden and stops when the application exits. Retention is configurable for 7, 30 or 90 days, with a 5,000-entry cap. **Clear history** removes the local records. This is a sampled observation history, not a complete packet or firewall audit log; blocked entries are limited to what the service's recent connection log exposes.
 

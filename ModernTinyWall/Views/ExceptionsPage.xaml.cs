@@ -41,6 +41,11 @@ public sealed partial class ExceptionsPage : Page
             TableColumn.Text<ExceptionRowViewModel>("review", "Review guidance", 280, row => row.ReviewFinding),
             TableColumn.Text<ExceptionRowViewModel>("tags", "Tags", 180, row => row.Tags));
         ExceptionsList.EnableGrouping(item => (item as ExceptionRowViewModel)?.IconPath);
+        ExceptionsList.EnableFileInformation(item =>
+        {
+            var row = (ExceptionRowViewModel)item;
+            return new ApplicationFileTarget(row.Name, row.IconPath, $"Rule type: {row.SubjectType}\n{row.Details}");
+        });
         Loaded += ExceptionsPage_Loaded;
     }
 

@@ -31,6 +31,13 @@ public sealed partial class ProcessesPage : Page
             TableColumn.Text<ProcessRowViewModel>("services", "Services", 240, row => row.Services),
             TableColumn.Text<ProcessRowViewModel>("path", "Path", 440, row => row.Path));
         ProcessesTable.EnableGrouping(item => (item as ProcessRowViewModel)?.Path, TableGrouping.WithoutProcessId);
+        ProcessesTable.EnableFileInformation(item =>
+        {
+            var row = (ProcessRowViewModel)item;
+            return row.Services == "UWP package"
+                ? new ApplicationFileTarget(row.ProcessName, "", $"Package metadata: {row.Path}\nThis package row does not identify a single executable.")
+                : new ApplicationFileTarget(row.ProcessName, row.Path);
+        });
         Loaded += ProcessesPage_Loaded;
     }
 

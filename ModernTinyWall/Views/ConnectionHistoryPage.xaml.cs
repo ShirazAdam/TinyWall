@@ -30,6 +30,11 @@ public sealed partial class ConnectionHistoryPage : Page
             TableColumn.Value<ConnectionHistoryEntry, DateTimeOffset>("firstSeen", "First seen", 160, row => row.FirstSeen),
             TableColumn.Value<ConnectionHistoryEntry, DateTimeOffset>("lastSeen", "Last seen", 160, row => row.LastSeen));
         HistoryList.EnableGrouping(groupName: TableGrouping.WithoutProcessId);
+        HistoryList.EnableFileInformation(item =>
+        {
+            var row = (ConnectionHistoryEntry)item;
+            return new ApplicationFileTarget(row.Application, "", "Sampled history does not retain an executable path. Current file information cannot be inferred from the application name.");
+        });
         Loaded += Page_Loaded;
         Unloaded += Page_Unloaded;
         _searchTimer.Tick += SearchTimer_Tick;

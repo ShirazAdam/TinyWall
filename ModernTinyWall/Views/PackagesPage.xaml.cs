@@ -31,6 +31,11 @@ public sealed partial class PackagesPage : Page
             TableColumn.Text<PackageRowViewModel>("publisher", "Publisher", 360, row => row.PublisherDisplay),
             TableColumn.Text<PackageRowViewModel>("sid", "SID", 300, row => row.Sid),
             TableColumn.Text<PackageRowViewModel>("tampered", "Tampered", 110, row => row.Tampered));
+        PackagesTable.EnableFileInformation(item =>
+        {
+            var row = (PackageRowViewModel)item;
+            return new ApplicationFileTarget(row.Name, "", $"Package publisher: {row.PublisherDisplay}\nPackage family: {row.PackageFamilyName}\nSID: {row.Sid}\nTampered: {row.Tampered}\nThis package row does not identify a single executable.");
+        });
         Loaded += PackagesPage_Loaded;
     }
 

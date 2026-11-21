@@ -36,6 +36,8 @@ public sealed class TableView : Grid
         "RowItem", typeof(object), typeof(TableView), new PropertyMetadata(null));
     private static readonly DependencyProperty BasePaddingProperty = DependencyProperty.RegisterAttached(
         "BasePadding", typeof(object), typeof(TableView), new PropertyMetadata(null));
+    private static readonly DependencyProperty InformationMenuProperty = DependencyProperty.RegisterAttached(
+        "InformationMenu", typeof(MenuFlyoutItem), typeof(TableView), new PropertyMetadata(null));
     private static readonly Dictionary<string, HashSet<string>> ExpandedGroups = new();
 
     private readonly IOptionsService _options = new OptionsService();
@@ -63,6 +65,8 @@ public sealed class TableView : Grid
     private bool _refreshQueued;
     private int _interactionRevision;
     private ScrollViewer? _listScroller;
+    private Func<object, ApplicationFileTarget>? _fileTarget;
+    private bool _informationOpen;
 
     public object? ItemsSource
     {
@@ -127,6 +131,7 @@ public sealed class TableView : Grid
         _list.ItemContainerStyle = style;
         _list.ItemTemplateSelector = _templates;
         _list.ContainerContentChanging += List_ContainerContentChanging;
+        _list.RightTapped += List_RightTapped;
         _list.KeyDown += List_KeyDown;
         _list.SelectionChanged += (_, args) => SelectionChanged?.Invoke(this, args);
         _saveTimer.Tick += SaveTimer_Tick;
@@ -143,6 +148,67 @@ public sealed class TableView : Grid
         _sortKey = columns[0].Key;
         BuildHeader();
         RefreshItems();
+    }
+
+    internal void EnableFileInformation(Func<object, ApplicationFileTarget> target)
+    {
+        _fileTarget = target;
+        foreach (var row in _rows)
+            AddInformationMenu(row);
+    }
+
+    private void List_RightTapped(object sender, RightTappedRoutedEventArgs args)
+    {
+        if (_fileTarget is null)
+            return;
+        for (var element = args.OriginalSource as DependencyObject; element is not null && element != _list;
+            element = VisualTreeHelper.GetParent(element))
+        {
+            if (element is ListViewItem { ContentTemplateRoot: Grid row })
+            {
+                AddInformationMenu(row);
+                row.ContextFlyout?.ShowAt(row);
+                args.Handled = true;
+                return;
+            }
+        }
+    }
+
+    private void AddInformationMenu(Grid row)
+    {
+        if (_fileTarget is null || row.GetValue(InformationMenuProperty) is MenuFlyoutItem)
+            return;
+        var menu = row.ContextFlyout as MenuFlyout ?? new MenuFlyout();
+        var entry = new MenuFlyoutItem { Text = "Additional information" };
+        entry.Click += async (_, _) =>
+        {
+            if (_informationOpen || _fileTarget is null)
+                return;
+            var item = row.GetValue(RowItemProperty) ?? row.DataContext;
+            if (item is null)
+                return;
+            _informationOpen = true;
+            try
+            {
+                var targets = item is TableGroup group
+                    ? group.Items.Select(_fileTarget).ToArray()
+                    : new[] { _fileTarget(item) };
+                await ApplicationFileDialogue.ShowAsync(XamlRoot, targets);
+            }
+            catch (Exception ex)
+            {
+                _status.Title = "Additional information";
+                _status.Message = $"Could not show file information: {ex.Message}";
+                _status.Severity = InfoBarSeverity.Error;
+                _status.IsOpen = true;
+            }
+            finally { _informationOpen = false; }
+        };
+        if (menu.Items.Count > 0)
+            menu.Items.Insert(0, new MenuFlyoutSeparator());
+        menu.Items.Insert(0, entry);
+        row.ContextFlyout = menu;
+        row.SetValue(InformationMenuProperty, entry);
     }
 
     // Groups rows with the same first-column name, like Task Manager's process groups.
@@ -209,6 +275,8 @@ public sealed class TableView : Grid
         row.SetValue(RowItemProperty, args.Item);
         if (args.Item is TableGroup group)
             PopulateGroupRow(row, group);
+        AddInformationMenu(row);
+        args.ItemContainer.ContextFlyout = row.ContextFlyout;
         if (row.GetValue(OwnerProperty) is TableView)
             ApplyRowWidths(row);
     }
@@ -428,6 +496,16 @@ public sealed class TableView : Grid
                 row.SetValue(OwnerProperty, table);
                 table._rows.Add(row);
                 table.ApplyRowWidths(row);
+                table.AddInformationMenu(row);
+                for (var container = VisualTreeHelper.GetParent(row); container is not null && container != table._list;
+                    container = VisualTreeHelper.GetParent(container))
+                {
+                    if (container is ListViewItem item)
+                    {
+                        item.ContextFlyout = row.ContextFlyout;
+                        break;
+                    }
+                }
                 return;
             }
         }
