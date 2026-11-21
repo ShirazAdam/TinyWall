@@ -29,6 +29,7 @@ public sealed partial class ConnectionHistoryPage : Page
             TableColumn.Text<ConnectionHistoryEntry>("state", "State", 120, row => row.State),
             TableColumn.Value<ConnectionHistoryEntry, DateTimeOffset>("firstSeen", "First seen", 160, row => row.FirstSeen),
             TableColumn.Value<ConnectionHistoryEntry, DateTimeOffset>("lastSeen", "Last seen", 160, row => row.LastSeen));
+        HistoryList.EnableGrouping(groupName: TableGrouping.WithoutProcessId);
         Loaded += Page_Loaded;
         Unloaded += Page_Unloaded;
         _searchTimer.Tick += SearchTimer_Tick;

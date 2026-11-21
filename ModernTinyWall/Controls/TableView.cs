@@ -22,7 +22,7 @@ public sealed class TableView : Grid
         nameof(ItemsSource), typeof(object), typeof(TableView), new PropertyMetadata(null, OnItemsSourceChanged));
     public static readonly DependencyProperty ItemTemplateProperty = DependencyProperty.Register(
         nameof(ItemTemplate), typeof(DataTemplate), typeof(TableView),
-        new PropertyMetadata(null, (sender, args) => ((TableView)sender)._list.ItemTemplate = (DataTemplate?)args.NewValue));
+        new PropertyMetadata(null, (sender, args) => ((TableView)sender)._templates.Item = (DataTemplate?)args.NewValue));
     public static readonly DependencyProperty SelectionModeProperty = DependencyProperty.Register(
         nameof(SelectionMode), typeof(ListViewSelectionMode), typeof(TableView),
         new PropertyMetadata(ListViewSelectionMode.Single,
@@ -31,6 +31,12 @@ public sealed class TableView : Grid
         "IsRow", typeof(bool), typeof(TableView), new PropertyMetadata(false, OnIsRowChanged));
     private static readonly DependencyProperty OwnerProperty = DependencyProperty.RegisterAttached(
         "Owner", typeof(TableView), typeof(TableView), new PropertyMetadata(null));
+    private static readonly DependencyProperty RowItemProperty = DependencyProperty.RegisterAttached(
+        "RowItem", typeof(object), typeof(TableView), new PropertyMetadata(null));
+    private static readonly DependencyProperty BasePaddingProperty = DependencyProperty.RegisterAttached(
+        "BasePadding", typeof(object), typeof(TableView), new PropertyMetadata(null));
+    private const double GroupIndent = 28;
+    private static readonly Dictionary<string, HashSet<string>> ExpandedGroups = new();
 
     private readonly IOptionsService _options = new OptionsService();
     private readonly ListView _list = new() { HorizontalContentAlignment = HorizontalAlignment.Stretch };
@@ -42,6 +48,14 @@ public sealed class TableView : Grid
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private IReadOnlyList<TableColumn> _columns = [];
     private IReadOnlyList<object> _orderedItems = [];
+    private IReadOnlyList<object> _displayedItems = [];
+    private readonly TableTemplateSelector _templates = new();
+    private readonly Dictionary<string, TableGroup> _groups = new();
+    private readonly HashSet<object> _groupedItems = new(ReferenceEqualityComparer.Instance);
+    private HashSet<string> _expandedKeys = new();
+    private bool _groupingEnabled;
+    private Func<object, string?>? _groupIconPath;
+    private Func<string, string>? _groupName;
     private INotifyCollectionChanged? _observedSource;
     private string _tableId = string.Empty;
     private string _sortKey = string.Empty;
@@ -111,6 +125,9 @@ public sealed class TableView : Grid
         style.Setters.Add(new Setter(ListViewItem.PaddingProperty, new Thickness(0)));
         style.Setters.Add(new Setter(ListViewItem.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
         _list.ItemContainerStyle = style;
+        _list.ItemTemplateSelector = _templates;
+        _list.ContainerContentChanging += List_ContainerContentChanging;
+        _list.KeyDown += List_KeyDown;
         _list.SelectionChanged += (_, args) => SelectionChanged?.Invoke(this, args);
         _saveTimer.Tick += SaveTimer_Tick;
         Loaded += Table_Loaded;
@@ -126,6 +143,146 @@ public sealed class TableView : Grid
         _sortKey = columns[0].Key;
         BuildHeader();
         RefreshItems();
+    }
+
+    // Groups rows with the same first-column name, like Task Manager's process groups.
+    internal void EnableGrouping(Func<object, string?>? iconPath = null, Func<string, string>? groupName = null)
+    {
+        if (_columns.Count == 0 || _columns[0].Display is null)
+            throw new InvalidOperationException("Configure the table with a text first column before enabling grouping.");
+        _groupingEnabled = true;
+        _groupIconPath = iconPath;
+        _groupName = groupName;
+        if (!ExpandedGroups.TryGetValue(_tableId, out var expanded))
+            ExpandedGroups[_tableId] = expanded = new HashSet<string>();
+        _expandedKeys = expanded;
+        RefreshItems(force: true);
+    }
+
+    private void SetGroupExpanded(TableGroup group, bool expanded)
+    {
+        if (group.IsExpanded == expanded)
+            return;
+        if (expanded)
+            _expandedKeys.Add(group.Key);
+        else
+            _expandedKeys.Remove(group.Key);
+        RefreshItems(force: true);
+        if (SelectionMode == ListViewSelectionMode.Single)
+            _list.SelectedItem = group;
+    }
+
+    private TableGroup? GroupOf(object item) =>
+        _groupedItems.Contains(item) ? _groups.Values.FirstOrDefault(group => group.Items.Contains(item)) : null;
+
+    private void List_KeyDown(object sender, KeyRoutedEventArgs args)
+    {
+        if (!_groupingEnabled || args.OriginalSource is not ListViewItem { Content: { } item })
+            return;
+        if (item is TableGroup group && args.Key is VirtualKey.Right or VirtualKey.Left or VirtualKey.Enter or VirtualKey.Space)
+        {
+            if (args.Key == VirtualKey.Right && group.IsExpanded && group.Items.Count > 0)
+                _list.SelectedItem = group.Items[0];
+            else
+                SetGroupExpanded(group, args.Key switch
+                {
+                    VirtualKey.Right => true,
+                    VirtualKey.Left => false,
+                    _ => !group.IsExpanded
+                });
+            args.Handled = true;
+        }
+        else if (item is not TableGroup && args.Key == VirtualKey.Left && GroupOf(item) is { } parent)
+        {
+            SetGroupExpanded(parent, false);
+            (_list.ContainerFromItem(parent) as Control)?.Focus(FocusState.Keyboard);
+            args.Handled = true;
+        }
+    }
+
+    private void List_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    {
+        if (args.InRecycleQueue || args.ItemContainer.ContentTemplateRoot is not Grid row)
+            return;
+        row.SetValue(RowItemProperty, args.Item);
+        if (args.Item is TableGroup group)
+            PopulateGroupRow(row, group);
+        if (row.GetValue(OwnerProperty) is TableView)
+            ApplyRowWidths(row);
+    }
+
+    private void PopulateGroupRow(Grid row, TableGroup group)
+    {
+        if (!GetIsRow(row))
+        {
+            row.DoubleTapped += (_, args) =>
+            {
+                if (row.GetValue(RowItemProperty) is TableGroup tapped)
+                {
+                    SetGroupExpanded(tapped, !tapped.IsExpanded);
+                    args.Handled = true;
+                }
+            };
+            SetIsRow(row, true);
+            if (row.IsLoaded)
+                Row_Loaded(row, new RoutedEventArgs());
+        }
+        row.Children.Clear();
+        while (row.ColumnDefinitions.Count < _columns.Count)
+            row.ColumnDefinitions.Add(new ColumnDefinition());
+        while (row.ColumnDefinitions.Count > _columns.Count)
+            row.ColumnDefinitions.RemoveAt(row.ColumnDefinitions.Count - 1);
+        AutomationProperties.SetName(row, group.ToString());
+
+        var name = new Grid { ColumnSpacing = 6 };
+        name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        name.ColumnDefinitions.Add(new ColumnDefinition());
+        var toggle = new Button
+        {
+            Width = 20,
+            Height = 20,
+            Padding = new Thickness(0),
+            VerticalAlignment = VerticalAlignment.Center,
+            BorderThickness = new Thickness(0),
+            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            IsTabStop = false,
+            Content = new FontIcon { Glyph = group.IsExpanded ? "\uE70D" : "\uE76C", FontSize = 10 }
+        };
+        AutomationProperties.SetName(toggle, $"{(group.IsExpanded ? "Collapse" : "Expand")} {group.Name}");
+        ToolTipService.SetToolTip(toggle, group.IsExpanded ? "Collapse group" : "Expand group");
+        toggle.Click += (_, _) => SetGroupExpanded(group, !group.IsExpanded);
+        name.Children.Add(toggle);
+        if (group.IconPath is { } iconPath)
+        {
+            var icon = new ApplicationIcon { SourcePath = iconPath };
+            SetColumn(icon, 1);
+            name.Children.Add(icon);
+        }
+        var label = new TextBlock
+        {
+            Text = group.Label,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ToolTipService.SetToolTip(label, group.Label);
+        SetColumn(label, 2);
+        name.Children.Add(label);
+        row.Children.Add(name);
+
+        for (var index = 1; index < _columns.Count; index++)
+        {
+            var cell = new TextBlock
+            {
+                Text = index < group.Cells.Count ? group.Cells[index] : string.Empty,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            };
+            SetColumn(cell, index);
+            row.Children.Add(cell);
+        }
     }
 
     private void BuildHeader()
@@ -216,10 +373,18 @@ public sealed class TableView : Grid
         if (row.ColumnDefinitions.Count != _columns.Count)
             throw new InvalidOperationException($"The row template for table '{_tableId}' does not match its columns.");
         row.MinWidth = 0;
+        var item = row.GetValue(RowItemProperty) ?? row.DataContext;
+        if (row.GetValue(BasePaddingProperty) is not Thickness basePadding)
+        {
+            basePadding = row.Padding;
+            row.SetValue(BasePaddingProperty, basePadding);
+        }
+        var indent = item is not null and not TableGroup && _groupedItems.Contains(item) ? GroupIndent : 0;
+        row.Padding = new Thickness(basePadding.Left + indent, basePadding.Top, basePadding.Right, basePadding.Bottom);
         for (var index = 0; index < _columns.Count; index++)
         {
             row.ColumnDefinitions[index].MinWidth = 0;
-            row.ColumnDefinitions[index].Width = new GridLength(_columns[index].Width);
+            row.ColumnDefinitions[index].Width = new GridLength(Math.Max(0, _columns[index].Width - (index == 0 ? indent : 0)));
         }
     }
 
@@ -294,24 +459,28 @@ public sealed class TableView : Grid
         });
     }
 
-    private void RefreshItems(bool resetScroll = false)
+    private void RefreshItems(bool resetScroll = false, bool force = false)
     {
         if (_columns.Count == 0)
             return;
         var source = ItemsSource is IEnumerable enumerable ? enumerable.Cast<object>() : [];
         var sort = _columns.FirstOrDefault(column => column.Key == _sortKey) ?? _columns[0];
         var sorted = TableOrdering.Sort(source, sort, _columns[0], _descending);
-        if (!resetScroll && sorted.SequenceEqual(_orderedItems))
+        if (!resetScroll && !force && sorted.SequenceEqual(_orderedItems))
             return;
         var selected = _list.SelectedItems.ToArray();
         var offset = resetScroll ? 0 : _listScroller?.VerticalOffset ?? 0;
         _orderedItems = sorted;
-        _list.ItemsSource = sorted;
+        var displayed = _groupingEnabled
+            ? TableGrouping.Build(sorted, _columns, _groupIconPath, _expandedKeys, _groups, _groupedItems, _groupName)
+            : sorted;
+        _displayedItems = displayed;
+        _list.ItemsSource = displayed;
         if (SelectionMode == ListViewSelectionMode.Single)
-            _list.SelectedItem = selected.FirstOrDefault(item => sorted.Contains(item));
+            _list.SelectedItem = selected.FirstOrDefault(item => displayed.Contains(item));
         else if (SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
             foreach (var item in selected)
-                if (sorted.Contains(item) && !_list.SelectedItems.Contains(item))
+                if (displayed.Contains(item) && !_list.SelectedItems.Contains(item))
                     _list.SelectedItems.Add(item);
         DispatcherQueue.TryEnqueue(() => _listScroller?.ChangeView(null, offset, null, true));
     }
@@ -409,6 +578,19 @@ public sealed class TableView : Grid
                 return found;
         }
         return null;
+    }
+
+    private sealed partial class TableTemplateSelector : DataTemplateSelector
+    {
+        private static readonly DataTemplate GroupTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
+            "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">"
+            + "<Grid Padding=\"8\" ColumnSpacing=\"12\" Background=\"Transparent\" /></DataTemplate>");
+
+        public DataTemplate? Item { get; set; }
+
+        protected override DataTemplate? SelectTemplateCore(object item) => item is TableGroup ? GroupTemplate : Item;
+
+        protected override DataTemplate? SelectTemplateCore(object item, DependencyObject container) => SelectTemplateCore(item);
     }
 
     private sealed class ColumnResizeGrip : Grid

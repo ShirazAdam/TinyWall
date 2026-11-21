@@ -90,5 +90,55 @@ public sealed class TableTests
         Assert.AreEqual(240, saved.GetWidth("newColumn", 240));
     }
 
+    [TestMethod]
+    public void RowsWithTheSameNameAreGroupedWithCountsAndExpandInSortedPosition()
+    {
+        var chrome1 = new Row("chrome.exe", 30, "443", "a");
+        var chrome2 = new Row("Chrome.exe", 10, "443", "b");
+        var solo = new Row("edge.exe", 20, "80", "c");
+        object[] sorted = [chrome1, solo, chrome2];
+        TableColumn[] columns =
+        [
+            TableColumn.Text<Row>("name", "Name", 200, row => row.Name),
+            TableColumn.Value<Row, int?>("port", "Port", 100, row => TableSortValues.Port(row.Port), display: row => row.Port),
+            TableColumn.Text<Row>("created", "Created", 150, row => row.Created),
+            TableColumn.Value<Row, long>("bytes", "Bytes", 100, row => row.Bytes)
+        ];
+        var expanded = new HashSet<string>();
+        var groups = new Dictionary<string, TableGroup>();
+        var grouped = new HashSet<object>();
+
+        var collapsed = TableGrouping.Build(sorted, columns, row => "C:\\" + ((Row)row).Name, expanded, groups, grouped);
+
+        Assert.HasCount(2, collapsed);
+        var group = (TableGroup)collapsed[0];
+        Assert.AreSame(solo, collapsed[1]);
+        Assert.AreEqual("chrome.exe (2)", group.Label);
+        Assert.IsFalse(group.IsExpanded);
+        CollectionAssert.AreEqual(new object[] { chrome1, chrome2 }, group.Items.ToArray());
+        CollectionAssert.AreEqual(new[] { "", "443", "", "" }, group.Cells.ToArray());
+        Assert.AreEqual("C:\\chrome.exe", group.IconPath);
+        Assert.IsTrue(grouped.SetEquals([chrome1, chrome2]));
+
+        expanded.Add(group.Key);
+        var open = TableGrouping.Build(sorted, columns, null, expanded, groups, grouped);
+
+        CollectionAssert.AreEqual(new object[] { group, chrome1, chrome2, solo }, open.ToArray());
+        Assert.IsTrue(group.IsExpanded);
+
+        var remaining = TableGrouping.Build([chrome1, solo], columns, null, expanded, groups, grouped);
+
+        CollectionAssert.AreEqual(new object[] { chrome1, solo }, remaining.ToArray());
+        Assert.IsEmpty(groups);
+        Assert.IsEmpty(expanded);
+        Assert.IsEmpty(grouped);
+
+        object[] processes = [new Row("azmcp (12748)", 1, "", ""), new Row("azmcp (57704)", 2, "", "")];
+        var byProcess = TableGrouping.Build(processes, columns, null, expanded, groups, grouped, TableGrouping.WithoutProcessId);
+
+        Assert.AreEqual("azmcp (2)", ((TableGroup)byProcess.Single()).Label);
+        Assert.AreEqual("Setup (x86)", TableGrouping.WithoutProcessId("Setup (x86)"));
+    }
+
     private static string[] Names(IReadOnlyList<object> rows) => rows.OfType<Row>().Select(row => row.Name).ToArray();
 }

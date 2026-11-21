@@ -30,6 +30,7 @@ public sealed partial class DataUsagePage : Page
             TableColumn.Value<DataUsageRow, long>("internetSent", "Internet outgoing", 170, row => row.InternetSentBytes),
             TableColumn.Value<DataUsageRow, long>("localReceived", "Local incoming", 160, row => row.LocalReceivedBytes),
             TableColumn.Value<DataUsageRow, long>("localSent", "Local outgoing", 160, row => row.LocalSentBytes));
+        UsageTable.EnableGrouping(item => (item as DataUsageRow)?.ApplicationPath);
         Loaded += Page_Loaded;
         Unloaded += Page_Unloaded;
         _timer.Tick += Timer_Tick;

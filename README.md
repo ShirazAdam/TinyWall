@@ -34,6 +34,7 @@ Both applications, their shipped libraries and the Visual Studio MSI installer p
 - **History insights:** view the sampled observations for one application or a digest of stored blocked-connection records by application.
 - **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
 - **Adjustable tables:** headers remain visible while scrolling, column edges can be dragged to resize, and heading clicks switch between ascending and descending ordering. Each table remembers its widths and sort choice on this PC; new tables default to the first name column, ascending.
+- **Task Manager-style grouping:** rows for the same application are grouped under one row showing a total count, such as `chrome.exe (12)`, with an arrow to expand or collapse the group.
 - **Persistent blocked-event counts:** the matching service records observed WFP drop events by local calendar day. The Overview tooltip explains collection coverage; these are not counts of unique connections.
 
 ### Application views
@@ -75,6 +76,8 @@ The window opens centred within the current monitor's work area, fitting the ref
 The Connections view keeps headers and results aligned, with horizontal scrolling on narrower windows. Press Enter/Return in the search box or select **Filter/Refresh** to reload results using the search text and selected connection types.
 
 The Connections, Data usage, Activity history, Processes, Services, Packages and Exceptions tables share fixed headers and resizable columns. Click any heading to sort by that column; click it again to reverse the direction. Drag the right edge of a heading to resize it, or focus its resize handle and use the left/right arrow keys. Numeric ports and byte totals sort numerically, and date columns sort chronologically. Widths and sorting are saved per table in the local Modern TinyWall options file and restored after navigation or restart. Data usage CSV exports use the visible table order.
+
+The Processes, Connections, Activity history, Data usage and Exceptions tables group rows that share the same name in the first column, similar to Windows Task Manager. A group row shows the name followed by the number of rows in brackets, plus any values its rows share; select the arrow, double-click the group, or press Right/Left (or Enter/Space) to expand or collapse it. Expanded rows are indented beneath their group, groups follow the current sort order, names that appear only once stay as ordinary rows, and expanded groups are remembered while the app is open.
 
 The **Activity history** view is available only in Modern TinyWall. History collection is opt-in under **Options** and stores application names, local/remote addresses, ports, protocol, state and first/last observation times in a local SQLite database under `%LocalAppData%\ModernTinyWall\connection-history.db`. The window must be visible for sampling; collection pauses while minimised or hidden and stops when the application exits. Retention is configurable for 7, 30 or 90 days, with a 5,000-entry cap. **Clear history** removes the local records. This is a sampled observation history, not a complete packet or firewall audit log; blocked entries are limited to what the service's recent connection log exposes.
 

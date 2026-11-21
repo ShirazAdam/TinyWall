@@ -40,6 +40,7 @@ public sealed partial class ExceptionsPage : Page
             TableColumn.Value<ExceptionRowViewModel, DateTime?>("created", "Created / expiry", 170, row => TableSortValues.Created(row.Created)),
             TableColumn.Text<ExceptionRowViewModel>("review", "Review guidance", 280, row => row.ReviewFinding),
             TableColumn.Text<ExceptionRowViewModel>("tags", "Tags", 180, row => row.Tags));
+        ExceptionsList.EnableGrouping(item => (item as ExceptionRowViewModel)?.IconPath);
         Loaded += ExceptionsPage_Loaded;
     }
 

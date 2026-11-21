@@ -30,6 +30,7 @@ public sealed partial class ProcessesPage : Page
             TableColumn.Text<ProcessRowViewModel>("name", "Process", 300, row => row.ProcessName),
             TableColumn.Text<ProcessRowViewModel>("services", "Services", 240, row => row.Services),
             TableColumn.Text<ProcessRowViewModel>("path", "Path", 440, row => row.Path));
+        ProcessesTable.EnableGrouping(item => (item as ProcessRowViewModel)?.Path, TableGrouping.WithoutProcessId);
         Loaded += ProcessesPage_Loaded;
     }
 
