@@ -30,6 +30,11 @@ public sealed partial class ServicesPage : Page
             TableColumn.Text<ServiceRowViewModel>("name", "Display name", 300, row => row.DisplayName),
             TableColumn.Text<ServiceRowViewModel>("serviceName", "Service name", 240, row => row.ServiceName),
             TableColumn.Text<ServiceRowViewModel>("path", "Executable path", 440, row => row.ExecutablePath));
+        ServicesTable.EnableFileInformation(item =>
+        {
+            var row = (ServiceRowViewModel)item;
+            return new ApplicationFileTarget(row.DisplayName, row.ExecutablePath, $"Service name: {row.ServiceName}");
+        });
         Loaded += ServicesPage_Loaded;
     }
 

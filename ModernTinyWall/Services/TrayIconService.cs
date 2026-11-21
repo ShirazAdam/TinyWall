@@ -67,6 +67,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     private bool _isVisible;
     private const string TooltipText = "Modern TinyWall";
     private string _statusTooltip = TooltipText;
+    private string _menuStatus = "Ready";
     private readonly Dictionary<uint, string> _menuCommandMap = [];
     private TrayStateSnapshot _snapshot = new("Traffic rate unavailable", "unknown", false, false, false);
     private IntPtr _activeMenu;
@@ -182,7 +183,7 @@ internal sealed partial class TrayIconService : ITrayIconService
         try
         {
             _menuCommandMap.Clear();
-            AppendMenuItem(menu, 100, _statusTooltip, enabled: false);
+            AppendMenuItem(menu, 100, _menuStatus, enabled: false);
             AppendMenuItem(menu, 101, _snapshot.TrafficText, enabled: false);
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 200, "Mode: Normal protection", "normal", isChecked: _snapshot.ModeId == "normal");
@@ -296,7 +297,7 @@ internal sealed partial class TrayIconService : ITrayIconService
         const uint MF_BYCOMMAND = 0x00000000;
         const uint MF_STRING = 0x00000000;
         const uint MF_GRAYED = 0x00000001;
-        _ = ModifyMenu(menu, 100, MF_BYCOMMAND | MF_STRING | MF_GRAYED, 100, text);
+        _ = ModifyMenu(menu, 101, MF_BYCOMMAND | MF_STRING | MF_GRAYED, 101, text);
     }
 
     private void AppendMenuItem(IntPtr menu, uint id, string text, string? commandId = null, bool isChecked = false, bool enabled = true)
@@ -319,6 +320,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     public void SetStatus(string tooltip)
     {
         var status = string.IsNullOrWhiteSpace(tooltip) ? "Ready" : tooltip.Trim();
+        _menuStatus = TrayStatusText.Compact(status);
         _statusTooltip = $"{TooltipText}: {status}";
         if (_statusTooltip.Length > 127)
         {

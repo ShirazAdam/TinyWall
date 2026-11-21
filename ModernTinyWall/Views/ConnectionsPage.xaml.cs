@@ -32,6 +32,11 @@ public sealed partial class ConnectionsPage : Page
             TableColumn.Text<ConnectionRowViewModel>("state", "State", 110, row => row.State),
             TableColumn.Text<ConnectionRowViewModel>("direction", "Direction", 100, row => row.Direction));
         ConnectionsList.EnableGrouping(item => (item as ConnectionRowViewModel)?.ExecutablePath, TableGrouping.WithoutProcessId);
+        ConnectionsList.EnableFileInformation(item =>
+        {
+            var row = (ConnectionRowViewModel)item;
+            return new ApplicationFileTarget(row.Application, row.ExecutablePath);
+        });
         Loaded += ConnectionsPage_Loaded;
     }
 

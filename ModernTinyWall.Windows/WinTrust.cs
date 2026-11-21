@@ -1,230 +1,97 @@
 using System;
-using System.Security;
 using System.Runtime.InteropServices;
-using ModernTinyWall.Utilities;
 
-namespace ModernTinyWall.Windows
+namespace ModernTinyWall.Windows;
+
+public static partial class WinTrust
 {
-    public static partial class WinTrust
+    public enum VerifyResult
     {
-        public enum VerifyResult
-        {
-            SIGNATURE_MISSING,
-            SIGNATURE_VALID,
-            SIGNATURE_INVALID
-        }
+        SIGNATURE_MISSING,
+        SIGNATURE_VALID,
+        SIGNATURE_INVALID
+    }
 
-        private enum WinTrustDataUIChoice : uint
-        {
-            All = 1,
-            None = 2,
-            NoBad = 3,
-            NoGood = 4
-        }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WinTrustFileInfo
+    {
+        public uint StructSize;
+        public IntPtr FilePath;
+        public IntPtr FileHandle;
+        public IntPtr KnownSubject;
+    }
 
-        private enum WinTrustDataRevocationChecks : uint
-        {
-            None = 0x00000000,
-            WholeChain = 0x00000001
-        }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WinTrustData
+    {
+        public uint StructSize;
+        public IntPtr PolicyCallbackData;
+        public IntPtr SIPClientData;
+        public uint UIChoice;
+        public uint RevocationChecks;
+        public uint UnionChoice;
+        public IntPtr FileInfo;
+        public uint StateAction;
+        public IntPtr StateData;
+        public IntPtr URLReference;
+        public uint ProviderFlags;
+        public uint UIContext;
+        public IntPtr SignatureSettings;
+    }
 
-        private enum WinTrustDataChoice : uint
-        {
-            File = 1,
-            Catalog = 2,
-            Blob = 3,
-            Signer = 4,
-            Certificate = 5
-        }
+    private static readonly Guid GenericVerifyAction = new(0x00aac56b, 0xcd44, 0x11d0, 0x8c, 0xc2, 0x00, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
+    private const uint NoTrustUI = 2;
+    private const uint CheckWholeChain = 1;
+    private const uint FileSubject = 1;
+    private const uint VerifyState = 1;
+    private const uint CloseState = 2;
+    private const uint CacheOnlyUrlRetrieval = 0x00001000;
+    private const uint CheckChainRevocation = 0x00000040;
+    private const uint DisableMD2AndMD4 = 0x00002000;
 
-        private enum WinTrustDataStateAction : uint
-        {
-            Ignore = 0x00000000,
-            Verify = 0x00000001,
-            Close = 0x00000002,
-            AutoCache = 0x00000003,
-            AutoCacheFlush = 0x00000004
-        }
+    [LibraryImport("wintrust.dll", EntryPoint = "WinVerifyTrust")]
+    private static partial int WinVerifyTrust(IntPtr window, in Guid action, ref WinTrustData data);
 
-        [Flags]
-        private enum WinTrustDataProvFlags : uint
-        {
-            UseIe4TrustFlag = 0x00000001,
-            NoIe4ChainFlag = 0x00000002,
-            NoPolicyUsageFlag = 0x00000004,
-            RevocationCheckNone = 0x00000010,
-            RevocationCheckEndCert = 0x00000020,
-            RevocationCheckChain = 0x00000040,
-            RevocationCheckChainExcludeRoot = 0x00000080,
-            SaferFlag = 0x00000100,
-            HashOnlyFlag = 0x00000200,
-            UseDefaultOsverCheck = 0x00000400,
-            LifetimeSigningFlag = 0x00000800,
-            CacheOnlyUrlRetrieval = 0x00001000,
-            DisableMD2andMD4 = 0x00002000      // Win7 SP1+: Disallows use of MD2 or MD4 in the chain except for the root 
-        }
-        private enum WinTrustDataUIContext : uint
-        {
-            Execute = 0,
-            Install = 1
-        }
-        private enum WinVerifyTrustResult : uint
-        {
-            TRUST_SUCCESS = 0u,
-            TRUST_E_NOSIGNATURE = 0x800B0100u,
-            TRUST_E_SUBJECT_NOT_TRUSTED = 0x800B0004u,
-            TRUST_E_PROVIDER_UNKNOWN = 0x800B0001u,
-            TRUST_E_ACTION_UNKNOWN = 0x800B0002u,
-            TRUST_E_SUBJECT_FORM_UNKNOWN = 0x800B0003u,
-            CRYPT_E_SECURITY_SETTINGS = 0x80092026u,
-            CRYPT_E_FILE_ERROR = 0x80092003u
-        };
+    public static unsafe VerifyResult VerifyFileAuthenticode(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
-        [StructLayout(LayoutKind.Sequential)]
-        private readonly struct WinTrustFileInfo
+        fixed (char* path = filePath)
         {
-            readonly uint StructSize;
-            readonly IntPtr pszFilePath;
-            readonly IntPtr hFile;
-            readonly IntPtr pgKnownSubject;
-
-            internal WinTrustFileInfo(IntPtr path)
+            var file = new WinTrustFileInfo
             {
-                StructSize = (uint)Marshal.SizeOf(typeof(WinTrustFileInfo));
-                pszFilePath = path;
-                hFile = IntPtr.Zero;
-                pgKnownSubject = IntPtr.Zero;
+                StructSize = (uint)sizeof(WinTrustFileInfo),
+                FilePath = (IntPtr)path
+            };
+            var data = new WinTrustData
+            {
+                StructSize = (uint)sizeof(WinTrustData),
+                UIChoice = NoTrustUI,
+                RevocationChecks = CheckWholeChain,
+                UnionChoice = FileSubject,
+                FileInfo = (IntPtr)(&file),
+                StateAction = VerifyState,
+                ProviderFlags = CacheOnlyUrlRetrieval | CheckChainRevocation | DisableMD2AndMD4
+            };
+
+            int status;
+            try
+            {
+                status = WinVerifyTrust(IntPtr.Zero, GenericVerifyAction, ref data);
             }
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private sealed class WinTrustData : IDisposable
-        {
-            public uint StructSize = (uint)Marshal.SizeOf(typeof(WinTrustData));
-            public IntPtr PolicyCallbackData = IntPtr.Zero;
-            public IntPtr SIPClientData = IntPtr.Zero;
-            public WinTrustDataUIChoice UIChoice = WinTrustDataUIChoice.None;
-            public WinTrustDataRevocationChecks RevocationChecks = WinTrustDataRevocationChecks.WholeChain;
-            public WinTrustDataChoice UnionChoice = WinTrustDataChoice.File;
-            public IntPtr FileInfoPtr;
-            public WinTrustDataStateAction StateAction = WinTrustDataStateAction.Verify;
-            public IntPtr StateData = IntPtr.Zero;
-            public IntPtr URLReference = IntPtr.Zero;
-            public WinTrustDataProvFlags ProvFlags = WinTrustDataProvFlags.CacheOnlyUrlRetrieval | WinTrustDataProvFlags.RevocationCheckChain;
-            public WinTrustDataUIContext UIContext = WinTrustDataUIContext.Execute;
-            private readonly IntPtr _fileNamePtr;
-            private IntPtr _nativePtr;
-
-            public WinTrustData(string fileName, WinTrustDataRevocationChecks revocationChecks)
+            finally
             {
-                // On Win7SP1+, don't allow MD2 or MD4 signatures
-                if ((Environment.OSVersion.Version.Major > 6) ||
-                    ((Environment.OSVersion.Version.Major == 6) && (Environment.OSVersion.Version.Minor > 1)) ||
-                    ((Environment.OSVersion.Version.Major == 6) && (Environment.OSVersion.Version.Minor == 1) && !String.IsNullOrEmpty(Environment.OSVersion.ServicePack)))
-                {
-                    ProvFlags |= WinTrustDataProvFlags.DisableMD2andMD4;
-                }
-
-                RevocationChecks = revocationChecks;
-
-                _fileNamePtr = Marshal.StringToCoTaskMemUni(fileName);
-                var wtfiData = new WinTrustFileInfo(_fileNamePtr);
-                FileInfoPtr = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(WinTrustFileInfo)));
-                Marshal.StructureToPtr(wtfiData, FileInfoPtr, false);
+                // Close the exact state returned by Windows while all input pointers remain valid.
+                data.StateAction = CloseState;
+                WinVerifyTrust(IntPtr.Zero, GenericVerifyAction, ref data);
             }
 
-            public IntPtr DangerousGetHandle()
+            return unchecked((uint)status) switch
             {
-                if (_nativePtr == IntPtr.Zero)
-                    _nativePtr = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(WinTrustData)));
-
-                Marshal.StructureToPtr(this, _nativePtr, false);
-
-                return _nativePtr;
-            }
-
-            private void Dispose(bool disposing)
-            {
-                if (FileInfoPtr != IntPtr.Zero)
-                {
-                    if (disposing)
-                    {
-                        // Dispose managed state (managed objects)
-                    }
-
-                    Marshal.DestroyStructure(FileInfoPtr, typeof(WinTrustFileInfo));
-                    Marshal.FreeCoTaskMem(FileInfoPtr);
-                    FileInfoPtr = IntPtr.Zero;
-                }
-
-                if (_nativePtr != IntPtr.Zero)
-                {
-                    Marshal.FreeCoTaskMem(_nativePtr);
-                    _nativePtr = IntPtr.Zero;
-                }
-
-                if (_fileNamePtr != IntPtr.Zero)
-                    Marshal.FreeCoTaskMem(_fileNamePtr);
-            }
-
-            ~WinTrustData() => Dispose(disposing: false);
-
-            public void Dispose()
-            {
-                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-                Dispose(disposing: true);
-                GC.SuppressFinalize(this);
-            }
-        }
-
-        //private static readonly Guid DRIVER_ACTION_VERIFY                   = new(0xf750e6c3, 0x38ee, 0x11d1, 0x85, 0xe5, 0x0, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
-        //private static readonly Guid HTTPSPROV_ACTION                       = new(0x573e31f8, 0xaaba, 0x11d0, 0x8c, 0xcb, 0x0, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
-        //private static readonly Guid OFFICESIGN_ACTION_VERIFY               = new(0x5555c2cd, 0x17fb, 0x11d1, 0x85, 0xc4, 0x0, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
-        //private static readonly Guid WINTRUST_ACTION_GENERIC_CHAIN_VERIFY   = new(0xfc451c16, 0xac75, 0x11d1, 0xb4, 0xb8, 0x0, 0xc0, 0x4f, 0xb6, 0x6e, 0xa0);
-        private static readonly Guid WINTRUST_ACTION_GENERIC_VERIFY_V2 = new(0x00aac56b, 0xcd44, 0x11d0, 0x8c, 0xc2, 0x0, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
-        //private static readonly Guid WINTRUST_ACTION_TRUSTPROVIDER_TEST     = new(0x573e31f8, 0xddba, 0x11d0, 0x8c, 0xcb, 0x0, 0xc0, 0x4f, 0xc2, 0x95, 0xee);
-
-        [SuppressUnmanagedCodeSecurity]
-        private static partial class SafeNativeMethods
-        {
-            [LibraryImport("wintrust.dll", EntryPoint = "WinVerifyTrust", SetLastError = true)]
-            public static partial WinVerifyTrustResult WinVerifyTrust(IntPtr hwnd, in Guid pgActionID, IntPtr pWVTData);
-        }
-
-        private static VerifyResult VerifyEmbeddedSignature(string fileName, Guid guidAction, WinTrustDataRevocationChecks revocationChecks)
-        {
-            using var wtd = new WinTrustData(fileName, revocationChecks);
-            WinVerifyTrustResult lStatus = SafeNativeMethods.WinVerifyTrust(IntPtr.Zero, guidAction, wtd.DangerousGetHandle());
-
-            // Any hWVTStateData must be released by a call with close.
-            wtd.StateAction = WinTrustDataStateAction.Close;
-            SafeNativeMethods.WinVerifyTrust(IntPtr.Zero, guidAction, wtd.DangerousGetHandle());
-
-            switch (lStatus)
-            {
-                case WinVerifyTrustResult.TRUST_SUCCESS:
-                    return VerifyResult.SIGNATURE_VALID;
-                case WinVerifyTrustResult.CRYPT_E_FILE_ERROR:
-                    return VerifyResult.SIGNATURE_MISSING;
-                default:
-                    uint dwLastError;
-                    unchecked { dwLastError = (uint)Marshal.GetLastWin32Error(); }
-                    if (((uint)WinVerifyTrustResult.TRUST_E_NOSIGNATURE == dwLastError) ||
-                            ((uint)WinVerifyTrustResult.TRUST_E_SUBJECT_FORM_UNKNOWN == dwLastError) ||
-                            ((uint)WinVerifyTrustResult.TRUST_E_PROVIDER_UNKNOWN == dwLastError))
-                    {
-                        return VerifyResult.SIGNATURE_MISSING;
-                    }
-                    else
-                    {
-                        return VerifyResult.SIGNATURE_INVALID;
-                    }
-            }
-        }
-
-        public static VerifyResult VerifyFileAuthenticode(string filePath)
-        {
-            return VerifyEmbeddedSignature(filePath, WINTRUST_ACTION_GENERIC_VERIFY_V2, WinTrustDataRevocationChecks.WholeChain);
+                0 => VerifyResult.SIGNATURE_VALID,
+                0x800B0100 or 0x800B0003 or 0x800B0001 => VerifyResult.SIGNATURE_MISSING,
+                _ => VerifyResult.SIGNATURE_INVALID
+            };
         }
     }
 }

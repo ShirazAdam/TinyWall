@@ -1,0 +1,103 @@
+<ContentDialog
+    x:Class="ModernTinyWall.Services.ApplicationFileDialogue"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:ModernTinyWall.Controls"
+    Title="Additional information"
+    CloseButtonText="Close"
+    DefaultButton="Close">
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMaxWidth">760</x:Double>
+        <Style x:Key="DetailLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="DetailValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="IsTextSelectionEnabled" Value="True" />
+        </Style>
+        <Style x:Key="DetailCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource ModernInsetBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource ModernBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+    </ContentDialog.Resources>
+    <Grid x:Name="LayoutRoot" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Width="64" Height="64" CornerRadius="16"
+                    Background="{ThemeResource ModernSelectionBrush}"
+                    BorderBrush="{ThemeResource ModernBorderBrush}" BorderThickness="1">
+                <controls:ApplicationIcon x:Name="FileIcon" Width="36" Height="36"
+                                          HorizontalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="APPLICATION FILE" Style="{StaticResource EyebrowStyle}" />
+                <TextBlock x:Name="FileTitle" FontSize="24" FontWeight="SemiBold"
+                           FontFamily="Segoe UI Variable Display" TextWrapping="Wrap" />
+                <TextBlock x:Name="FileSubtitle" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+            </StackPanel>
+        </Grid>
+        <ComboBox x:Name="FilePicker" Grid.Row="1" Header="Files in this application group"
+                  HorizontalAlignment="Stretch" Visibility="Collapsed"
+                  AutomationProperties.Name="Application file" />
+        <ScrollViewer x:Name="DetailsScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
+            <StackPanel Spacing="14">
+                <StackPanel x:Name="LoadingPanel" Orientation="Horizontal" Spacing="12" Padding="0,12">
+                    <ProgressRing Width="24" Height="24" IsActive="True" />
+                    <TextBlock Text="Reading file details and checking the signature..."
+                               VerticalAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+                <InfoBar x:Name="FileError" IsClosable="False" Severity="Warning"
+                         Title="Some file information is unavailable" />
+                <Border x:Name="SignatureCard" Style="{StaticResource DetailCardStyle}" Visibility="Collapsed">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon x:Name="SignatureIcon" Glyph="&#xE946;" FontSize="18"
+                                      Foreground="{ThemeResource ModernAccentBrush}" />
+                            <TextBlock x:Name="SignatureSummary" Grid.Column="1" FontSize="16" FontWeight="SemiBold"
+                                       TextWrapping="Wrap" />
+                        </Grid>
+                        <TextBlock x:Name="SignatureDetails" Style="{StaticResource DetailValueStyle}" />
+                    </StackPanel>
+                </Border>
+                <Border x:Name="GeneralCard" Style="{StaticResource DetailCardStyle}" Visibility="Collapsed">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="File details" Style="{StaticResource SectionTitleStyle}" />
+                        <StackPanel x:Name="GeneralFields" Spacing="12" />
+                    </StackPanel>
+                </Border>
+                <Border x:Name="VersionCard" Style="{StaticResource DetailCardStyle}" Visibility="Collapsed">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="Version information" Style="{StaticResource SectionTitleStyle}" />
+                        <StackPanel x:Name="VersionFields" Spacing="12" />
+                    </StackPanel>
+                </Border>
+                <Expander Header="About these details" HorizontalAlignment="Stretch">
+                    <TextBlock MaxWidth="580" TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="These details describe the current file on disk, not necessarily the image loaded by a running process. Publisher metadata is not verified identity. Signature checks use cached revocation data, do not check catalogue-only signatures and do not guarantee safety." />
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

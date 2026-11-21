@@ -31,6 +31,11 @@ public sealed partial class DataUsagePage : Page
             TableColumn.Value<DataUsageRow, long>("localReceived", "Local incoming", 160, row => row.LocalReceivedBytes),
             TableColumn.Value<DataUsageRow, long>("localSent", "Local outgoing", 160, row => row.LocalSentBytes));
         UsageTable.EnableGrouping(item => (item as DataUsageRow)?.ApplicationPath);
+        UsageTable.EnableFileInformation(item =>
+        {
+            var row = (DataUsageRow)item;
+            return new ApplicationFileTarget(row.Application, row.ApplicationPath);
+        });
         Loaded += Page_Loaded;
         Unloaded += Page_Unloaded;
         _timer.Tick += Timer_Tick;
