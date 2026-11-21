@@ -8,9 +8,9 @@
 - Windows SDK/COM type libraries required by TinyWall's `NetFwTypeLib` and Task Scheduler references.
 - The Visual Studio Installer Projects extension is required for MSI compilation. MSBuild and `dotnet build` cannot compile a `.vdproj` project. The scripts do not install tools or extensions.
 
-The staging script publishes both apps self-contained for the selected Windows runtime. It uses isolated `artifacts\build\<runtime>` build/intermediate directories, not the normal Release outputs (which may be locked by a running UI). It checks that both application versions and the MSI project's `ProductVersion` match. The application version determines the archive filename; the MSI version is maintained in the Visual Studio project.
+The staging script publishes both apps self-contained for the selected Windows runtime. It uses isolated `artifacts\build\<runtime>` build/intermediate directories, not the normal Release outputs (which may be locked by a running UI). Each application's published dependency manifest must match its own project version; the versions do not need to be identical. The Modern TinyWall project version determines the release tag, archive and MSI filenames, and the MSI's `ProductVersion`. It must be a numeric `major.minor.patch` version within Windows Installer's limits (major and minor at most 255, patch at most 65535).
 
-TinyWall currently resolves newer `System.CodeDom`, `System.Collections.Immutable`, and `System.Reflection.Metadata` packages than the framework copies used by Modern TinyWall. `Packaging.Dependencies.targets` explicitly adds the versions from TinyWall's resolved dependency manifest to Modern's packaging build/restore graph. This is not a DLL replacement: both applications are built against the aligned dependencies, and the final merge still rejects every differing duplicate. The same targets preserve the generated WinUI `.pri` and `.xbf` resources that the plain publish pipeline otherwise omits.
+TinyWall currently resolves newer `Microsoft.Extensions.DependencyInjection`, `System.CodeDom`, `System.Collections.Immutable`, and `System.Reflection.Metadata` packages than Modern TinyWall. `Packaging.Dependencies.targets` aligns Modern's packaging build/restore graph to the versions in TinyWall's resolved dependency manifest. This is not a DLL replacement: both applications are built against the aligned dependencies, and the final merge still rejects every differing duplicate. The same targets preserve the generated WinUI `.pri` and `.xbf` resources that the plain publish pipeline otherwise omits.
 
 ## Build the MSI
 
@@ -26,7 +26,7 @@ TinyWall currently resolves newer `System.CodeDom`, `System.Collections.Immutabl
 .\installer\build-msi.ps1 -Architecture All -UsePublishedFiles
 ```
 
-Outputs are `artifacts\installer\ModernTinyWall-<version>-win-x86.msi` and `ModernTinyWall-<version>-win-x64.msi`, each with a SHA-256 sidecar. Each build generates an isolated copy of the setup project and solution under `artifacts\installer\<runtime>`, with matching absolute payload paths, target platform, Program Files directory and post-build arguments. These copies can also be opened in Visual Studio. The source project remains unchanged by packaging. Both applications are self-contained; no .NET runtime prerequisite or bootstrapper download is needed.
+Outputs are `artifacts\installer\ModernTinyWall-<version>-win-x86.msi` and `ModernTinyWall-<version>-win-x64.msi`, each with a SHA-256 sidecar. Each build generates an isolated copy of the setup project and solution under `artifacts\installer\<runtime>`, with the Modern release version, matching absolute payload paths, target platform, Program Files directory and post-build arguments. These copies can also be opened in Visual Studio. The source project remains unchanged by packaging and its template version is not used as the release version. Both applications are self-contained; no .NET runtime prerequisite or bootstrapper download is needed.
 
 The x86 MSI targets 32-bit Windows and enforces `[ProgramFilesFolder]\TinyWall`; the x64 MSI enforces `[ProgramFiles64Folder]\TinyWall`. Each generated package has distinct ProductCode and PackageCode values; both retain the existing UpgradeCode so they represent the same application rather than installing two competing services. **There is no native ARM64 MSI or combined installer.** The current Visual Studio Installer Projects tooling has no ARM64 target; ARM64 remains a ZIP staging archive. Do not treat x64 emulation as validated ARM64 installation support.
 
@@ -41,7 +41,7 @@ The project's post-build step uses the Windows Installer API (`complete-msi.ps1 
 Run these commands from the repository root:
 
 ```powershell
-# Offline tests: sole MSI project/version, incomplete inputs, collisions, archive integrity.
+# Offline tests: independent project versions, MSI generation, incomplete inputs, collisions, archive integrity.
 .\installer\build-package.ps1 -SelfTest
 
 # Publish both apps, validate shared-file collisions, combine outputs, and create archives.

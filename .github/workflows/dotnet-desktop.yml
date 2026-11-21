@@ -76,10 +76,8 @@ jobs:
       shell: pwsh
       run: |
         .\installer\build-msi.ps1 -Architecture ${{ matrix.runtime }}
-        [xml]$project = Get-Content ModernTinyWall\ModernTinyWall.csproj -Raw
-        $version = $project.Project.PropertyGroup |
-          Where-Object { $_.Version } |
-          Select-Object -First 1 -ExpandProperty Version
+        . .\installer\versioning.ps1
+        $version = Get-ProjectVersion .\ModernTinyWall\ModernTinyWall.csproj
         $name = "ModernTinyWall-$version-${{ matrix.runtime }}.msi"
         $output = Join-Path artifacts\installer $name
         if (-not (Test-Path -LiteralPath $output) -or -not (Test-Path -LiteralPath "$output.sha256")) {
@@ -121,25 +119,10 @@ jobs:
       id: version
       shell: pwsh
       run: |
-        [xml]$project = Get-Content ModernTinyWall\ModernTinyWall.csproj -Raw
-        $version = $project.Project.PropertyGroup |
-          Where-Object { $_.Version } |
-          Select-Object -First 1 -ExpandProperty Version
-        if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
-          throw "ModernTinyWall.csproj must define a valid release version."
-        }
-
-        foreach ($projectFile in Get-ChildItem -Path . -Filter *.csproj -Recurse) {
-          [xml]$library = Get-Content $projectFile.FullName -Raw
-          if ($library.Project.PropertyGroup.IsPackable -contains 'false') {
-            continue
-          }
-          $projectVersions = @($library.SelectNodes('/Project/PropertyGroup/Version') |
-            ForEach-Object { $_.InnerText.Trim() } | Select-Object -Unique)
-          if ($projectVersions.Count -ne 1 -or $projectVersions[0] -ne $version) {
-            throw "$($projectFile.Name) must define exactly one release version '$version', not '$($projectVersions -join ', ')'."
-          }
-        }
+        . .\installer\versioning.ps1
+        $version = Get-ProjectVersion .\ModernTinyWall\ModernTinyWall.csproj
+        Assert-MsiProductVersion $version
+        Assert-ReleaseProjectVersions $PWD.Path
 
         $existingTag = git tag --list $version
         if ($existingTag) {

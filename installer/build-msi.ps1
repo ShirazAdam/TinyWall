@@ -6,7 +6,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'versioning.ps1')
 $root = Split-Path -Parent $PSScriptRoot
+$version = Get-ProjectVersion (Join-Path $root 'ModernTinyWall\ModernTinyWall.csproj')
+Assert-MsiProductVersion $version
 $outputDirectory = Join-Path $root 'artifacts\installer'
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 $architectures = if ($Architecture -eq 'All') { @('win-x86', 'win-x64') } else { @($Architecture) }
@@ -34,8 +37,6 @@ try {
         if (-not (Test-Path -LiteralPath $msi)) { throw "Visual Studio did not produce the $runtime MSI." }
         & powershell.exe -NoProfile -File (Join-Path $PSScriptRoot 'test-msi.ps1') -Path $msi -Architecture $runtime
         if ($LASTEXITCODE -ne 0) { throw "The compiled $runtime MSI failed validation." }
-        [xml] $project = Get-Content -LiteralPath (Join-Path $root 'ModernTinyWall\ModernTinyWall.csproj') -Raw
-        $version = $project.Project.PropertyGroup.Version | Where-Object { $_ }
         $output = Join-Path $outputDirectory "ModernTinyWall-$version-$runtime.msi"
         Copy-Item -LiteralPath $msi -Destination $output -Force
         $hash = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash

@@ -4,13 +4,14 @@
   <!-- The legacy app already requires these package versions. Resolve Modern
        against that same graph rather than replacing DLLs after publishing. -->
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'ModernTinyWall'">
+    <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="$(PackagingDependencyInjectionVersion)" />
     <PackageReference Include="System.CodeDom" Version="$(PackagingCodeDomVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(PackagingImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(PackagingMetadataVersion)" />
   </ItemGroup>
   <Target Name="ValidatePackagingDependencyVersions" BeforeTargets="PrepareForBuild"
           Condition="'$(MSBuildProjectName)' == 'ModernTinyWall'">
-    <Error Condition="'$(PackagingCodeDomVersion)' == '' Or '$(PackagingImmutableVersion)' == '' Or '$(PackagingMetadataVersion)' == ''"
+    <Error Condition="'$(PackagingDependencyInjectionVersion)' == '' Or '$(PackagingCodeDomVersion)' == '' Or '$(PackagingImmutableVersion)' == '' Or '$(PackagingMetadataVersion)' == ''"
            Text="Packaging dependency versions must be supplied from TinyWall's resolved publish manifest." />
   </Target>
   <Target Name="IncludePackagingWinUIResources" AfterTargets="ComputeFilesToPublish"

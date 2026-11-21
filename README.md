@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Both applications, their shipped libraries and the Visual Studio MSI installer project use version **4.7.8**. The release workflow validates that these versions match and creates the matching GitHub tag (`4.7.8`) when the changes are pushed to `master` and its builds pass.
+Modern TinyWall is version **4.7.18**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -35,6 +35,9 @@ Both applications, their shipped libraries and the Visual Studio MSI installer p
 - **Improved Connections:** aligned columns, horizontal scrolling on narrower windows, and **Filter/Refresh** from either the button or Enter/Return in the search box.
 - **Adjustable tables:** headers remain visible while scrolling, column edges can be dragged to resize, and heading clicks switch between ascending and descending ordering. Each table remembers its widths and sort choice on this PC; new tables default to the first name column, ascending.
 - **Task Manager-style grouping:** rows for the same application are grouped under one row showing a total count, such as `chrome.exe (12)`, with an arrow to expand or collapse the group.
+- **Remembered window size:** resizing and maximising are remembered between launches; **Options → Reset window size** restores the default.
+- **More useful reviews:** inspect connection details, filter exceptions by type, policy or age, and export the filtered Data usage table to CSV in its visible order.
+- **Configurable Overview and guidance:** choose which summary cards and traffic series to show, or open **Troubleshoot** for diagnostic guidance that does not change firewall settings.
 - **Persistent blocked-event counts:** the matching service records observed WFP drop events by local calendar day. The Overview tooltip explains collection coverage; these are not counts of unique connections.
 
 ### Application views
@@ -91,7 +94,7 @@ Press **Ctrl+K** or select **Search commands** in the navigation pane to find pa
 
 The Overview traffic chart uses the same TCP/UDP tracking and Internet/local classification as Data usage. It shows Internet download (blue) and upload (green), local download (yellow) and upload (red), and combined download (pink) and upload (grey). Each smooth curve has a translucent fill down to zero; classified totals are Internet plus local traffic, not additional traffic. Tick the series labels to show any combination, including all six or none. Selections are saved immediately and restored after restarting the application. Rates are calculated from elapsed time between snapshots, with an automatic bandwidth scale based on visible series and five-minute history. Sampling pauses while hidden or minimised. If the service is unavailable, the chart reports the error, marks classified traffic unavailable, and shows adapter counters for total traffic instead; adapter totals can include traffic excluded from classified TCP/UDP tracking.
 
-For Release builds, install `ModernTinyWall.exe` in the same directory as the matching `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this co-located modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
+For Release builds, install `ModernTinyWall.exe` in the same directory as its co-packaged `TinyWall.exe` service binary. The service checks executable paths and accepts only the legacy executable and this co-located modern client; clients from other directories are rejected. Because this check trusts those paths, the installation directory and its executables must not be writable by unprivileged users. The service must be running for classified traffic tracking.
 
 ### Blocked-connection dialogue
 
@@ -103,11 +106,11 @@ The prompt also reports whether Windows trusts the executable's embedded signatu
 | --- | --- |
 | **Allow all outbound** | Saves a permanent rule allowing this executable to connect out to any IP address or port using any protocol. It does not grant inbound access. |
 | **Deny all traffic** | Saves a permanent rule blocking both inbound and outbound traffic for this executable, not just the displayed destination. |
-| **Allow IP and port (5 min)** | Saves a temporary outbound allowance for this executable to the displayed IP address and port using the displayed protocol. It lasts five minutes and can cover multiple connection attempts, not just one. |
+| **Allow IP and port temporarily** | Saves an outbound allowance for this executable to the displayed IP address and port using the displayed protocol. It lasts for the selected duration (five minutes by default) and can cover multiple connection attempts, not just one. |
 | **Allow IP and port always** | Saves a permanent outbound allowance for this executable to the displayed IP address and port using the displayed protocol. It does not grant access to other destinations. |
 | **Deny once** | Denies this attempt without saving a rule. Later attempts may prompt again. This is also the default choice when dismissing the dialogue. |
 
-These rules apply to every process using the same executable, not just the process that triggered the prompt. Permanent allow choices replace an existing application-wide hard block for that executable; the five-minute allowance does not remove it. Other block rules can still take precedence, and existing allowances to other destinations are not revoked by a destination-specific allowance.
+These rules apply to every process using the same executable, not just the process that triggered the prompt. Permanent allow choices replace an existing application-wide hard block for that executable; a temporary allowance does not remove it. Other block rules can still take precedence, and existing allowances to other destinations are not revoked by a destination-specific allowance.
 
 **By default, the initial connection attempt is blocked before the dialogue appears**; traffic is not allowed through while you decide. After choosing an allow button, the application may need to retry or be refreshed. Existing approved rules continue to work without prompting. With the optional experimental pending-connection driver below, the original request is held instead of immediately rejected and can proceed after approval if the application has not already cancelled or timed out; unanswered requests are denied after two minutes.
 
@@ -186,7 +189,7 @@ You're welcome to hack and slash at it. Enjoy!
 
 ### To build an installer
 
-Run `.\installer\build-msi.ps1` to publish matching self-contained applications and build **separate x86 and x64 MSIs** using Visual Studio Installer Projects. Use `-Architecture win-x86` or `-Architecture win-x64` to build just one. Isolated copies of `TinyWallSetup\TinyWallSetup.vdproj` select the matching payload and MSI platform without changing the source project. Outputs are `artifacts\installer\ModernTinyWall-<version>-win-x86.msi` and `ModernTinyWall-<version>-win-x64.msi`, each with a SHA-256 sidecar. Use the x86 MSI on 32-bit Windows and the x64 MSI on x64 Windows. Each includes the catalogue seed, executable shortcuts, administrator-protected installation directory and service installation/removal actions. Building never installs or starts the service. The separate `installer\build-package.ps1` script creates ZIP staging archives for x86, x64 and ARM64, not installers. **There is no native ARM64 MSI or combined installer:** ARM64 remains a ZIP staging package because the current Visual Studio setup tooling does not provide an ARM64 MSI target. Follow the build instructions and VM checklist in [`installer/README.md`](installer/README.md).
+Run `.\installer\build-msi.ps1` to publish both self-contained applications and build **separate x86 and x64 MSIs** using Visual Studio Installer Projects. Use `-Architecture win-x86` or `-Architecture win-x64` to build just one. Isolated copies of `TinyWallSetup\TinyWallSetup.vdproj` select the matching payload and MSI platform and use the Modern TinyWall release version without changing the source project. Outputs are `artifacts\installer\ModernTinyWall-<version>-win-x86.msi` and `ModernTinyWall-<version>-win-x64.msi`, each with a SHA-256 sidecar. Use the x86 MSI on 32-bit Windows and the x64 MSI on x64 Windows. Each includes the catalogue seed, executable shortcuts, administrator-protected installation directory and service installation/removal actions. Building never installs or starts the service. The separate `installer\build-package.ps1` script creates ZIP staging archives for x86, x64 and ARM64, not installers. **There is no native ARM64 MSI or combined installer:** ARM64 remains a ZIP staging package because the current Visual Studio setup tooling does not provide an ARM64 MSI target. Follow the build instructions and VM checklist in [`installer/README.md`](installer/README.md).
 
 The `.NET 10 Desktop` GitHub Actions workflow builds and validates both MSI architectures in separate jobs on the `windows-2025-vs2026` runner, which includes Visual Studio 2026 and the Installer Projects extension. Each job uploads its architecture-specific MSI and SHA-256 file as a workflow artefact; pushes to `master` require and attach both MSIs to the GitHub release alongside the x86, x64 and ARM64 ZIP archives. The MSIs are unsigned.
 
