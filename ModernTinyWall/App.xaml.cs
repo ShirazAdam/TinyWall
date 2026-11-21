@@ -28,6 +28,8 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
         services.AddSingleton<ITinyWallExceptionStore, TinyWallExceptionStore>();
+        services.AddSingleton<IConnectionsService, ConnectionsService>();
+        services.AddSingleton<ConnectionHistoryService>();
         services.AddSingleton<FirewallPromptMonitor>();
         services.AddSingleton(_ => new SettingsPageViewModel(new SettingsService(), new MaintenanceService(),
             SettingsService.CreateFallbackSections()));

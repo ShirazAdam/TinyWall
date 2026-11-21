@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -92,5 +93,48 @@ public sealed class OptionsTests
         Assert.IsFalse(restored.ShowProtectionCard);
         Assert.IsTrue(restored.ShowConnectionsCard);
         Assert.IsFalse(restored.ShowBlockedTrafficCard);
+    }
+
+    [TestMethod]
+    public async Task ConnectionHistoryIsOptInAndHasBoundedRetentionDefaults()
+    {
+        var options = await new OptionsService(_path).LoadAsync();
+
+        Assert.IsFalse(options.CollectConnectionHistory);
+        Assert.AreEqual(30, options.ConnectionHistoryRetentionDays);
+        Assert.IsFalse(options.OnboardingComplete);
+    }
+
+    [TestMethod]
+    public async Task ConnectionHistoryAndOnboardingSettingsSurviveReload()
+    {
+        await new OptionsService(_path).UpdateAsync(options => options with
+        {
+            CollectConnectionHistory = true,
+            ConnectionHistoryRetentionDays = 90,
+            OnboardingComplete = true
+        });
+
+        var restored = await new OptionsService(_path).LoadAsync();
+
+        Assert.IsTrue(restored.CollectConnectionHistory);
+        Assert.AreEqual(90, restored.ConnectionHistoryRetentionDays);
+        Assert.IsTrue(restored.OnboardingComplete);
+    }
+
+    [TestMethod]
+    public async Task RuleTagsPersistAlongsideOtherOptions()
+    {
+        var id = Guid.NewGuid();
+        await new OptionsService(_path).UpdateAsync(options => options with
+        {
+            RuleTags = new Dictionary<Guid, string> { [id] = "Work, Browser" }
+        });
+        await new OptionsService(_path).UpdateAsync(options => options with { CloseToTray = false });
+
+        var restored = await new OptionsService(_path).LoadAsync();
+
+        Assert.AreEqual("Work, Browser", restored.RuleTags[id]);
+        Assert.IsFalse(restored.CloseToTray);
     }
 }

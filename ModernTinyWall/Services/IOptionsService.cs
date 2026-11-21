@@ -1,5 +1,6 @@
 using ModernTinyWall.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ModernTinyWall.Services;
@@ -19,4 +20,12 @@ internal sealed record ModernTinyWallOptions
     public bool ShowProtectionCard { get; init; } = true;
     public bool ShowConnectionsCard { get; init; } = true;
     public bool ShowBlockedTrafficCard { get; init; } = true;
+    public bool CollectConnectionHistory { get; init; }
+    public int ConnectionHistoryRetentionDays { get; init; } = 30;
+    public bool OnboardingComplete { get; init; }
+    public Dictionary<Guid, string> RuleTags { get; init; } = new();
+    public Dictionary<string, TablePreferences> Tables { get; init; } = new();
+    public int? WindowWidth { get; init; }
+    public int? WindowHeight { get; init; }
+    public bool WindowMaximised { get; init; }
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<OutputType>WinExe</OutputType>
-	<Version>4.7.10</Version>
+	<Version>4.7.17</Version>
 	<Product>Modern TinyWall</Product>
 	<AssemblyTitle>Modern TinyWall</AssemblyTitle>
 	<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -22,7 +22,9 @@
   <ItemGroup>
 	<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+	<PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
 	<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
+	<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -40,23 +40,10 @@
         <Border Grid.Row="3" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
-        <ListView ItemsSource="{x:Bind ViewModel.Processes, Mode=OneWay}"
-                  Background="Transparent">
-            <ListView.Header>
-                <Grid Padding="8" ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="3*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Process" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="Services" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="2" Text="Path" FontWeight="SemiBold" />
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
+        <controls:TableView x:Name="ProcessesTable" ItemsSource="{x:Bind ViewModel.Processes, Mode=OneWay}">
+            <controls:TableView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:ProcessRowViewModel">
-                    <Grid Padding="8" ColumnSpacing="12">
+                    <Grid controls:TableView.IsRow="True" Padding="8" ColumnSpacing="12">
                         <Grid.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Allow process" Command="{Binding AllowProcessCommand, ElementName=PageRoot}" CommandParameter="{x:Bind}" />
@@ -77,8 +64,8 @@
                         <TextBlock Grid.Column="2" Text="{x:Bind Path}" TextTrimming="CharacterEllipsis" />
                     </Grid>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </controls:TableView.ItemTemplate>
+        </controls:TableView>
         </Border>
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

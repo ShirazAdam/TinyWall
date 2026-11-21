@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
@@ -25,6 +26,10 @@ public sealed partial class ServicesPage : Page
         AllowServiceCommand = new AsyncRelayCommand<ServiceRowViewModel>(service => ApplyServiceExceptionAsync(service, ExceptionEntryPolicy.Allow), static service => service is not null);
         BlockServiceCommand = new AsyncRelayCommand<ServiceRowViewModel>(service => ApplyServiceExceptionAsync(service, ExceptionEntryPolicy.Block), static service => service is not null);
         InitializeComponent();
+        ServicesTable.Configure("services",
+            TableColumn.Text<ServiceRowViewModel>("name", "Display name", 300, row => row.DisplayName),
+            TableColumn.Text<ServiceRowViewModel>("serviceName", "Service name", 240, row => row.ServiceName),
+            TableColumn.Text<ServiceRowViewModel>("path", "Executable path", 440, row => row.ExecutablePath));
         Loaded += ServicesPage_Loaded;
     }
 

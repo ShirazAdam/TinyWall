@@ -2,9 +2,11 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using WinRT.Interop;
 
@@ -30,6 +32,15 @@ public sealed partial class ExceptionsPage : Page
         RemoveCommand = new AsyncRelayCommand(RemoveAsync);
         RemoveAllCommand = new AsyncRelayCommand(RemoveAllAsync);
         InitializeComponent();
+        ExceptionsList.Configure("exceptions",
+            TableColumn.Text<ExceptionRowViewModel>("name", "Application", 240, row => row.Name),
+            TableColumn.Text<ExceptionRowViewModel>("type", "Type", 110, row => row.SubjectType),
+            TableColumn.Text<ExceptionRowViewModel>("details", "Details", 280, row => row.Details),
+            TableColumn.Text<ExceptionRowViewModel>("policy", "Policy", 180, row => row.Policy),
+            TableColumn.Value<ExceptionRowViewModel, DateTime?>("created", "Created / expiry", 170, row => TableSortValues.Created(row.Created)),
+            TableColumn.Text<ExceptionRowViewModel>("review", "Review guidance", 280, row => row.ReviewFinding),
+            TableColumn.Text<ExceptionRowViewModel>("tags", "Tags", 180, row => row.Tags));
+        ExceptionsList.EnableGrouping(item => (item as ExceptionRowViewModel)?.IconPath);
         Loaded += ExceptionsPage_Loaded;
     }
 
@@ -61,7 +72,47 @@ public sealed partial class ExceptionsPage : Page
 
     private void ExceptionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ViewModel.SelectedException = (sender as ListView)?.SelectedItem as ExceptionRowViewModel;
+        ViewModel.SelectedException = ExceptionsList.SelectedItems.Count == 1
+            ? ExceptionsList.SelectedItems[0] as ExceptionRowViewModel : null;
+    }
+
+    private void TagFilter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox textBox)
+            ViewModel.SetTagFilter(textBox.Text);
+    }
+
+    private async void EditTags_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedException is not { } selected)
+        {
+            await _dialogueService.ShowMessageAsync(XamlRoot, "Edit rule tags", "Select exactly one exception.");
+            return;
+        }
+
+        var tags = new TextBox
+        {
+            Header = "Tags, separated by commas",
+            Text = selected.Tags,
+            MaxLength = 200
+        };
+        var content = new StackPanel { Spacing = 8 };
+        content.Children.Add(tags);
+        content.Children.Add(new TextBlock
+        {
+            Text = "Tags are stored only on this PC and do not affect firewall rules. Recreating a rule can remove its tags.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Edit rule tags",
+            Content = content,
+            PrimaryButtonText = "Save",
+            CloseButtonText = "Cancel"
+        };
+        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
+            await ViewModel.SetTagsAsync(selected.Id, tags.Text);
     }
 
     private async Task AddAsync()
@@ -104,7 +155,7 @@ public sealed partial class ExceptionsPage : Page
     {
         if (ViewModel.SelectedException is null)
         {
-            await _dialogueService.ShowMessageAsync(XamlRoot, "Modify exception", "Select an exception to modify.");
+            await _dialogueService.ShowMessageAsync(XamlRoot, "Modify exception", "Select exactly one exception to modify.");
             return;
         }
 
@@ -115,14 +166,16 @@ public sealed partial class ExceptionsPage : Page
 
     private async Task RemoveAsync()
     {
-        if (ViewModel.SelectedException is null)
+        var selected = ExceptionsList.SelectedItems.OfType<ExceptionRowViewModel>().ToArray();
+        if (selected.Length == 0)
         {
             await _dialogueService.ShowMessageAsync(XamlRoot, "Remove exception", "Select an exception to remove.");
             return;
         }
 
-        if (await _dialogueService.ConfirmAsync(XamlRoot, "Remove exception", "Remove the selected application exception?", "Remove"))
-            await ViewModel.RemoveSelectedAsync();
+        if (await _dialogueService.ConfirmAsync(XamlRoot, "Remove selected exceptions",
+            $"Remove {selected.Length} selected exception{(selected.Length == 1 ? string.Empty : "s")}? This may change firewall protection.", "Remove"))
+            await ViewModel.RemoveSelectedAsync(selected.Select(row => row.Id).ToArray());
     }
 
     private async Task RemoveAllAsync()

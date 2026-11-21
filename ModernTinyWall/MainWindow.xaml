@@ -22,7 +22,11 @@
         PaneTitle=""
         SelectionChanged="ShellNavigation_SelectionChanged">
         <NavigationView.PaneHeader>
-            <Grid Margin="18,16,12,28" ColumnSpacing="12">
+            <Grid Margin="18,16,12,12" ColumnSpacing="12" RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="60" />
                     <ColumnDefinition Width="*" />
@@ -33,6 +37,13 @@
                     <TextBlock Text="Modern" FontSize="19" FontWeight="SemiBold" />
                     <TextBlock Text="TinyWall" FontSize="19" FontWeight="SemiBold" />
                 </StackPanel>
+                <Button Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
+                        Click="CommandPaletteButton_Click" AutomationProperties.Name="Search pages and actions, Ctrl+K">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE721;" />
+                        <TextBlock Text="Search commands  Ctrl+K" />
+                    </StackPanel>
+                </Button>
             </Grid>
         </NavigationView.PaneHeader>
         <NavigationView.MenuItems>
@@ -42,6 +53,9 @@
             </NavigationViewItem>
             <NavigationViewItem Content="Connections" Tag="Connections" Margin="12,4">
                 <NavigationViewItem.Icon><FontIcon Glyph="&#xE968;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Activity history" Tag="ActivityHistory" Margin="12,4">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE81C;" /></NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem Content="Processes" Tag="Processes" Margin="12,4">
                 <NavigationViewItem.Icon><FontIcon Glyph="&#xE737;" /></NavigationViewItem.Icon>

@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
@@ -25,6 +26,11 @@ public sealed partial class PackagesPage : Page
         AllowPackageCommand = new AsyncRelayCommand<PackageRowViewModel>(package => ApplyPackageExceptionAsync(package, ExceptionEntryPolicy.Allow), static package => package is not null);
         BlockPackageCommand = new AsyncRelayCommand<PackageRowViewModel>(package => ApplyPackageExceptionAsync(package, ExceptionEntryPolicy.Block), static package => package is not null);
         InitializeComponent();
+        PackagesTable.Configure("packages",
+            TableColumn.Text<PackageRowViewModel>("name", "Name", 300, row => row.Name),
+            TableColumn.Text<PackageRowViewModel>("publisher", "Publisher", 360, row => row.PublisherDisplay),
+            TableColumn.Text<PackageRowViewModel>("sid", "SID", 300, row => row.Sid),
+            TableColumn.Text<PackageRowViewModel>("tampered", "Tampered", 110, row => row.Tampered));
         Loaded += PackagesPage_Loaded;
     }
 

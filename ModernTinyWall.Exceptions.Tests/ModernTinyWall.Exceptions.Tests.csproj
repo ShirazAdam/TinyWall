@@ -37,8 +37,15 @@
     <Compile Include="..\ModernTinyWall\Services\OptionsService.cs" Link="OptionsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\ProtectionModeIcon.cs" Link="ProtectionModeIcon.cs" />
     <Compile Include="..\ModernTinyWall\Services\ApplicationDetails.cs" Link="ApplicationDetails.cs" />
+    <Compile Include="..\ModernTinyWall\Services\ApplicationSignature.cs" Link="ApplicationSignature.cs" />
+    <Compile Include="..\ModernTinyWall\Services\EndpointContext.cs" Link="EndpointContext.cs" />
     <Compile Include="..\ModernTinyWall\Services\FirewallPromptBacklog.cs" Link="FirewallPromptBacklog.cs" />
     <Compile Include="..\ModernTinyWall\Models\SettingsSection.cs" Link="SettingsSection.cs" />
+    <Compile Include="..\ModernTinyWall\Models\ExceptionHealthAnalyzer.cs" Link="ExceptionHealthAnalyzer.cs" />
+    <Compile Include="..\ModernTinyWall\Models\ConnectionHistorySummary.cs" Link="ConnectionHistorySummary.cs" />
+    <Compile Include="..\ModernTinyWall\Models\TablePreferences.cs" Link="TablePreferences.cs" />
+    <Compile Include="..\ModernTinyWall\Services\IConnectionsService.cs" Link="IConnectionsService.cs" />
+    <Compile Include="..\ModernTinyWall\Services\ConnectionHistoryService.cs" Link="ConnectionHistoryService.cs" />
     <Compile Include="..\ModernTinyWall\Services\ISettingsService.cs" Link="ISettingsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\SettingsService.cs" Link="SettingsService.cs" />
     <Compile Include="..\ModernTinyWall\Services\IMaintenanceService.cs" Link="IMaintenanceService.cs" />

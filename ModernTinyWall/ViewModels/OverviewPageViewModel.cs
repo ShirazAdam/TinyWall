@@ -37,6 +37,8 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
     public string CurrentModeName { get; private set; } = "Checking...";
     public string ProtectionStatus { get; private set; } = "Checking protection";
     public string ProtectionDetail { get; private set; } = "Reading the TinyWall service state.";
+    public string ProtectionHealthMessage =>
+        $"{ProtectionStatus}: {ProtectionDetail} Traffic tracking: {_networkActivityStatus} Blocked history: {BlockedToday}. {BlockedDetail}";
     public string ActiveConnections { get; private set; } = "Checking...";
     public string ConnectionsDetail { get; private set; } = "Established IPv4 and IPv6 TCP connections.";
     public string BlockedToday { get; private set; } = "Checking...";
@@ -66,6 +68,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
                 SetCurrentMode(FirewallMode.Unknown);
                 ProtectionDetail = $"Could not read the TinyWall service state: {result.response}.";
                 OnPropertyChanged(nameof(ProtectionDetail));
+                OnPropertyChanged(nameof(ProtectionHealthMessage));
             }
         }
         catch (Exception ex)
@@ -76,6 +79,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
             SetCurrentMode(FirewallMode.Unknown);
             ProtectionDetail = $"Could not read protection status: {ex.Message}";
             OnPropertyChanged(nameof(ProtectionDetail));
+            OnPropertyChanged(nameof(ProtectionHealthMessage));
         }
         finally
         {
@@ -120,6 +124,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         }
         OnPropertyChanged(nameof(BlockedToday));
         OnPropertyChanged(nameof(BlockedDetail));
+        OnPropertyChanged(nameof(ProtectionHealthMessage));
     }
 
     private async Task RefreshActiveConnectionsAsync(int generation)
@@ -184,6 +189,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ProtectionStatus));
         OnPropertyChanged(nameof(ProtectionDetail));
         OnPropertyChanged(nameof(ProtectionBrush));
+        OnPropertyChanged(nameof(ProtectionHealthMessage));
     }
 
     public OverviewPageViewModel()
@@ -345,6 +351,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
 
             _networkActivityStatus = snapshot.Warning ?? "Internet and local TCP/UDP traffic";
             OnPropertyChanged(nameof(NetworkActivityStatus));
+            OnPropertyChanged(nameof(ProtectionHealthMessage));
             OnPropertyChanged(nameof(TrafficSourceLabel));
         }
         catch (Exception ex)
@@ -394,6 +401,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
                 _networkActivityStatus = $"Traffic unavailable: {ex.Message} Adapter counters: {adapterError.Message}";
             }
             OnPropertyChanged(nameof(NetworkActivityStatus));
+            OnPropertyChanged(nameof(ProtectionHealthMessage));
             OnPropertyChanged(nameof(TrafficSourceLabel));
         }
         finally
@@ -417,6 +425,7 @@ public sealed class OverviewPageViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(TotalDownloadRate));
         OnPropertyChanged(nameof(TotalUploadRate));
         OnPropertyChanged(nameof(NetworkActivityStatus));
+        OnPropertyChanged(nameof(ProtectionHealthMessage));
         OnPropertyChanged(nameof(TrafficSourceLabel));
     }
 

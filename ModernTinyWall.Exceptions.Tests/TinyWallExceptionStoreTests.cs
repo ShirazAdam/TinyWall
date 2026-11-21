@@ -51,6 +51,52 @@ public sealed class TinyWallExceptionStoreTests
     }
 
     [TestMethod]
+    public async Task BulkRemovalRemovesOnlySelectedExceptions()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var first = new FirewallExceptionV3(new ExecutableSubject(@"C:\first.exe"), HardBlockPolicy.Instance);
+        var second = new FirewallExceptionV3(new ExecutableSubject(@"C:\second.exe"), HardBlockPolicy.Instance);
+        var third = new FirewallExceptionV3(new ExecutableSubject(@"C:\third.exe"), HardBlockPolicy.Instance);
+        client.Config.ActiveProfile.AppExceptions.AddRange([first, second, third]);
+
+        var result = await new TinyWallExceptionStore(client).RemoveExceptionsAsync([first.Id, third.Id]);
+
+        Assert.IsTrue(result.Success);
+        Assert.IsTrue(client.SetConfigCalled);
+        Assert.HasCount(1, client.Config.ActiveProfile.AppExceptions);
+        Assert.AreEqual(second.Id, client.Config.ActiveProfile.AppExceptions[0].Id);
+    }
+
+    [TestMethod]
+    public async Task BulkRemovalRejectsStaleSelectionWithoutSaving()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var first = new FirewallExceptionV3(new ExecutableSubject(@"C:\first.exe"), HardBlockPolicy.Instance);
+        client.Config.ActiveProfile.AppExceptions.Add(first);
+
+        var result = await new TinyWallExceptionStore(client).RemoveExceptionsAsync([first.Id, Guid.NewGuid()]);
+
+        Assert.IsFalse(result.Success);
+        Assert.IsFalse(client.SetConfigCalled);
+        Assert.HasCount(1, client.Config.ActiveProfile.AppExceptions);
+    }
+
+    [TestMethod]
+    public async Task EditingExceptionPreservesIdentityForLocalTags()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var original = new FirewallExceptionV3(new ExecutableSubject(@"C:\first.exe"), HardBlockPolicy.Instance);
+        client.Config.ActiveProfile.AppExceptions.Add(original);
+
+        var result = await new TinyWallExceptionStore(client).UpdateExceptionAsync(original.Id,
+            new ExceptionEditRequest("Executable", "first", @"C:\first.exe", "Unrestricted"));
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(original.Id, client.Config.ActiveProfile.AppExceptions[0].Id);
+        Assert.IsInstanceOfType<UnrestrictedPolicy>(client.Config.ActiveProfile.AppExceptions[0].Policy);
+    }
+
+    [TestMethod]
     public async Task ApplyEntryActionWhenDuplicateIsReplacedThenUpdatesPolicy()
     {
         const string executablePath = @"C:\Program Files\App\app.exe";
@@ -126,6 +172,36 @@ public sealed class TinyWallExceptionStoreTests
         Assert.AreEqual(Protocol.TCP, rule.Protocol);
         Assert.AreEqual("203.0.113.8", rule.RemoteAddresses);
         Assert.AreEqual("443", rule.RemotePorts);
+    }
+
+    [TestMethod]
+    [DataRow(AppExceptionTimer.FOR_30_MINUTES)]
+    [DataRow(AppExceptionTimer.FOR_1_HOUR)]
+    [DataRow(AppExceptionTimer.FOR_24_HOURS)]
+    [DataRow(AppExceptionTimer.UNTIL_REBOOT)]
+    public async Task ApplyFirewallPromptUsesSelectedTemporaryDuration(AppExceptionTimer duration)
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(
+            CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowOnce, duration);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(duration, client.Config.ActiveProfile.AppExceptions[0].Timer);
+    }
+
+    [TestMethod]
+    public async Task ApplyFirewallPromptRejectsUnsupportedTemporaryDuration()
+    {
+        var client = new FakeExceptionSettingsClient(MessageType.GET_SETTINGS);
+        var store = new TinyWallExceptionStore(client);
+
+        var result = await store.ApplyFirewallPromptDecisionAsync(
+            CreateBlockedOutboundEntry(), FirewallPromptDecision.AllowOnce, AppExceptionTimer.Permanent);
+
+        Assert.IsFalse(result.Success);
+        Assert.IsFalse(client.SetConfigCalled);
     }
 
     [TestMethod]

@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
+using ModernTinyWall.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +17,7 @@ namespace ModernTinyWall.ViewModels;
 internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
 {
     private readonly ITinyWallExceptionStore _exceptionStore;
+    private readonly IOptionsService _optionsService = new OptionsService();
     private readonly AsyncRelayCommand _refreshCommand;
     private readonly AsyncRelayCommand _clearCommand;
     private bool _isRefreshing;
@@ -25,6 +28,9 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     private string _subjectTypeFilter = "All types";
     private string _policyFilter = "All policies";
     private int _ageDaysFilter;
+    private string _healthSummary = "Load exceptions to review rule health.";
+    private string _tagFilter = string.Empty;
+    private IReadOnlyDictionary<Guid, string> _ruleTags = new Dictionary<Guid, string>();
 
     public ExceptionsPageViewModel()
         : this(App.Services.GetRequiredService<ITinyWallExceptionStore>())
@@ -120,12 +126,55 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         private set => SetField(ref _statusMessage, value);
     }
 
+    public string HealthSummary
+    {
+        get => _healthSummary;
+        private set => SetField(ref _healthSummary, value);
+    }
+
     public void SetFilters(string subjectType, string policy, int ageDays)
     {
         _subjectTypeFilter = subjectType;
         _policyFilter = policy;
         _ageDaysFilter = ageDays;
         ApplyFilters();
+    }
+
+    public void SetTagFilter(string tag)
+    {
+        _tagFilter = tag.Trim();
+        ApplyFilters();
+    }
+
+    public async Task SetTagsAsync(Guid id, string tags)
+    {
+        var normalised = string.Join(", ", tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase));
+        if (normalised.Length > 200)
+        {
+            StatusMessage = "Rule tags must be 200 characters or fewer.";
+            return;
+        }
+
+        try
+        {
+            await _optionsService.UpdateAsync(options =>
+            {
+                var updated = new Dictionary<Guid, string>(options.RuleTags);
+                if (normalised.Length == 0)
+                    updated.Remove(id);
+                else
+                    updated[id] = normalised;
+                return options with { RuleTags = updated };
+            });
+            _ruleTags = (await _optionsService.LoadAsync()).RuleTags;
+            ApplyFilters();
+            StatusMessage = "Rule tags saved on this PC.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Could not save rule tags: {ex.Message}";
+        }
     }
 
     public async Task RefreshAsync(string searchText)
@@ -137,6 +186,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         try
         {
             var rows = await _exceptionStore.GetExceptionsAsync(new ExceptionQuery(searchText));
+            _ruleTags = (await _optionsService.LoadAsync()).RuleTags;
             _allExceptions = rows.Select(ExceptionRowViewModel.FromModel).ToArray();
             SelectedException = null;
             ApplyFilters();
@@ -145,6 +195,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         {
             _allExceptions = [];
             Exceptions.Clear();
+            HealthSummary = "Rule health is unavailable until exceptions can be read.";
             StatusMessage = $"Could not refresh application exceptions: {ex.Message}";
         }
         finally
@@ -156,9 +207,25 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     private void ApplyFilters()
     {
         var cutoff = _ageDaysFilter == 0 ? (DateTime?)null : DateTime.Now.AddDays(-_ageDaysFilter);
-        var matching = _allExceptions.Where(row =>
+        var duplicateSubjects = _allExceptions
+            .GroupBy(row => $"{row.SubjectType}\0{row.Details}", StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var reviewed = _allExceptions.Select(row => row with
+        {
+            Tags = _ruleTags.TryGetValue(row.Id, out var tags) ? tags : string.Empty,
+            ReviewFinding = ExceptionHealthAnalyzer.GetFinding(
+                new ExceptionRow(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created),
+                duplicateSubjects.Contains($"{row.SubjectType}\0{row.Details}"))
+        }).ToArray();
+        var findingsCount = reviewed.Count(row => row.ReviewFinding.Length > 0);
+        HealthSummary = ExceptionHealthAnalyzer.CreateSummary(findingsCount);
+
+        var matching = reviewed.Where(row =>
             (_subjectTypeFilter == "All types" || row.SubjectType == _subjectTypeFilter) &&
             MatchesPolicy(row.Policy, _policyFilter) &&
+            (_tagFilter.Length == 0 || row.Tags.Contains(_tagFilter, StringComparison.CurrentCultureIgnoreCase)) &&
             (cutoff is null || (DateTime.TryParseExact(row.Created, "yyyy/MM/dd HH:mm",
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var created) && created >= cutoff)));
 
@@ -235,21 +302,15 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task RemoveSelectedAsync()
+    public async Task RemoveSelectedAsync(IReadOnlyCollection<Guid> ids)
     {
-        if (SelectedException is null)
-        {
-            StatusMessage = "Select an exception to remove.";
-            return;
-        }
-
         IsRefreshing = true;
         try
         {
-            var result = await _exceptionStore.RemoveExceptionAsync(SelectedException.Id);
-            StatusMessage = result.Message;
+            var result = await _exceptionStore.RemoveExceptionsAsync(ids);
             if (result.Success)
                 await RefreshAsync(SearchText);
+            StatusMessage = result.Message;
         }
         finally
         {
@@ -293,7 +354,7 @@ internal sealed class ExceptionsPageViewModel : INotifyPropertyChanged
     }
 }
 
-internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created, string IconPath, string PackageFamilyName)
+internal sealed record ExceptionRowViewModel(Guid Id, string Name, string SubjectType, string Details, string Policy, string Created, string IconPath, string PackageFamilyName, string Duration, string ReviewFinding = "", string Tags = "")
 {
     public string PolicyScope
     {
@@ -318,6 +379,6 @@ internal sealed record ExceptionRowViewModel(Guid Id, string Name, string Subjec
 
     public static ExceptionRowViewModel FromModel(ExceptionRow row)
     {
-        return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created, row.IconPath, row.PackageFamilyName);
+        return new ExceptionRowViewModel(row.Id, row.Name, row.SubjectType, row.Details, row.Policy, row.Created, row.IconPath, row.PackageFamilyName, row.Duration);
     }
 }

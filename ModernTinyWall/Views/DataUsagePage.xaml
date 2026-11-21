@@ -34,14 +34,6 @@
                 <ComboBoxItem Content="Last 30 days" />
                 <ComboBoxItem Content="All time" />
             </ComboBox>
-            <ComboBox Header="Sort by" SelectedIndex="{x:Bind ViewModel.SortIndex, Mode=TwoWay}" MinWidth="180">
-                <ComboBoxItem Content="Total (highest first)" />
-                <ComboBoxItem Content="Application path" />
-                <ComboBoxItem Content="Internet incoming" />
-                <ComboBoxItem Content="Internet outgoing" />
-                <ComboBoxItem Content="Local incoming" />
-                <ComboBoxItem Content="Local outgoing" />
-            </ComboBox>
         </StackPanel>
         <StackPanel Grid.Row="3" Spacing="6">
             <Grid ColumnSpacing="8">
@@ -59,38 +51,11 @@
         <Border Grid.Row="4" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
-        <ListView ItemsSource="{x:Bind ViewModel.Applications}"
-                  SelectionMode="None" HorizontalContentAlignment="Stretch"
-                  ScrollViewer.HorizontalScrollMode="Enabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                  AutomationProperties.Name="Application data usage"
-                  Background="Transparent">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.Header>
-                <Grid MinWidth="1000" Padding="8" ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="300" />
-                        <ColumnDefinition Width="128" />
-                        <ColumnDefinition Width="128" />
-                        <ColumnDefinition Width="128" />
-                        <ColumnDefinition Width="128" />
-                        <ColumnDefinition Width="128" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Application" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="Total" FontWeight="SemiBold" TextAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text="Internet incoming" FontWeight="SemiBold" TextAlignment="Right" />
-                    <TextBlock Grid.Column="3" Text="Internet outgoing" FontWeight="SemiBold" TextAlignment="Right" />
-                    <TextBlock Grid.Column="4" Text="Local incoming" FontWeight="SemiBold" TextAlignment="Right" />
-                    <TextBlock Grid.Column="5" Text="Local outgoing" FontWeight="SemiBold" TextAlignment="Right" />
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
+        <controls:TableView x:Name="UsageTable" ItemsSource="{x:Bind ViewModel.Applications}"
+                            SelectionMode="None" AutomationProperties.Name="Application data usage">
+            <controls:TableView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:DataUsageRow">
-                    <Grid MinWidth="1000" Padding="8" ColumnSpacing="12">
+                    <Grid controls:TableView.IsRow="True" Padding="8" ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" MinWidth="300" />
                             <ColumnDefinition Width="128" />
@@ -115,8 +80,8 @@
                         <TextBlock Grid.Column="5" Text="{x:Bind LocalSent}" TextAlignment="Right" VerticalAlignment="Center" />
                     </Grid>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </controls:TableView.ItemTemplate>
+        </controls:TableView>
         </Border>
         <TextBlock Grid.Row="5" TextWrapping="Wrap"
                    Text="TCP/UDP traffic recorded by the TinyWall service. Private, loopback, link-local, shared-address and multicast/broadcast destinations count as Local, including private-address VPN traffic. Periods include today and use local calendar days. History starts when tracking is enabled; it does not include earlier usage." />

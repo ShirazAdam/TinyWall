@@ -80,13 +80,39 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         {
             var index = config.ActiveProfile.AppExceptions.FindIndex(ex => ex.Id == exceptionId);
             if (index >= 0)
-                config.ActiveProfile.AppExceptions[index] = CreateException(request);
+            {
+                var updated = CreateException(request);
+                updated.Id = exceptionId;
+                config.ActiveProfile.AppExceptions[index] = updated;
+            }
         }, ExceptionStoreStrings.ExceptionUpdated, cancellationToken), cancellationToken);
     }
 
     public Task<ExceptionMutationResult> RemoveExceptionAsync(Guid exceptionId, CancellationToken cancellationToken = default)
     {
         return Task.Run(() => MutateExceptions(config => config.ActiveProfile.AppExceptions.RemoveAll(ex => ex.Id == exceptionId), ExceptionStoreStrings.ExceptionRemoved, cancellationToken), cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> RemoveExceptionsAsync(IReadOnlyCollection<Guid> exceptionIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(exceptionIds);
+        var ids = exceptionIds.ToHashSet();
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (ids.Count == 0)
+                return new ExceptionMutationResult(false, "Select at least one exception to remove.");
+
+            var changeset = Guid.Empty;
+            var response = _controller.GetServerConfig(out var config, out _, ref changeset);
+            if (response != MessageType.GET_SETTINGS || config is null)
+                return new ExceptionMutationResult(false, ExceptionStoreStrings.CouldNotLoadSettings);
+            if (config.ActiveProfile.AppExceptions.Count(ex => ids.Contains(ex.Id)) != ids.Count)
+                return new ExceptionMutationResult(false, "The selected exceptions have changed. Refresh and try again.");
+            config.ActiveProfile.AppExceptions.RemoveAll(ex => ids.Contains(ex.Id));
+            cancellationToken.ThrowIfCancellationRequested();
+            return SaveExceptions(config, changeset, $"{ids.Count} selected exception{(ids.Count == 1 ? string.Empty : "s")} removed.");
+        }, cancellationToken);
     }
 
     public Task<ExceptionMutationResult> RemoveAllExceptionsAsync(CancellationToken cancellationToken = default)
@@ -96,7 +122,14 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
 
     public Task<ExceptionMutationResult> ApplyFirewallPromptDecisionAsync(FirewallLogEntry entry, FirewallPromptDecision decision, CancellationToken cancellationToken = default)
     {
-        return Task.Run(() => ApplyFirewallPromptDecision(entry, decision, cancellationToken), cancellationToken);
+        return ApplyFirewallPromptDecisionAsync(entry, decision, AppExceptionTimer.FOR_5_MINUTES, cancellationToken);
+    }
+
+    public Task<ExceptionMutationResult> ApplyFirewallPromptDecisionAsync(
+        FirewallLogEntry entry, FirewallPromptDecision decision, AppExceptionTimer temporaryDuration,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => ApplyFirewallPromptDecision(entry, decision, temporaryDuration, cancellationToken), cancellationToken);
     }
 
     private List<ExceptionRow> BuildExceptions(ExceptionQuery query, CancellationToken cancellationToken)
@@ -205,7 +238,9 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         return SaveExceptions(serviceConfig, changeset, ExceptionStoreStrings.ExceptionApplied(GetPolicyDisplayName(request.Policy)));
     }
 
-    private ExceptionMutationResult ApplyFirewallPromptDecision(FirewallLogEntry entry, FirewallPromptDecision decision, CancellationToken cancellationToken)
+    private ExceptionMutationResult ApplyFirewallPromptDecision(
+        FirewallLogEntry entry, FirewallPromptDecision decision, AppExceptionTimer temporaryDuration,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -217,13 +252,22 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
         if (decision == FirewallPromptDecision.DenyOnce)
             return new ExceptionMutationResult(true, ExceptionStoreStrings.ConnectionDeniedOnce);
 
+        if (decision == FirewallPromptDecision.AllowOnce
+            && temporaryDuration is not (AppExceptionTimer.FOR_5_MINUTES or AppExceptionTimer.FOR_30_MINUTES
+                or AppExceptionTimer.FOR_1_HOUR or AppExceptionTimer.FOR_4_HOURS
+                or AppExceptionTimer.FOR_9_HOURS or AppExceptionTimer.FOR_24_HOURS
+                or AppExceptionTimer.UNTIL_REBOOT))
+        {
+            return new ExceptionMutationResult(false, "Choose a supported temporary allowance duration.");
+        }
+
         var subject = new ExecutableSubject(path);
         var exception = decision switch
         {
             FirewallPromptDecision.DenyAlways => new FirewallExceptionV3(subject, HardBlockPolicy.Instance),
-            FirewallPromptDecision.AllowAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: false, specificDestination: false),
-            FirewallPromptDecision.AllowDestinationAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: false),
-            FirewallPromptDecision.AllowOnce => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporary: true),
+            FirewallPromptDecision.AllowAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporaryDuration: null, specificDestination: false),
+            FirewallPromptDecision.AllowDestinationAlways => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporaryDuration: null),
+            FirewallPromptDecision.AllowOnce => CreateConnectionException(subject, entry, remoteAddress.ToString(), temporaryDuration),
             _ => throw new ArgumentOutOfRangeException(nameof(decision))
         };
 
@@ -244,7 +288,7 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
             },
             decision switch
             {
-                FirewallPromptDecision.AllowOnce => ExceptionStoreStrings.ConnectionAllowedOnce,
+                FirewallPromptDecision.AllowOnce => $"Connection allowance saved for {DescribeDuration(temporaryDuration)}.",
                 FirewallPromptDecision.AllowAlways => ExceptionStoreStrings.ConnectionAllowedAlways,
                 FirewallPromptDecision.AllowDestinationAlways => ExceptionStoreStrings.ConnectionDestinationAllowedAlways,
                 FirewallPromptDecision.DenyAlways => ExceptionStoreStrings.ConnectionDeniedAlways,
@@ -253,7 +297,9 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
             cancellationToken);
     }
 
-    private static FirewallExceptionV3 CreateConnectionException(ExecutableSubject subject, FirewallLogEntry entry, string remoteAddress, bool temporary, bool specificDestination = true)
+    private static FirewallExceptionV3 CreateConnectionException(
+        ExecutableSubject subject, FirewallLogEntry entry, string remoteAddress,
+        AppExceptionTimer? temporaryDuration, bool specificDestination = true)
     {
         var exception = new FirewallExceptionV3(subject, new RuleListPolicy
         {
@@ -267,11 +313,23 @@ public sealed class TinyWallExceptionStore : ITinyWallExceptionStore
             ]
         });
 
-        if (temporary)
-            exception.Timer = AppExceptionTimer.FOR_5_MINUTES;
+        if (temporaryDuration is { } duration)
+            exception.Timer = duration;
 
         return exception;
     }
+
+    private static string DescribeDuration(AppExceptionTimer duration) => duration switch
+    {
+        AppExceptionTimer.UNTIL_REBOOT => "until restart",
+        AppExceptionTimer.FOR_5_MINUTES => "5 minutes",
+        AppExceptionTimer.FOR_30_MINUTES => "30 minutes",
+        AppExceptionTimer.FOR_1_HOUR => "1 hour",
+        AppExceptionTimer.FOR_4_HOURS => "4 hours",
+        AppExceptionTimer.FOR_9_HOURS => "9 hours",
+        AppExceptionTimer.FOR_24_HOURS => "24 hours",
+        _ => "the selected duration"
+    };
 
     private static FirewallExceptionV3? FindExistingException(ServerConfiguration config, ExceptionSubject subject)
     {

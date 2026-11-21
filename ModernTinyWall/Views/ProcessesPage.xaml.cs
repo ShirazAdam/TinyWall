@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
@@ -25,6 +26,11 @@ public sealed partial class ProcessesPage : Page
         AllowProcessCommand = new AsyncRelayCommand<ProcessRowViewModel>(process => ApplyProcessExceptionAsync(process, ExceptionEntryPolicy.Allow), static process => process is not null);
         BlockProcessCommand = new AsyncRelayCommand<ProcessRowViewModel>(process => ApplyProcessExceptionAsync(process, ExceptionEntryPolicy.Block), static process => process is not null);
         InitializeComponent();
+        ProcessesTable.Configure("processes",
+            TableColumn.Text<ProcessRowViewModel>("name", "Process", 300, row => row.ProcessName),
+            TableColumn.Text<ProcessRowViewModel>("services", "Services", 240, row => row.Services),
+            TableColumn.Text<ProcessRowViewModel>("path", "Path", 440, row => row.Path));
+        ProcessesTable.EnableGrouping(item => (item as ProcessRowViewModel)?.Path, TableGrouping.WithoutProcessId);
         Loaded += ProcessesPage_Loaded;
     }
 

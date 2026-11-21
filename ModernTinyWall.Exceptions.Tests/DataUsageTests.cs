@@ -239,6 +239,25 @@ public sealed class DataUsageTests
     }
 
     [TestMethod]
+    public async Task CsvExportPreservesSuppliedVisibleRowOrder()
+    {
+        var viewModel = new DataUsagePageViewModel(_ => Task.FromResult(new DataUsageSnapshot([
+            new(@"C:\Apps\Alpha.exe", 100, 0, 0, 0),
+            new(@"C:\Apps\Zulu.exe", 10, 0, 0, 0)
+        ], null, null, null)));
+        await viewModel.RefreshAsync();
+
+        var csv = viewModel.CreateCsv(viewModel.Applications.Reverse());
+
+        var lines = csv.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        StringAssert.StartsWith(lines[1], "\"Zulu.exe\",");
+        StringAssert.StartsWith(lines[2], "\"Alpha.exe\",");
+        Assert.AreEqual("Alpha.exe", viewModel.Applications[0].Application);
+        StringAssert.Contains(csv, ",100,100,0,0,0");
+        StringAssert.Contains(csv, ",10,10,0,0,0");
+    }
+
+    [TestMethod]
     public async Task UnchangedUsageDoesNotRebuildRows()
     {
         ApplicationDataUsage[] applications = [

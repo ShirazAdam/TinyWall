@@ -66,6 +66,7 @@ internal sealed partial class TrayIconService : ITrayIconService
     private string? _iconPath;
     private bool _isVisible;
     private const string TooltipText = "Modern TinyWall";
+    private string _statusTooltip = TooltipText;
     private readonly Dictionary<uint, string> _menuCommandMap = [];
     private TrayStateSnapshot _snapshot = new("Traffic rate unavailable", "unknown", false, false, false);
     private IntPtr _activeMenu;
@@ -181,7 +182,8 @@ internal sealed partial class TrayIconService : ITrayIconService
         try
         {
             _menuCommandMap.Clear();
-            AppendMenuItem(menu, 100, _snapshot.TrafficText, enabled: false);
+            AppendMenuItem(menu, 100, _statusTooltip, enabled: false);
+            AppendMenuItem(menu, 101, _snapshot.TrafficText, enabled: false);
             AppendMenuSeparator(menu);
             AppendMenuItem(menu, 200, "Mode: Normal protection", "normal", isChecked: _snapshot.ModeId == "normal");
             AppendMenuItem(menu, 201, "Mode: Block all", "blockAll", isChecked: _snapshot.ModeId == "blockAll");
@@ -193,6 +195,7 @@ internal sealed partial class TrayIconService : ITrayIconService
             AppendMenuItem(menu, 301, "Data usage", "dataUsage");
             AppendMenuItem(menu, 302, "Manage settings", "settings");
             AppendMenuItem(menu, 303, "Show connections", "connections");
+            AppendMenuItem(menu, 309, "Activity history", "activityHistory");
             AppendMenuItem(menu, 304, "Show processes", "processes");
             AppendMenuItem(menu, 305, "Show services", "services");
             AppendMenuItem(menu, 306, "Show UWP packages", "packages");
@@ -315,6 +318,15 @@ internal sealed partial class TrayIconService : ITrayIconService
 
     public void SetStatus(string tooltip)
     {
+        var status = string.IsNullOrWhiteSpace(tooltip) ? "Ready" : tooltip.Trim();
+        _statusTooltip = $"{TooltipText}: {status}";
+        if (_statusTooltip.Length > 127)
+        {
+            var length = 127;
+            if (char.IsHighSurrogate(_statusTooltip[length - 1]))
+                length--;
+            _statusTooltip = _statusTooltip[..length];
+        }
         if (_isVisible)
             _ = UpdateIcon(NimModify, _iconHandle);
     }
@@ -362,7 +374,7 @@ internal sealed partial class TrayIconService : ITrayIconService
 
         unsafe
         {
-            CopyString(data.szTip, 128, TooltipText);
+            CopyString(data.szTip, 128, _statusTooltip);
             return Shell_NotifyIcon(message, &data);
         }
     }

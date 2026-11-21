@@ -40,25 +40,10 @@
         <Border Grid.Row="3" BorderBrush="{ThemeResource ModernBorderBrush}"
                 BorderThickness="1" CornerRadius="12"
                 Background="{ThemeResource ModernSurfaceBrush}">
-        <ListView ItemsSource="{x:Bind ViewModel.Packages, Mode=OneWay}"
-                  Background="Transparent">
-            <ListView.Header>
-                <Grid Padding="8" ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Name" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="Publisher" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="2" Text="SID" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="3" Text="Tampered" FontWeight="SemiBold" />
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
+        <controls:TableView x:Name="PackagesTable" ItemsSource="{x:Bind ViewModel.Packages, Mode=OneWay}">
+            <controls:TableView.ItemTemplate>
                 <DataTemplate x:DataType="viewModels:PackageRowViewModel">
-                    <Grid Padding="8" ColumnSpacing="12">
+                    <Grid controls:TableView.IsRow="True" Padding="8" ColumnSpacing="12">
                         <Grid.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Allow package" Command="{Binding AllowPackageCommand, ElementName=PageRoot}" CommandParameter="{x:Bind}" />
@@ -81,8 +66,8 @@
                         <TextBlock Grid.Column="3" Text="{x:Bind Tampered}" />
                     </Grid>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </controls:TableView.ItemTemplate>
+        </controls:TableView>
         </Border>
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

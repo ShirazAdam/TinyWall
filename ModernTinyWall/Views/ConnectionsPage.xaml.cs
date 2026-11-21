@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Extensions.DependencyInjection;
 using ModernTinyWall.Exceptions;
+using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using ModernTinyWall.ViewModels;
 using System;
@@ -21,6 +22,16 @@ public sealed partial class ConnectionsPage : Page
     public ConnectionsPage()
     {
         InitializeComponent();
+        ConnectionsList.Configure("connections",
+            TableColumn.Text<ConnectionRowViewModel>("name", "Application", 300, row => row.Application),
+            TableColumn.Text<ConnectionRowViewModel>("protocol", "Protocol", 85, row => row.Protocol),
+            TableColumn.Value<ConnectionRowViewModel, int?>("localPort", "Local port", 90, row => TableSortValues.Port(row.LocalPort), display: row => row.LocalPort),
+            TableColumn.Text<ConnectionRowViewModel>("localAddress", "Local address", 170, row => row.LocalAddress),
+            TableColumn.Value<ConnectionRowViewModel, int?>("remotePort", "Remote port", 95, row => TableSortValues.Port(row.RemotePort), display: row => row.RemotePort),
+            TableColumn.Text<ConnectionRowViewModel>("remoteAddress", "Remote address", 170, row => row.RemoteAddress),
+            TableColumn.Text<ConnectionRowViewModel>("state", "State", 110, row => row.State),
+            TableColumn.Text<ConnectionRowViewModel>("direction", "Direction", 100, row => row.Direction));
+        ConnectionsList.EnableGrouping(item => (item as ConnectionRowViewModel)?.ExecutablePath, TableGrouping.WithoutProcessId);
         Loaded += ConnectionsPage_Loaded;
     }
 
@@ -85,6 +96,7 @@ public sealed partial class ConnectionsPage : Page
         AddDetail(content, "State", connection.State);
         AddDetail(content, "Local endpoint", $"{connection.LocalAddress}:{connection.LocalPort}");
         AddDetail(content, "Remote endpoint", $"{connection.RemoteAddress}:{connection.RemotePort}");
+        AddDetail(content, "Remote address context", EndpointContext.Describe(connection.RemoteAddress));
         content.Children.Add(new TextBlock
         {
             Text = "Matching application exceptions",

@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Input;
 using ModernTinyWall.Exceptions;
 using ModernTinyWall.Models;
 using ModernTinyWall.Services;
@@ -21,6 +22,7 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
 using Windows.UI.ViewManagement;
+using Windows.System;
 using WinRT.Interop;
 
 namespace ModernTinyWall;
@@ -33,6 +35,7 @@ public sealed partial class MainWindow
     private readonly IOptionsService _optionsService = new OptionsService();
     private readonly FirewallPromptMonitor _firewallPromptMonitor = App.Services.GetRequiredService<FirewallPromptMonitor>();
     private readonly ITinyWallExceptionStore _exceptionStore = App.Services.GetRequiredService<ITinyWallExceptionStore>();
+    private readonly ConnectionHistoryService _connectionHistoryService = App.Services.GetRequiredService<ConnectionHistoryService>();
     private readonly GlobalHotkeyService _globalHotkeyService = new();
     private readonly FirewallPromptBacklog _firewallPromptBacklog = new();
     private readonly CancellationTokenSource _promptMonitoringCancellation = new();
@@ -48,10 +51,15 @@ public sealed partial class MainWindow
     private readonly UISettings _uiSettings = new();
     private Type? _pendingPageType;
     private bool _isNavigating;
+    private bool _hasCheckedOnboarding;
     private CancellationTokenSource? _navigationFadeCancellation;
     private readonly DispatcherTimer _protectionModeTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private FirewallMode? _displayedProtectionMode = FirewallMode.Unknown;
     private int _protectionModeRefreshInProgress;
+    private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _windowSizeSaveTimer;
+    private global::Windows.Graphics.SizeInt32 _preferredWindowSize = WindowPlacement.DefaultSize;
+    private bool _startMaximised;
+    private bool _isApplyingWindowSize;
 
     internal event Action<bool>? WindowVisibilityChanged;
 
@@ -68,29 +76,51 @@ public sealed partial class MainWindow
         _windowHandle = WindowNative.GetWindowHandle(this);
         AppWindow.SetIcon(ProtectionModeIcon.GetPath(FirewallMode.Unknown));
         SetSidebarProtectionIcon(FirewallMode.Unknown);
+        _windowSizeSaveTimer = DispatcherQueue.CreateTimer();
+        _windowSizeSaveTimer.Interval = TimeSpan.FromMilliseconds(500);
+        _windowSizeSaveTimer.IsRepeating = false;
+        _windowSizeSaveTimer.Tick += WindowSizeSaveTimer_Tick;
+        LoadSavedWindowSize();
         CentreOnScreen();
+        AppWindow.Changed += AppWindow_Changed;
         ShellRoot.Loaded += ShellRoot_Loaded;
         _windowProc = WndProc;
         _previousWindowProc = SetWindowLongPtr(_windowHandle, GwlpWndproc, Marshal.GetFunctionPointerForDelegate(_windowProc));
         _trayIconService.CommandInvoked += TrayIconService_CommandInvoked;
         _trayIconService.Initialise(_windowHandle);
+        _connectionHistoryService.SetWindowVisible(_isWindowVisible);
+        _ = ConfigureConnectionHistoryAsync();
+        var paletteAccelerator = new KeyboardAccelerator
+        {
+            Key = VirtualKey.K,
+            Modifiers = VirtualKeyModifiers.Control
+        };
+        paletteAccelerator.Invoked += (sender, args) =>
+        {
+            args.Handled = true;
+            _ = ShowCommandPaletteAsync();
+        };
+        ShellRoot.KeyboardAccelerators.Add(paletteAccelerator);
         _protectionModeTimer.Tick += ProtectionModeTimer_Tick;
         _protectionModeTimer.Start();
         RefreshProtectionModeInBackground();
         _globalHotkeyService.HotkeyPressed += GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Initialise(_windowHandle);
-        _trayIconService.SetStatus("Modern TinyWall firewall controls");
+        _trayIconService.SetStatus("Firewall controls ready");
         Closed += MainWindow_Closed;
         ContentFrame.Navigate(typeof(OverviewPage));
         _ = MonitorFirewallEventsAsync(_promptMonitoringCancellation.Token);
         _ = ConsumeFirewallPromptsAsync(_promptMonitoringCancellation.Token);
     }
 
-    private void ShellRoot_Loaded(object sender, RoutedEventArgs args)
+    private async void ShellRoot_Loaded(object sender, RoutedEventArgs args)
     {
         ShellRoot.Loaded -= ShellRoot_Loaded;
         // Reapply once the first show has established the monitor's DPI.
         CentreOnScreen();
+        if (_startMaximised && AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            presenter.Maximize();
+        await ShowOnboardingIfNeededAsync();
         if (App.PreviewOptions.BlockedConnectionDialog)
         {
             _ = ShowFirewallPromptAsync(new FirewallLogEntry
@@ -107,13 +137,105 @@ public sealed partial class MainWindow
     {
         var display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
             AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest);
-        AppWindow.MoveAndResize(WindowPlacement.Centre(display.WorkArea,
-            new global::Windows.Graphics.SizeInt32(App.PreviewOptions.Width ?? 1536, App.PreviewOptions.Height ?? 1024)));
+        _isApplyingWindowSize = true;
+        try
+        {
+            AppWindow.MoveAndResize(WindowPlacement.Centre(display.WorkArea,
+                new global::Windows.Graphics.SizeInt32(
+                    App.PreviewOptions.Width ?? _preferredWindowSize.Width,
+                    App.PreviewOptions.Height ?? _preferredWindowSize.Height)));
+        }
+        finally
+        {
+            _isApplyingWindowSize = false;
+        }
+    }
+
+    private void LoadSavedWindowSize()
+    {
+        if (App.PreviewOptions.Width is not null || App.PreviewOptions.Height is not null)
+            return;
+
+        try
+        {
+            // Options I/O never resumes on the UI thread, so this cannot deadlock and avoids a visible resize after showing.
+            var options = _optionsService.LoadAsync().GetAwaiter().GetResult();
+            _preferredWindowSize = WindowPlacement.ResolvePreferredSize(options.WindowWidth, options.WindowHeight);
+            _startMaximised = options.WindowMaximised;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not load the saved window size: {ex.Message}");
+        }
+    }
+
+    private void AppWindow_Changed(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
+    {
+        if (_isTerminating || _isApplyingWindowSize || !(args.DidSizeChange || args.DidPresenterChange))
+            return;
+
+        _windowSizeSaveTimer.Stop();
+        _windowSizeSaveTimer.Start();
+    }
+
+    private async void WindowSizeSaveTimer_Tick(Microsoft.UI.Dispatching.DispatcherQueueTimer sender, object args)
+    {
+        if (_isTerminating || AppWindow.Presenter is not Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            return;
+
+        var state = presenter.State;
+        if (state == Microsoft.UI.Windowing.OverlappedPresenterState.Minimized)
+            return;
+
+        var size = AppWindow.Size;
+        var maximised = state == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized;
+        if (!maximised)
+            _preferredWindowSize = size;
+        try
+        {
+            await _optionsService.UpdateAsync(options => maximised
+                ? options with { WindowMaximised = true }
+                : options with { WindowWidth = size.Width, WindowHeight = size.Height, WindowMaximised = false });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not save the window size: {ex.Message}");
+        }
+    }
+
+    internal async Task ResetWindowSizeAsync()
+    {
+        _windowSizeSaveTimer.Stop();
+        await _optionsService.UpdateAsync(options => options with
+        {
+            WindowWidth = null,
+            WindowHeight = null,
+            WindowMaximised = false
+        });
+        _preferredWindowSize = WindowPlacement.DefaultSize;
+        _startMaximised = false;
+        _isApplyingWindowSize = true;
+        try
+        {
+            if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter
+                && presenter.State != Microsoft.UI.Windowing.OverlappedPresenterState.Restored)
+                presenter.Restore();
+        }
+        finally
+        {
+            _isApplyingWindowSize = false;
+        }
+        CentreOnScreen();
+        _windowSizeSaveTimer.Stop();
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
         _isTerminating = true;
+        _windowSizeSaveTimer.Stop();
+        _windowSizeSaveTimer.Tick -= WindowSizeSaveTimer_Tick;
+        AppWindow.Changed -= AppWindow_Changed;
+        _connectionHistoryService.SetWindowVisible(false);
         _protectionModeTimer.Stop();
         _protectionModeTimer.Tick -= ProtectionModeTimer_Tick;
         ShellNavigation.ActualThemeChanged -= ShellNavigation_ActualThemeChanged;
@@ -124,6 +246,7 @@ public sealed partial class MainWindow
         _globalHotkeyService.HotkeyPressed -= GlobalHotkeyService_HotkeyPressed;
         _globalHotkeyService.Dispose();
         _trayIconService.Dispose();
+        ShellRoot.KeyboardAccelerators.Clear();
         if (_previousWindowProc != IntPtr.Zero)
             _ = SetWindowLongPtr(_windowHandle, GwlpWndproc, _previousWindowProc);
     }
@@ -283,6 +406,16 @@ public sealed partial class MainWindow
             Debug.WriteLine($"Timed out reading application details for '{executablePath}'.");
             details = ApplicationDetails.FromMetadata(executablePath, null, null, null);
         }
+        string signature;
+        try
+        {
+            signature = await Task.Run(() => ApplicationSignature.Describe(executablePath))
+                .WaitAsync(TimeSpan.FromSeconds(1), _promptMonitoringCancellation.Token);
+        }
+        catch (TimeoutException)
+        {
+            signature = "Signature verification timed out.";
+        }
         var icon = new Image { Width = 48, Height = 48, Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform };
         try
         {
@@ -318,14 +451,17 @@ public sealed partial class MainWindow
         });
         text.Children.Add(new TextBlock { Text = $"Application: {details.Name}", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"Publisher (unverified file metadata): {details.Publisher}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = $"Signature: {signature}", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"Description (file metadata): {details.Description}", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = "File details may not identify an individual hosted service.", TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = executablePath, TextWrapping = TextWrapping.Wrap });
         text.Children.Add(new TextBlock { Text = $"{entry.Protocol} to {endpoint}", TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = EndpointContext.Describe(entry.RemoteIp), TextWrapping = TextWrapping.Wrap });
         Grid.SetColumn(text, 1);
         applicationDetails.Children.Add(text);
 
         var decision = FirewallPromptDecision.DenyOnce;
+        var temporaryDuration = AppExceptionTimer.FOR_5_MINUTES;
         var content = new StackPanel { Spacing = 8 };
         content.Children.Add(new ScrollViewer
         {
@@ -384,11 +520,30 @@ public sealed partial class MainWindow
         var green = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 11, 106, 57));
         var blue = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 0, 90, 158));
         var red = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 164, 38, 44));
+        var temporaryDurationPicker = new ComboBox
+        {
+            Header = "Temporary allowance duration",
+            ItemsSource = new[]
+            {
+                new TemporaryDurationOption("5 minutes", AppExceptionTimer.FOR_5_MINUTES),
+                new TemporaryDurationOption("30 minutes", AppExceptionTimer.FOR_30_MINUTES),
+                new TemporaryDurationOption("1 hour", AppExceptionTimer.FOR_1_HOUR),
+                new TemporaryDurationOption("4 hours", AppExceptionTimer.FOR_4_HOURS),
+                new TemporaryDurationOption("9 hours", AppExceptionTimer.FOR_9_HOURS),
+                new TemporaryDurationOption("24 hours", AppExceptionTimer.FOR_24_HOURS),
+                new TemporaryDurationOption("Until restart", AppExceptionTimer.UNTIL_REBOOT)
+            },
+            DisplayMemberPath = nameof(TemporaryDurationOption.Label),
+            SelectedIndex = 0,
+            MinWidth = 240
+        };
+        AutomationProperties.SetName(temporaryDurationPicker, "Temporary allowance duration");
+        content.Children.Add(temporaryDurationPicker);
         AddDecisionButton("Allow all outbound", "Always allow this executable to make outbound connections to any IP address or port. This affects every process using it and replaces its application-wide block. Other block rules may still apply.",
             FirewallPromptDecision.AllowAlways, 0, 0, green);
         AddDecisionButton("Deny all traffic", "Always block inbound and outbound traffic for this executable.",
             FirewallPromptDecision.DenyAlways, 0, 1, red);
-        AddDecisionButton("Allow IP and port (5 min)", "Allow this executable to connect to the displayed IP address and port using this protocol for five minutes.",
+        AddDecisionButton("Allow IP and port temporarily", "Allow this executable to connect to the displayed IP address and port using this protocol for the selected duration.",
             FirewallPromptDecision.AllowOnce, 1, 0, blue);
         AddDecisionButton("Allow IP and port always", "Always allow this executable to connect to the displayed IP address and port using this protocol. This replaces its application-wide block; other block rules may still apply.",
             FirewallPromptDecision.AllowDestinationAlways, 1, 1, blue);
@@ -414,6 +569,9 @@ public sealed partial class MainWindow
         {
             expiryTimer.Stop();
         }
+        if (decision == FirewallPromptDecision.AllowOnce
+            && temporaryDurationPicker.SelectedItem is TemporaryDurationOption selectedDuration)
+            temporaryDuration = selectedDuration.Duration;
         if (App.PreviewOptions.BlockedConnectionDialog)
             return true;
         if (expired)
@@ -426,7 +584,7 @@ public sealed partial class MainWindow
         {
             if (!FirewallPromptValidation.TryGetDestination(entry, out _, out _))
             {
-                var invalid = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+                var invalid = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision, temporaryDuration);
                 var denial = await _firewallPromptMonitor.ResolvePendingAsync(entry.PendingConnectionId, false);
                 var message = denial.Success ? invalid.Message : $"{invalid.Message} {denial.Message}";
                 _trayIconService.SetStatus(message);
@@ -441,7 +599,7 @@ public sealed partial class MainWindow
                 return false;
             }
         }
-        var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision);
+        var mutationResult = await _exceptionStore.ApplyFirewallPromptDecisionAsync(entry, decision, temporaryDuration);
         if (mutationResult.Success && decision == FirewallPromptDecision.AllowAlways)
             _firewallPromptBacklog.MarkApplicationAllowed(executablePath, DateTime.Now);
         if (isPending && !allow)
@@ -641,9 +799,10 @@ public sealed partial class MainWindow
         {
             _trayIconService.SetSnapshot(await _controllerCommandService.GetTrayStateSnapshotAsync());
         }
-        catch
+        catch (Exception ex)
         {
-            // Keep the previous snapshot if the service is unavailable.
+            Debug.WriteLine($"Could not refresh tray status: {ex}");
+            _trayIconService.SetStatus($"Firewall service unavailable: {ex.Message}");
         }
         finally
         {
@@ -668,6 +827,9 @@ public sealed partial class MainWindow
                     break;
                 case "connections":
                     ShowPage(typeof(ConnectionsPage));
+                    break;
+                case "activityHistory":
+                    ShowPage(typeof(ConnectionHistoryPage));
                     break;
                 case "processes":
                     ShowPage(typeof(ProcessesPage));
@@ -722,9 +884,10 @@ public sealed partial class MainWindow
                     break;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Debug.WriteLine($"Tray action '{command.Id}' failed: {ex}");
+            _trayIconService.SetStatus($"Action failed: {ex.Message}");
         }
     }
 
@@ -735,6 +898,10 @@ public sealed partial class MainWindow
 
         NavigateTo(GetPageType(tag));
     }
+
+    private void CommandPaletteButton_Click(object sender, RoutedEventArgs e) => _ = ShowCommandPaletteAsync();
+
+    private sealed record TemporaryDurationOption(string Label, AppExceptionTimer Duration);
 
     internal void ShowConnections()
     {
@@ -749,6 +916,7 @@ public sealed partial class MainWindow
             "DataUsage" => typeof(DataUsagePage),
             "Settings" => typeof(SettingsPage),
             "Connections" => typeof(ConnectionsPage),
+            "ActivityHistory" => typeof(ConnectionHistoryPage),
             "Processes" => typeof(ProcessesPage),
             "Services" => typeof(ServicesPage),
             "Exceptions" => typeof(ExceptionsPage),
@@ -758,6 +926,140 @@ public sealed partial class MainWindow
             _ => typeof(OverviewPage)
         };
     }
+
+    private async Task ConfigureConnectionHistoryAsync()
+    {
+        try
+        {
+            var options = await _optionsService.LoadAsync().ConfigureAwait(false);
+            _connectionHistoryService.Configure(options.CollectConnectionHistory, options.ConnectionHistoryRetentionDays);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not configure local connection history: {ex}");
+            _trayIconService.SetStatus($"Could not load history settings: {ex.Message}");
+        }
+    }
+
+    private async Task ShowOnboardingIfNeededAsync()
+    {
+        if (!_isWindowVisible || _hasCheckedOnboarding)
+            return;
+        _hasCheckedOnboarding = true;
+        try
+        {
+            if (!(await _optionsService.LoadAsync()).OnboardingComplete)
+                await ShowGettingStartedAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not read the first-run guide setting: {ex}");
+            _trayIconService.SetStatus($"Getting started guide could not be loaded: {ex.Message}");
+        }
+    }
+
+    internal async Task ShowGettingStartedAsync()
+    {
+        var content = new StackPanel { Spacing = 12 };
+        content.Children.Add(new TextBlock
+        {
+            Text = "Modern TinyWall controls the TinyWall firewall service. Protection is shown as active only when the service confirms its state.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "Use Overview to check protection, Connections to review observed activity, and Exceptions to inspect or change application rules. Allowing an application can grant network access beyond the connection that prompted you.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "Connection history is optional, stored locally, and pauses while this window is hidden. Modern TinyWall does not install or start the firewall service for you.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        AutomationProperties.SetName(content, "Modern TinyWall getting started guide");
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Getting started with Modern TinyWall",
+            Content = content,
+            PrimaryButtonText = "Review application rules",
+            SecondaryButtonText = "Open Overview",
+            CloseButtonText = "Later",
+            DefaultButton = ContentDialogButton.Secondary
+        };
+        var result = await ShowDialogAsync(dialog);
+        await _optionsService.UpdateAsync(options => options with { OnboardingComplete = true });
+        if (result == ContentDialogResult.Primary)
+            ShowPage(typeof(ExceptionsPage));
+        else if (result == ContentDialogResult.Secondary)
+            ShowPage(typeof(OverviewPage));
+    }
+
+    private async Task ShowCommandPaletteAsync()
+    {
+        var commands = new[]
+        {
+            new PaletteCommand("Overview", "Protection status and traffic", typeof(OverviewPage)),
+            new PaletteCommand("Data usage", "Search application traffic totals", typeof(DataUsagePage)),
+            new PaletteCommand("Connections", "Search active, listening and blocked connections", typeof(ConnectionsPage)),
+            new PaletteCommand("Activity history", "Search local connection history", typeof(ConnectionHistoryPage)),
+            new PaletteCommand("Processes", "Find running applications", typeof(ProcessesPage)),
+            new PaletteCommand("Services", "Find Windows services", typeof(ServicesPage)),
+            new PaletteCommand("Packages", "Find packaged applications", typeof(PackagesPage)),
+            new PaletteCommand("Exceptions", "Search firewall rules and exceptions", typeof(ExceptionsPage)),
+            new PaletteCommand("Settings", "Configure firewall and service options", typeof(SettingsPage)),
+            new PaletteCommand("Options", "Configure Modern TinyWall and history", typeof(OptionsPage)),
+            new PaletteCommand("Getting started", "Open the first-run guide", null)
+        };
+        var searchBox = new TextBox { PlaceholderText = "Search pages and actions" };
+        AutomationProperties.SetName(searchBox, "Search pages and actions");
+        var results = new ListView
+        {
+            MaxHeight = 360,
+            SelectionMode = ListViewSelectionMode.Single,
+            DisplayMemberPath = nameof(PaletteCommand.Label),
+            ItemsSource = commands
+        };
+        results.SelectedIndex = 0;
+        void FilterCommands()
+        {
+            var matches = commands.Where(command =>
+                command.Label.Contains(searchBox.Text, StringComparison.CurrentCultureIgnoreCase)
+                || command.Description.Contains(searchBox.Text, StringComparison.CurrentCultureIgnoreCase)).ToArray();
+            results.ItemsSource = matches;
+            results.SelectedIndex = matches.Length > 0 ? 0 : -1;
+        }
+        searchBox.TextChanged += (_, _) => FilterCommands();
+        searchBox.KeyDown += (_, args) =>
+        {
+            if (args.Key == VirtualKey.Down && results.Items.Count > 0)
+            {
+                results.Focus(FocusState.Programmatic);
+                args.Handled = true;
+            }
+        };
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(searchBox);
+        panel.Children.Add(results);
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Command palette",
+            Content = panel,
+            PrimaryButtonText = "Open",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary
+        };
+        var result = await ShowDialogAsync(dialog);
+        if (result != ContentDialogResult.Primary || results.SelectedItem is not PaletteCommand selected)
+            return;
+        if (selected.PageType is null)
+            await ShowGettingStartedAsync();
+        else
+            ShowPage(selected.PageType);
+    }
+
+    private sealed record PaletteCommand(string Label, string Description, Type? PageType);
 
     private async void NavigateTo(Type pageType)
     {
@@ -982,6 +1284,9 @@ public sealed partial class MainWindow
             return;
 
         _isWindowVisible = isVisible;
+        _connectionHistoryService.SetWindowVisible(isVisible);
+        if (isVisible && ShellRoot.IsLoaded)
+            _ = ShowOnboardingIfNeededAsync();
         if (!isVisible)
             _navigationFadeCancellation?.Cancel();
         WindowVisibilityChanged?.Invoke(isVisible);

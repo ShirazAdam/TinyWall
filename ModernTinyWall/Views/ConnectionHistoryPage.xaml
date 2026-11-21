@@ -1,0 +1,89 @@
+<Page
+    x:Class="ModernTinyWall.Views.ConnectionHistoryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels="using:ModernTinyWall.ViewModels"
+    xmlns:services="using:ModernTinyWall.Services"
+    xmlns:controls="using:ModernTinyWall.Controls">
+
+    <Grid Padding="32" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Activity history" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="Sampled connection records observed while Modern TinyWall is visible. First and last seen do not imply continuous activity."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <InfoBar Grid.Row="1" IsOpen="True" Severity="Informational"
+                 Title="Stored on this PC"
+                 Message="History can include application names or executable paths, IP addresses and ports. Collection is opt-in in Options, pauses while the window is hidden, and is automatically pruned using your retention setting." />
+
+        <Grid Grid.Row="2" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox PlaceholderText="Search application, address or state"
+                     Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.Name="Search connection history"
+                     TextChanged="SearchBox_TextChanged" />
+            <Button Grid.Column="1" Content="Refresh" Click="Refresh_Click" />
+            <Button Grid.Column="2" Content="Clear history" Click="Clear_Click" />
+        </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+            <Button Content="Application timeline" Click="Timeline_Click"
+                    ToolTipService.ToolTip="Select a connection to view observations for that application." />
+            <Button Content="All applications" Click="AllApplications_Click" />
+            <Button Content="Blocked activity digest" Click="BlockedDigest_Click" />
+            <TextBlock Text="{x:Bind ViewModel.TimelineLabel, Mode=OneWay}" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <Grid Grid.Row="4" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <ProgressRing Width="18" Height="18" IsActive="{x:Bind ViewModel.IsRefreshing, Mode=OneWay}" />
+                <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" VerticalAlignment="Center" />
+            </StackPanel>
+            <Border Grid.Row="1" BorderBrush="{ThemeResource ModernBorderBrush}"
+                    BorderThickness="1" CornerRadius="12" Background="{ThemeResource ModernSurfaceBrush}">
+                <controls:TableView x:Name="HistoryList" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}">
+                    <controls:TableView.ItemTemplate>
+                        <DataTemplate x:DataType="services:ConnectionHistoryEntry">
+                            <Grid controls:TableView.IsRow="True" Padding="8" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="120" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{x:Bind Application}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Application}" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind Protocol}" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind LocalEndpoint}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="3" Text="{x:Bind RemoteEndpoint}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="4" Text="{x:Bind State}" />
+                                <TextBlock Grid.Column="5" Text="{x:Bind FirstSeenText}" />
+                                <TextBlock Grid.Column="6" Text="{x:Bind LastSeenText}" />
+                            </Grid>
+                        </DataTemplate>
+                    </controls:TableView.ItemTemplate>
+                </controls:TableView>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>
