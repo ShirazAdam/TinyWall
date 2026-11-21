@@ -93,6 +93,22 @@ public sealed class TableTests
     }
 
     [TestMethod]
+    public void GroupedTablesAlignSingleAndGroupRowsWithoutMovingOtherColumns()
+    {
+        var groupIndent = TableRowLayout.Indent(groupingEnabled: true, isGroup: true, isChild: false);
+        var singleIndent = TableRowLayout.Indent(groupingEnabled: true, isGroup: false, isChild: false);
+        var childIndent = TableRowLayout.Indent(groupingEnabled: true, isGroup: false, isChild: true);
+
+        Assert.AreEqual(groupIndent + TableRowLayout.GroupToggleWidth + TableRowLayout.GroupToggleSpacing, singleIndent);
+        Assert.IsGreaterThan(singleIndent, childIndent);
+        Assert.AreEqual(0, TableRowLayout.Indent(groupingEnabled: false, isGroup: false, isChild: false));
+        Assert.AreEqual(0, TableRowLayout.Indent(groupingEnabled: false, isGroup: false, isChild: true));
+
+        var narrowWidth = new TablePreferences { ColumnWidths = new() { ["name"] = 48 } }.GetWidth("name", 300);
+        Assert.IsLessThanOrEqualTo(narrowWidth, childIndent);
+    }
+
+    [TestMethod]
     public void RowsWithTheSameNameAreGroupedWithCountsAndExpandInSortedPosition()
     {
         var chrome1 = new Row("chrome.exe", 30, "443", "a");

@@ -49,6 +49,18 @@ internal sealed class TableColumn(string key, string heading, double width, ICom
             : throw new InvalidOperationException($"Column '{key}' received an unexpected row type."));
 }
 
+internal static class TableRowLayout
+{
+    internal const double GroupToggleWidth = 20;
+    internal const double GroupToggleSpacing = 6;
+    private const double GroupChildIndent = 20;
+
+    internal static double Indent(bool groupingEnabled, bool isGroup, bool isChild) =>
+        groupingEnabled && !isGroup
+            ? GroupToggleWidth + GroupToggleSpacing + (isChild ? GroupChildIndent : 0)
+            : 0;
+}
+
 internal sealed class TableGroup : INotifyPropertyChanged
 {
     internal TableGroup(string key) => Key = key;

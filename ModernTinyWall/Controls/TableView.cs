@@ -36,7 +36,6 @@ public sealed class TableView : Grid
         "RowItem", typeof(object), typeof(TableView), new PropertyMetadata(null));
     private static readonly DependencyProperty BasePaddingProperty = DependencyProperty.RegisterAttached(
         "BasePadding", typeof(object), typeof(TableView), new PropertyMetadata(null));
-    private const double GroupIndent = 28;
     private static readonly Dictionary<string, HashSet<string>> ExpandedGroups = new();
 
     private readonly IOptionsService _options = new OptionsService();
@@ -235,13 +234,12 @@ public sealed class TableView : Grid
             row.ColumnDefinitions.Add(new ColumnDefinition());
         while (row.ColumnDefinitions.Count > _columns.Count)
             row.ColumnDefinitions.RemoveAt(row.ColumnDefinitions.Count - 1);
-        var name = new Grid { ColumnSpacing = 6 };
-        name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var name = new Grid { ColumnSpacing = TableRowLayout.GroupToggleSpacing };
+        name.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(TableRowLayout.GroupToggleWidth) });
         name.ColumnDefinitions.Add(new ColumnDefinition());
         var toggle = new Button
         {
-            Width = 20,
+            Width = TableRowLayout.GroupToggleWidth,
             Height = 20,
             Padding = new Thickness(0),
             VerticalAlignment = VerticalAlignment.Center,
@@ -252,11 +250,13 @@ public sealed class TableView : Grid
         };
         toggle.Click += (_, _) => SetGroupExpanded(group, !group.IsExpanded);
         name.Children.Add(toggle);
-        if (group.IconPath is { } iconPath)
+
+        var nameContent = new Grid { ColumnSpacing = 8 };
+        if (_groupIconPath is not null)
         {
-            var icon = new ApplicationIcon { SourcePath = iconPath };
-            SetColumn(icon, 1);
-            name.Children.Add(icon);
+            nameContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            nameContent.ColumnDefinitions.Add(new ColumnDefinition());
+            nameContent.Children.Add(new ApplicationIcon { SourcePath = group.IconPath ?? string.Empty });
         }
         var label = new TextBlock
         {
@@ -266,8 +266,11 @@ public sealed class TableView : Grid
             VerticalAlignment = VerticalAlignment.Center
         };
         ToolTipService.SetToolTip(label, group.Label);
-        SetColumn(label, 2);
-        name.Children.Add(label);
+        if (_groupIconPath is not null)
+            SetColumn(label, 1);
+        nameContent.Children.Add(label);
+        SetColumn(nameContent, 1);
+        name.Children.Add(nameContent);
         row.Children.Add(name);
 
         for (var index = 1; index < _columns.Count; index++)
@@ -388,7 +391,8 @@ public sealed class TableView : Grid
             basePadding = row.Padding;
             row.SetValue(BasePaddingProperty, basePadding);
         }
-        var indent = item is not null and not TableGroup && _groupedItems.Contains(item) ? GroupIndent : 0;
+        var indent = TableRowLayout.Indent(_groupingEnabled && item is not null,
+            item is TableGroup, item is not null && _groupedItems.Contains(item));
         row.Padding = new Thickness(basePadding.Left + indent, basePadding.Top, basePadding.Right, basePadding.Bottom);
         for (var index = 0; index < _columns.Count; index++)
         {
