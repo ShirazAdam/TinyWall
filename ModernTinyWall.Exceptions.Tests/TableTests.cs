@@ -3,6 +3,8 @@ using ModernTinyWall.Models;
 using ModernTinyWall.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -138,6 +140,47 @@ public sealed class TableTests
 
         Assert.AreEqual("azmcp (2)", ((TableGroup)byProcess.Single()).Label);
         Assert.AreEqual("Setup (x86)", TableGrouping.WithoutProcessId("Setup (x86)"));
+    }
+
+    [TestMethod]
+    public void ExpandingAndCollapsingOnlyChangesTheGroupsChildren()
+    {
+        var first = new Row("alpha", 1, "", "");
+        var second = new Row("alpha", 2, "", "");
+        var otherFirst = new Row("beta", 3, "", "");
+        var otherSecond = new Row("beta", 4, "", "");
+        var columns = new[] { TableColumn.Text<Row>("name", "Name", 200, row => row.Name) };
+        var groups = new Dictionary<string, TableGroup>();
+        var grouped = new HashSet<object>();
+        var items = new ObservableCollection<object>(TableGrouping.Build(
+            [first, second, otherFirst, otherSecond], columns, null, new HashSet<string>(), groups, grouped));
+        var alpha = (TableGroup)items[0];
+        var beta = (TableGroup)items[1];
+        var actions = new List<NotifyCollectionChangedAction>();
+        items.CollectionChanged += (_, args) => actions.Add(args.Action);
+
+        TableGrouping.SetExpanded(items, alpha, true);
+
+        CollectionAssert.AreEqual(new object[] { alpha, first, second, beta }, items.ToArray());
+        CollectionAssert.AreEqual(new[] { NotifyCollectionChangedAction.Add, NotifyCollectionChangedAction.Add }, actions);
+        Assert.IsTrue(alpha.IsExpanded);
+
+        actions.Clear();
+        TableGrouping.SetExpanded(items, beta, true);
+        TableGrouping.SetExpanded(items, alpha, false);
+
+        CollectionAssert.AreEqual(new object[] { alpha, beta, otherFirst, otherSecond }, items.ToArray());
+        CollectionAssert.AreEqual(new[]
+        {
+            NotifyCollectionChangedAction.Add, NotifyCollectionChangedAction.Add,
+            NotifyCollectionChangedAction.Remove, NotifyCollectionChangedAction.Remove
+        }, actions);
+        Assert.IsFalse(alpha.IsExpanded);
+        Assert.IsTrue(beta.IsExpanded);
+
+        actions.Clear();
+        TableGrouping.SetExpanded(items, alpha, false);
+        Assert.IsEmpty(actions);
     }
 
     private static string[] Names(IReadOnlyList<object> rows) => rows.OfType<Row>().Select(row => row.Name).ToArray();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Globalization;
@@ -73,6 +74,12 @@ internal sealed class TableGroup : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
 
+    internal void SetExpanded(bool expanded)
+    {
+        IsExpanded = expanded;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpanded)));
+    }
+
     public override string ToString() => $"{Label}, {(IsExpanded ? "expanded" : "collapsed")}";
 }
 
@@ -84,6 +91,28 @@ internal static partial class TableGrouping
 
     [GeneratedRegex(@"\s+\(\d+\)\s*$")]
     private static partial Regex ProcessIdSuffix();
+
+    internal static void SetExpanded(ObservableCollection<object> displayedItems, TableGroup group, bool expanded)
+    {
+        if (group.IsExpanded == expanded)
+            return;
+
+        var index = displayedItems.IndexOf(group);
+        if (index < 0)
+            throw new InvalidOperationException("The group is not present in the displayed table.");
+
+        if (expanded)
+        {
+            foreach (var item in group.Items)
+                displayedItems.Insert(++index, item);
+        }
+        else
+        {
+            for (var itemIndex = 0; itemIndex < group.Items.Count; itemIndex++)
+                displayedItems.RemoveAt(index + 1);
+        }
+        group.SetExpanded(expanded);
+    }
 
     // Groups rows sharing the first column's name. Groups keep the position of their best-sorted row;
     // single rows stay as plain rows and expanded groups are followed by their rows.

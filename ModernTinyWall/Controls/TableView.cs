@@ -10,6 +10,7 @@ using ModernTinyWall.Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using Windows.System;
@@ -48,7 +49,7 @@ public sealed class TableView : Grid
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private IReadOnlyList<TableColumn> _columns = [];
     private IReadOnlyList<object> _orderedItems = [];
-    private IReadOnlyList<object> _displayedItems = [];
+    private ObservableCollection<object> _displayedItems = [];
     private readonly TableTemplateSelector _templates = new();
     private readonly Dictionary<string, TableGroup> _groups = new();
     private readonly HashSet<object> _groupedItems = new(ReferenceEqualityComparer.Instance);
@@ -163,11 +164,13 @@ public sealed class TableView : Grid
     {
         if (group.IsExpanded == expanded)
             return;
+        TableGrouping.SetExpanded(_displayedItems, group, expanded);
         if (expanded)
             _expandedKeys.Add(group.Key);
         else
             _expandedKeys.Remove(group.Key);
-        RefreshItems(force: true);
+        if ((_list.ContainerFromItem(group) as ListViewItem)?.ContentTemplateRoot is Grid row)
+            UpdateGroupExpansionVisual(row, group);
         if (SelectionMode == ListViewSelectionMode.Single)
             _list.SelectedItem = group;
     }
@@ -232,8 +235,6 @@ public sealed class TableView : Grid
             row.ColumnDefinitions.Add(new ColumnDefinition());
         while (row.ColumnDefinitions.Count > _columns.Count)
             row.ColumnDefinitions.RemoveAt(row.ColumnDefinitions.Count - 1);
-        AutomationProperties.SetName(row, group.ToString());
-
         var name = new Grid { ColumnSpacing = 6 };
         name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -247,10 +248,8 @@ public sealed class TableView : Grid
             BorderThickness = new Thickness(0),
             Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
             IsTabStop = false,
-            Content = new FontIcon { Glyph = group.IsExpanded ? "\uE70D" : "\uE76C", FontSize = 10 }
+            Content = new FontIcon { FontSize = 10 }
         };
-        AutomationProperties.SetName(toggle, $"{(group.IsExpanded ? "Collapse" : "Expand")} {group.Name}");
-        ToolTipService.SetToolTip(toggle, group.IsExpanded ? "Collapse group" : "Expand group");
         toggle.Click += (_, _) => SetGroupExpanded(group, !group.IsExpanded);
         name.Children.Add(toggle);
         if (group.IconPath is { } iconPath)
@@ -283,6 +282,16 @@ public sealed class TableView : Grid
             SetColumn(cell, index);
             row.Children.Add(cell);
         }
+        UpdateGroupExpansionVisual(row, group);
+    }
+
+    private static void UpdateGroupExpansionVisual(Grid row, TableGroup group)
+    {
+        var toggle = (Button)((Grid)row.Children[0]).Children[0];
+        ((FontIcon)toggle.Content).Glyph = group.IsExpanded ? "\uE70D" : "\uE76C";
+        AutomationProperties.SetName(row, group.ToString());
+        AutomationProperties.SetName(toggle, $"{(group.IsExpanded ? "Collapse" : "Expand")} {group.Name}");
+        ToolTipService.SetToolTip(toggle, group.IsExpanded ? "Collapse group" : "Expand group");
     }
 
     private void BuildHeader()
@@ -474,8 +483,8 @@ public sealed class TableView : Grid
         var displayed = _groupingEnabled
             ? TableGrouping.Build(sorted, _columns, _groupIconPath, _expandedKeys, _groups, _groupedItems, _groupName)
             : sorted;
-        _displayedItems = displayed;
-        _list.ItemsSource = displayed;
+        _displayedItems = new ObservableCollection<object>(displayed);
+        _list.ItemsSource = _displayedItems;
         if (SelectionMode == ListViewSelectionMode.Single)
             _list.SelectedItem = selected.FirstOrDefault(item => displayed.Contains(item));
         else if (SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)
