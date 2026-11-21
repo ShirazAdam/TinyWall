@@ -4,6 +4,7 @@ using ModernTinyWall.Windows;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ModernTinyWall.Exceptions.Tests;
 
@@ -76,5 +77,24 @@ public sealed class ApplicationFileInformationTests
         StringAssert.Contains(ApplicationSignature.DescribeResult(WinTrust.VerifyResult.SIGNATURE_MISSING), "No embedded");
         StringAssert.Contains(ApplicationSignature.DescribeResult(WinTrust.VerifyResult.SIGNATURE_INVALID), "could not be verified");
         StringAssert.Contains(ApplicationSignature.DescribeResult(WinTrust.VerifyResult.SIGNATURE_VALID), "cached revocation");
+    }
+
+    [TestMethod]
+    public void SignedRuntimeFileRemainsStableDuringConcurrentMetadataReads()
+    {
+        var path = Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location)!, "coreclr.dll");
+        var expected = ApplicationFileInformation.Read(new("Runtime", path));
+        Assert.IsNull(expected.Error);
+        Assert.IsNotNull(expected.Signature);
+        Assert.AreNotEqual(WinTrust.VerifyResult.SIGNATURE_MISSING, expected.Signature);
+
+        Parallel.For(0, 16, _ =>
+        {
+            GC.Collect();
+            var information = ApplicationFileInformation.Read(new("Runtime", path));
+            Assert.IsNull(information.Error);
+            Assert.AreEqual(expected.Signature, information.Signature);
+            Assert.AreEqual("coreclr.dll", information.Fields.Single(field => field.Key == "File name").Value);
+        });
     }
 }

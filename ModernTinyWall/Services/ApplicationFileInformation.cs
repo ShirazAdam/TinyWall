@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
+using ModernTinyWall.Windows;
 
 namespace ModernTinyWall.Services;
 
@@ -13,7 +14,8 @@ internal sealed record ApplicationFileTarget(string Name, string FilePath, strin
     public string DisplayName => string.IsNullOrWhiteSpace(FilePath) ? Name : FilePath;
 }
 
-internal sealed record ApplicationFileInformation(IReadOnlyList<KeyValuePair<string, string>> Fields, string? Error)
+internal sealed record ApplicationFileInformation(IReadOnlyList<KeyValuePair<string, string>> Fields, string? Error,
+    WinTrust.VerifyResult? Signature = null)
 {
     internal static IReadOnlyList<ApplicationFileTarget> DistinctFiles(IEnumerable<ApplicationFileTarget> targets) =>
         targets.DistinctBy(target => string.IsNullOrWhiteSpace(target.FilePath)
@@ -36,8 +38,10 @@ internal sealed record ApplicationFileInformation(IReadOnlyList<KeyValuePair<str
             var file = new FileInfo(target.FilePath);
             fields.Add(new("File name", file.Name));
             var version = FileVersionInfo.GetVersionInfo(file.FullName);
+            var signature = ApplicationSignature.Verify(file.FullName);
             fields.Add(new("Publisher (unverified file metadata)", Available(version.CompanyName)));
-            fields.Add(new("Digitally signed (embedded signature)", ApplicationSignature.Describe(file.FullName)));
+            fields.Add(new("Digitally signed (embedded signature)", signature is { } result
+                ? ApplicationSignature.DescribeResult(result) : "Signature verification unavailable."));
             fields.Add(new("Size", $"{file.Length.ToString("N0", CultureInfo.CurrentCulture)} bytes"));
             fields.Add(new("Created", file.CreationTime.ToString("G")));
             fields.Add(new("Modified", file.LastWriteTime.ToString("G")));
@@ -48,7 +52,7 @@ internal sealed record ApplicationFileInformation(IReadOnlyList<KeyValuePair<str
             fields.Add(new("Product version", Available(version.ProductVersion)));
             fields.Add(new("Original file name", Available(version.OriginalFilename)));
             fields.Add(new("Copyright", Available(version.LegalCopyright)));
-            return new(fields, null);
+            return new(fields, null, signature);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or SecurityException)
         {
