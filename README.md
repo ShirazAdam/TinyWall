@@ -10,7 +10,7 @@
 
 # TinyWall / Modern TinyWall
 
-Modern TinyWall is version **4.7.20**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
+Modern TinyWall is version **4.7.21**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
 
 ![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
 
@@ -28,7 +28,7 @@ Modern TinyWall is version **4.7.20**; legacy TinyWall and the repository's shar
 - **Command palette:** press **Ctrl+K** or choose **Search commands** to find Modern TinyWall pages and workflows.
 - **Private connection history:** optional local-only history captures observed active, listening and recent blocked connections while the window is visible. It is off by default, supports 7/30/90-day retention, and can be cleared from the Activity history or Options views.
 - **Flexible temporary allowances:** blocked-connection prompts offer 5 minutes, 30 minutes, 1, 4, 9 or 24 hours, or until restart. Temporary exceptions show their expiry status in Exceptions.
-- **First-run guidance and tray status:** a one-time guide explains service status and rule scope; the tray tooltip and menu surface the latest status or action error.
+- **First-run guidance and tray status:** a one-time guide explains service status and rule scope; the tray menu uses a compact status line, while the tooltip retains the longer status or action error.
 - **Local rule organisation:** add and filter local tags, or select and remove several exceptions in one confirmed service update.
 - **Connection context:** the blocked prompt checks the executable's embedded signature using Windows trust and cached revocation information; connection details show local address classifications without external lookups.
 - **History insights:** view the sampled observations for one application or a digest of stored blocked-connection records by application.
@@ -80,6 +80,8 @@ The window opens centred within the current monitor's work area, fitting the ref
 The Connections view keeps headers and results aligned, with horizontal scrolling on narrower windows. Press Enter/Return in the search box or select **Filter/Refresh** to reload results using the search text and selected connection types.
 
 The Connections, Data usage, Activity history, Processes, Services, Packages and Exceptions tables share fixed headers and resizable columns. Click any heading to sort by that column; click it again to reverse the direction. Drag the right edge of a heading to resize it, or focus its resize handle and use the left/right arrow keys. Numeric ports and byte totals sort numerically, and date columns sort chronologically. Widths and sorting are saved per table in the local Modern TinyWall options file and restored after navigation or restart. Data usage CSV exports use the visible table order.
+
+The Processes, Services and Packages views omit inactive OK/Cancel footers, leaving more room for their tables. Functional settings and exception actions remain available.
 
 The Processes, Connections, Activity history, Data usage and Exceptions tables group rows that share the same name in the first column, similar to Windows Task Manager. A group row shows the name followed by the number of rows in brackets, plus any values its rows share; select the arrow, double-click the group, or press Right/Left (or Enter/Space) to expand or collapse it. Single rows reserve space for the arrow so their names and icons align with group rows. Expanded rows are indented beneath their group, groups follow the current sort order, names that appear only once stay as ordinary rows, and expanded groups are remembered while the app is open.
 

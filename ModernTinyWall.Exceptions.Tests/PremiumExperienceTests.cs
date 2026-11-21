@@ -76,6 +76,29 @@ public sealed class PremiumExperienceTests
     }
 
     [TestMethod]
+    public void TrayStatusKeepsShortWarningsAndBoundsLongMessages()
+    {
+        const string warning = "Prompt monitoring unavailable; blocked.";
+        Assert.AreEqual(warning, TrayStatusText.Compact($"  {warning}  "));
+        Assert.AreEqual("Action failed. See details.", TrayStatusText.Compact("Action failed.\nSee details."));
+
+        var shortened = TrayStatusText.Compact("Could not monitor outbound connection prompts. Connections remain blocked.");
+        Assert.IsLessThanOrEqualTo(48, shortened.Length);
+        StringAssert.StartsWith(shortened, "Could not monitor");
+        StringAssert.EndsWith(shortened, "...");
+    }
+
+    [TestMethod]
+    public void TrayStatusDoesNotSplitUnicodeAtTheClippingBoundary()
+    {
+        var shortened = TrayStatusText.Compact(new string('x', 44) + "\U0001F512" + new string('y', 20));
+
+        Assert.IsLessThanOrEqualTo(48, shortened.Length);
+        Assert.IsFalse(char.IsHighSurrogate(shortened[^4]));
+        StringAssert.EndsWith(shortened, "...");
+    }
+
+    [TestMethod]
     public void HistoryDigestAndTimelineGroupOnlyObservedRecords()
     {
         var now = DateTimeOffset.UtcNow;

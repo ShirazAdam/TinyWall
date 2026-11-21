@@ -329,7 +329,7 @@ public sealed partial class MainWindow
             {
                 Debug.WriteLine($"Could not monitor outbound firewall events: {ex}");
                 _firewallPromptMonitor.ClearPending();
-                _trayIconService.SetStatus("Could not monitor outbound connection prompts. Connections remain blocked.");
+                _trayIconService.SetStatus("Prompt monitoring unavailable; blocked.");
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
