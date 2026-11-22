@@ -10,9 +10,11 @@
 
 # TinyWall / Modern TinyWall
 
-Modern TinyWall is version **4.7.23**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
+Modern TinyWall is version **4.7.24**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
 
-> Screenshots are temporarily omitted while the gallery is refreshed. The existing images in `Docs` predate the latest application-view changes and are not embedded here.
+![Modern TinyWall Overview showing protection status, traffic activity and protection modes](Docs/modern-tinywall-overview.png)
+
+*These screenshots show Modern TinyWall without a connected TinyWall service. Service-backed data is therefore unavailable; the Processes, Services and Packages captures use search filters with no matches.*
 
 ## What's new in Modern TinyWall
 
@@ -41,7 +43,27 @@ Modern TinyWall is version **4.7.23**; legacy TinyWall and the repository's shar
 
 ### Application views
 
-The **Processes** and **Services** views let you find running applications and Windows services by name or path. The **Packages** view lists discovered Microsoft Store packages and their publishers and security identifiers. Updated application-only screenshots will be added when suitable captures are available.
+The **Processes** and **Services** views let you find running applications and Windows services by name or path. The **Packages** view lists discovered Microsoft Store packages and their publishers and security identifiers.
+
+| Data usage | Connections |
+|:--:|:--:|
+| <img src="Docs/modern-tinywall-data-usage.png" width="720" alt="Data usage view with period selector, export control and an empty table because the service is unavailable"> | <img src="Docs/modern-tinywall-connections.png" width="720" alt="Connections view with active, listening and blocked filters"> |
+
+| Activity history | Processes |
+|:--:|:--:|
+| <img src="Docs/modern-tinywall-activity-history.png" width="720" alt="Activity history view with local-history notice and filtering controls"> | <img src="Docs/modern-tinywall-processes.png" width="720" alt="Processes view filtered to a query with no matching processes"> |
+
+| Services | Packages |
+|:--:|:--:|
+| <img src="Docs/modern-tinywall-services.png" width="720" alt="Services view filtered to a query with no matching services"> | <img src="Docs/modern-tinywall-packages.png" width="720" alt="Packages view filtered to a query with no matching packages"> |
+
+| Exceptions | Settings |
+|:--:|:--:|
+| <img src="Docs/modern-tinywall-exceptions.png" width="720" alt="Exceptions view with type, policy, age and tag filters"> | <img src="Docs/modern-tinywall-settings.png" width="720" alt="Settings view with general and machine settings; service values are unavailable"> |
+
+| Options |
+|:--:|
+| <img src="Docs/modern-tinywall-options.png" width="720" alt="Options view with tray, Overview card and connection-history preferences"> |
 
 The TinyWall service is still required for firewall control and classified traffic tracking. Without it, the dashboard clearly reports unavailable service data and labels total rates as adapter traffic.
 
