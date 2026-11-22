@@ -1,6 +1,6 @@
 ### Please note that this is an experimental work in progress. Modern TinyWall runs on WinUI 3/.NET 10, along with TinyWall that runs on WinForms/.NET 10. The application responsiveness of Modern TinyWall already surpasses legacy TinyWall.
 
-[![.NET 10 Desktop](https://github.com/ShirazAdam/TinyWall/actions/workflows/dotnet-desktop.yml/badge.svg?branch=upgrade-to-NET10)](https://github.com/ShirazAdam/TinyWall/actions/workflows/dotnet-desktop.yml)
+[![.NET 10 Desktop](https://github.com/ShirazAdam/TinyWall/actions/workflows/dotnet-desktop.yml/badge.svg?branch=master)](https://github.com/ShirazAdam/TinyWall/actions/workflows/dotnet-desktop.yml)
 
 [![Automatic Dependency Submission](https://github.com/ShirazAdam/TinyWall/actions/workflows/dependency-graph/auto-submission/badge.svg)](https://github.com/ShirazAdam/TinyWall/actions/workflows/dependency-graph/auto-submission)
 
@@ -10,11 +10,9 @@
 
 # TinyWall / Modern TinyWall
 
-Modern TinyWall is version **4.7.22**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
+Modern TinyWall is version **4.7.23**; legacy TinyWall and the repository's shared libraries retain version **4.7.8**. Each project keeps its own version. The Modern TinyWall version determines the release archives, MSI ProductVersion and GitHub tag when `master` builds pass.
 
-![Modern TinyWall Overview in dark mode, showing status cards, adapter traffic and five protection modes](Docs/modern-tinywall-overview-current.jpg)
-
-*These screenshots show the running application without a connected TinyWall service. Protection status, blocked-event counts and classified traffic are unavailable; adapter totals and established TCP connection counts remain visible.*
+> Screenshots are temporarily omitted while the gallery is refreshed. The existing images in `Docs` predate the latest application-view changes and are not embedded here.
 
 ## What's new in Modern TinyWall
 
@@ -43,15 +41,7 @@ Modern TinyWall is version **4.7.22**; legacy TinyWall and the repository's shar
 
 ### Application views
 
-The **Processes** and **Services** views let you find running applications and Windows services by name or path. The examples below are filtered to Windows processes and services.
-
-![Processes view filtered to svchost processes, showing related services and executable paths](Docs/modern-tinywall-processes.jpg)
-
-![Services view filtered to application services, showing service names and executable paths](Docs/modern-tinywall-services.jpg)
-
-The **Packages** view lists discovered Microsoft Store packages and their publishers and security identifiers. This example is filtered to Windows packages.
-
-![Packages view filtered to Microsoft Windows packages](Docs/modern-tinywall-packages.jpg)
+The **Processes** and **Services** views let you find running applications and Windows services by name or path. The **Packages** view lists discovered Microsoft Store packages and their publishers and security identifiers. Updated application-only screenshots will be added when suitable captures are available.
 
 The TinyWall service is still required for firewall control and classified traffic tracking. Without it, the dashboard clearly reports unavailable service data and labels total rates as adapter traffic.
 
